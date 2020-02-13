@@ -10,6 +10,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
 import 'button_bar.dart';
+import 'button_theme.dart';
 import 'color_scheme.dart';
 import 'colors.dart';
 import 'debug.dart';
@@ -876,6 +877,7 @@ class _TimePickerHeader2018 extends StatelessWidget {
     @required this.onModeChanged,
     @required this.onChanged,
     @required this.use24HourDials,
+    @required this.helperText,
   }) : assert(selectedTime != null),
         assert(mode != null),
         assert(orientation != null),
@@ -887,6 +889,7 @@ class _TimePickerHeader2018 extends StatelessWidget {
   final ValueChanged<_TimePickerMode> onModeChanged;
   final ValueChanged<TimeOfDay> onChanged;
   final bool use24HourDials;
+  final String helperText;
 
   void _handleChangeMode(_TimePickerMode value) {
     if (value != mode)
@@ -959,7 +962,7 @@ class _TimePickerHeader2018 extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           const SizedBox(height: 16.0),
-          Text('SELECT TIME', style: textTheme.overline),
+          Text(helperText ?? 'SELECT TIME', style: textTheme.overline),
           const SizedBox(height: 24.0),
           Container(
             height: 80.0,
@@ -1008,8 +1011,8 @@ class _HourControl2018 extends StatelessWidget {
       alwaysUse24HourFormat: alwaysUse24HourFormat,
     );
     final Color backgroundColor = fragmentContext.mode == _TimePickerMode.hour
-        ? Theme.of(context).colorScheme.primary.withOpacity(0.12)
-        : Theme.of(context).colorScheme.onBackground.withOpacity(0.06);
+        ? fragmentContext.activeColor.withOpacity(0.12)
+        : fragmentContext.inactiveColor.withOpacity(0.06);
 
     TimeOfDay hoursFromSelected(int hoursToAdd) {
       if (fragmentContext.use24HourDials) {
@@ -1053,7 +1056,7 @@ class _HourControl2018 extends StatelessWidget {
       child: Material(
         color: backgroundColor,
         clipBehavior: Clip.antiAlias,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4.0)), // TODO: Theming
         child: InkWell(
           onTap: Feedback.wrapForTap(() => fragmentContext.onModeChange(_TimePickerMode.hour), context),
           child: Center(
@@ -1118,8 +1121,8 @@ class _MinuteControl2018 extends StatelessWidget {
     );
     final String formattedPreviousMinute = localizations.formatMinute(previousMinute);
     final Color backgroundColor = fragmentContext.mode == _TimePickerMode.minute
-        ? Theme.of(context).colorScheme.primary.withOpacity(0.12)
-        : Theme.of(context).colorScheme.onBackground.withOpacity(0.06);
+        ? fragmentContext.activeColor.withOpacity(0.12)
+        : fragmentContext.inactiveColor.withOpacity(0.06);
 
     return Semantics(
       excludeSemantics: true,
@@ -1136,7 +1139,7 @@ class _MinuteControl2018 extends StatelessWidget {
       child: Material(
         color: backgroundColor,
         clipBehavior: Clip.antiAlias,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4.0)), // TODO: Theming
         child: InkWell(
           onTap: Feedback.wrapForTap(() => fragmentContext.onModeChange(_TimePickerMode.minute), context),
           child: Center(
@@ -1296,7 +1299,7 @@ class _DayPeriodControl2018 extends StatelessWidget {
       child: Material(
         clipBehavior: Clip.antiAlias,
         shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(4.0), // TODO: Theming
             side: BorderSide(
               color: Theme.of(context).dividerColor,
             )
@@ -1942,6 +1945,7 @@ class _TimePickerDialog extends StatefulWidget {
     Key key,
     @required this.initialTime,
     @required this.use2018Style,
+    @required this.helperText,
   }) : assert(initialTime != null),
        super(key: key);
 
@@ -1950,6 +1954,9 @@ class _TimePickerDialog extends StatefulWidget {
 
   /// Uses the updated 2018 Material Design time picker style.
   final bool use2018Style;
+
+  /// Optionally provide your own help text to the header of the 2018 time picker.
+  final String helperText;
 
   @override
   _TimePickerDialogState createState() => _TimePickerDialogState();
@@ -2080,6 +2087,9 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
     );
 
     final Widget actions = ButtonBar(
+      layoutBehavior: widget.use2018Style
+          ? ButtonBarLayoutBehavior.constrained
+          : ButtonBarLayoutBehavior.padded,
       children: <Widget>[
         FlatButton(
           child: Text(localizations.cancelButtonLabel),
@@ -2105,6 +2115,7 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
             onModeChanged: _handleModeChanged,
             onChanged: _handleTimeChanged,
             use24HourDials: use24HourDials,
+            helperText: widget.helperText,
           ) : _TimePickerHeader(
             selectedTime: _selectedTime,
             mode: _mode,
@@ -2209,6 +2220,9 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
 ///
 /// The [use2018Style] parameter uses the updated Material Design time picker.
 ///
+/// When [use2018Style] is true, the [helperText] parameter can be used to
+/// customize the help text in the header of the picker.
+///
 /// {@tool snippet}
 /// Show a dialog with the text direction overridden to be [TextDirection.rtl].
 ///
@@ -2253,15 +2267,21 @@ Future<TimeOfDay> showTimePicker({
   TransitionBuilder builder,
   bool useRootNavigator = true,
   bool use2018Style = true, // TODO: Default to false.
+  String helperText,
 }) async {
   assert(context != null);
   assert(initialTime != null);
   assert(useRootNavigator != null);
+  assert(use2018Style != null);
   assert(debugCheckHasMaterialLocalizations(context));
 
   final Widget dialog = MediaQuery( // TODO: Remove this override
     data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: false),
-    child: _TimePickerDialog(initialTime: initialTime, use2018Style: use2018Style),
+    child: _TimePickerDialog(
+      initialTime: initialTime,
+      use2018Style: use2018Style,
+      helperText: helperText,
+    ),
   );
   return await showDialog<TimeOfDay>(
     context: context,
