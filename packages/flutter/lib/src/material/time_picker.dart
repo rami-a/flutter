@@ -2072,7 +2072,7 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
     final ThemeData theme = Theme.of(context);
 
     final Widget picker = Padding(
-      padding: EdgeInsets.all(widget.use2018Style ? 36.0 : 16.0),
+      padding: const EdgeInsets.all(16.0),
       child: AspectRatio(
         aspectRatio: 1.0,
         child: _Dial(
@@ -2275,13 +2275,10 @@ Future<TimeOfDay> showTimePicker({
   assert(use2018Style != null);
   assert(debugCheckHasMaterialLocalizations(context));
 
-  final Widget dialog = MediaQuery( // TODO: Remove this override
-    data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: false),
-    child: _TimePickerDialog(
-      initialTime: initialTime,
-      use2018Style: use2018Style,
-      helperText: helperText,
-    ),
+  final Widget dialog = _TimePickerDialog(
+    initialTime: initialTime,
+    use2018Style: use2018Style,
+    helperText: helperText,
   );
   return await showDialog<TimeOfDay>(
     context: context,
