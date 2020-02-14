@@ -18,6 +18,8 @@ import 'feedback_tester.dart';
 
 final Finder _hourControl = find.byWidgetPredicate((Widget w) => '${w.runtimeType}' == '_HourControl');
 final Finder _minuteControl = find.byWidgetPredicate((Widget widget) => '${widget.runtimeType}' == '_MinuteControl');
+final Finder _hourControl2018 = find.byWidgetPredicate((Widget w) => '${w.runtimeType}' == '_HourControl2018');
+final Finder _minuteControl2018 = find.byWidgetPredicate((Widget widget) => '${widget.runtimeType}' == '_MinuteControl2018');
 final Finder _timePickerDialog = find.byWidgetPredicate((Widget widget) => '${widget.runtimeType}' == '_TimePickerDialog');
 
 class _TimePickerLauncher extends StatelessWidget {
@@ -262,6 +264,7 @@ void _tests() {
     bool alwaysUse24HourFormat, {
     TimeOfDay initialTime = const TimeOfDay(hour: 7, minute: 0),
     double textScaleFactor = 1.0,
+    bool use2018Style = false,
   }) async {
     await tester.pumpWidget(
       Localizations(
@@ -283,7 +286,7 @@ void _tests() {
                   return MaterialPageRoute<void>(builder: (BuildContext context) {
                     return FlatButton(
                       onPressed: () {
-                        showTimePicker(context: context, initialTime: initialTime);
+                        showTimePicker(context: context, initialTime: initialTime, use2018Style: use2018Style,);
                       },
                       child: const Text('X'),
                     );
@@ -501,6 +504,72 @@ void _tests() {
     semantics.dispose();
   });
 
+  testWidgets('can increment and decrement hours - 2018 style', (WidgetTester tester) async {
+    final SemanticsTester semantics = SemanticsTester(tester);
+
+    Future<void> actAndExpect({ String initialValue, SemanticsAction action, String finalValue }) async {
+      final SemanticsNode elevenHours = semantics.nodesWith(
+        value: initialValue,
+        ancestor: tester.renderObject(_hourControl2018).debugSemantics,
+      ).single;
+      tester.binding.pipelineOwner.semanticsOwner.performAction(elevenHours.id, action);
+      await tester.pumpAndSettle();
+      expect(
+        find.descendant(of: _hourControl2018, matching: find.text(finalValue)),
+        findsOneWidget,
+      );
+    }
+
+    // 12-hour format
+    await mediaQueryBoilerplate(tester, false, initialTime: const TimeOfDay(hour: 11, minute: 0), use2018Style: true);
+    await actAndExpect(
+      initialValue: '11',
+      action: SemanticsAction.increase,
+      finalValue: '12',
+    );
+    await actAndExpect(
+      initialValue: '12',
+      action: SemanticsAction.increase,
+      finalValue: '1',
+    );
+
+    // Ensure we preserve day period as we roll over.
+    final dynamic pickerState = tester.state(_timePickerDialog);
+    expect(pickerState.selectedTime, const TimeOfDay(hour: 1, minute: 0));
+
+    await actAndExpect(
+      initialValue: '1',
+      action: SemanticsAction.decrease,
+      finalValue: '12',
+    );
+    await tester.pumpWidget(Container()); // clear old boilerplate
+
+    // 24-hour format
+    await mediaQueryBoilerplate(tester, true, initialTime: const TimeOfDay(hour: 23, minute: 0), use2018Style: true);
+    await actAndExpect(
+      initialValue: '23',
+      action: SemanticsAction.increase,
+      finalValue: '00',
+    );
+    await actAndExpect(
+      initialValue: '00',
+      action: SemanticsAction.increase,
+      finalValue: '01',
+    );
+    await actAndExpect(
+      initialValue: '01',
+      action: SemanticsAction.decrease,
+      finalValue: '00',
+    );
+    await actAndExpect(
+      initialValue: '00',
+      action: SemanticsAction.decrease,
+      finalValue: '23',
+    );
+
+    semantics.dispose();
+  });
+
   testWidgets('can increment and decrement minutes', (WidgetTester tester) async {
     final SemanticsTester semantics = SemanticsTester(tester);
 
@@ -518,6 +587,52 @@ void _tests() {
     }
 
     await mediaQueryBoilerplate(tester, false, initialTime: const TimeOfDay(hour: 11, minute: 58));
+    await actAndExpect(
+      initialValue: '58',
+      action: SemanticsAction.increase,
+      finalValue: '59',
+    );
+    await actAndExpect(
+      initialValue: '59',
+      action: SemanticsAction.increase,
+      finalValue: '00',
+    );
+
+    // Ensure we preserve hour period as we roll over.
+    final dynamic pickerState = tester.state(_timePickerDialog);
+    expect(pickerState.selectedTime, const TimeOfDay(hour: 11, minute: 0));
+
+    await actAndExpect(
+      initialValue: '00',
+      action: SemanticsAction.decrease,
+      finalValue: '59',
+    );
+    await actAndExpect(
+      initialValue: '59',
+      action: SemanticsAction.decrease,
+      finalValue: '58',
+    );
+
+    semantics.dispose();
+  });
+
+  testWidgets('can increment and decrement minutes - 2018', (WidgetTester tester) async {
+    final SemanticsTester semantics = SemanticsTester(tester);
+
+    Future<void> actAndExpect({ String initialValue, SemanticsAction action, String finalValue }) async {
+      final SemanticsNode elevenHours = semantics.nodesWith(
+        value: initialValue,
+        ancestor: tester.renderObject(_minuteControl2018).debugSemantics,
+      ).single;
+      tester.binding.pipelineOwner.semanticsOwner.performAction(elevenHours.id, action);
+      await tester.pumpAndSettle();
+      expect(
+        find.descendant(of: _minuteControl2018, matching: find.text(finalValue)),
+        findsOneWidget,
+      );
+    }
+
+    await mediaQueryBoilerplate(tester, false, initialTime: const TimeOfDay(hour: 11, minute: 58), use2018Style: true);
     await actAndExpect(
       initialValue: '58',
       action: SemanticsAction.increase,

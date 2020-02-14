@@ -978,10 +978,8 @@ class _TimePickerHeader2018 extends StatelessWidget {
               ],
             ),
           ),
-          if (orientation == Orientation.landscape) ...<Widget>[
-            const SizedBox(width: 12.0),
+          if (!use24HourDials && orientation == Orientation.landscape)
             _DayPeriodControl2018(fragmentContext: fragmentContext, orientation: orientation),
-          ],
         ],
       ),
     );
@@ -2266,7 +2264,7 @@ Future<TimeOfDay> showTimePicker({
   @required TimeOfDay initialTime,
   TransitionBuilder builder,
   bool useRootNavigator = true,
-  bool use2018Style = true, // TODO: Default to false.
+  bool use2018Style = false,
   String helperText,
 }) async {
   assert(context != null);
