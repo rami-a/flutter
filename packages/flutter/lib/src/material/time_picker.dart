@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -24,6 +25,7 @@ import 'text_theme.dart';
 import 'theme.dart';
 import 'theme_data.dart';
 import 'time.dart';
+import 'time_picker_theme.dart';
 
 // Examples can assume:
 // BuildContext context;
@@ -37,7 +39,6 @@ enum _TimePickerMode { hour, minute }
 const double _kTimePickerHeaderPortraitHeight = 96.0;
 const double _kTimePickerHeaderLandscapeWidth = 168.0;
 
-const double _kTimePickerHeaderPortraitHeight2018 = 132.0;
 const double _kTimePickerHeaderLandscapeWidth2018 = 198.0; // TODO: Is this correct?
 
 const double _kTimePickerWidthPortrait = 328.0;
@@ -50,6 +51,9 @@ const double _kTimePickerHeightPortraitCollapsed = 484.0;
 const double _kTimePickerHeightLandscapeCollapsed = 304.0;
 
 const BoxConstraints _kMinTappableRegion = BoxConstraints(minWidth: 48, minHeight: 48);
+
+const BorderRadius _kDefaultBorderRadius = BorderRadius.all(Radius.circular(4.0));
+const ShapeBorder _kDefaultShape = RoundedRectangleBorder(borderRadius: _kDefaultBorderRadius);
 
 enum _TimePickerHeaderId {
   hour,
@@ -806,14 +810,16 @@ class _TimePickerHeader extends StatelessWidget {
         break;
     }
 
-    Color backgroundColor;
-    switch (themeData.brightness) {
-      case Brightness.light:
-        backgroundColor = themeData.primaryColor;
-        break;
-      case Brightness.dark:
-        backgroundColor = themeData.backgroundColor;
-        break;
+    Color backgroundColor = TimePickerTheme.of(context).headerColor;
+    if (backgroundColor == null) {
+      switch (themeData.brightness) {
+        case Brightness.light:
+          backgroundColor = themeData.primaryColor;
+          break;
+        case Brightness.dark:
+          backgroundColor = themeData.backgroundColor;
+          break;
+      }
     }
 
     Color activeColor;
@@ -829,7 +835,7 @@ class _TimePickerHeader extends StatelessWidget {
         break;
     }
 
-    final TextTheme headerTextTheme = themeData.primaryTextTheme;
+    final TextTheme headerTextTheme = TimePickerTheme.of(context).headerTextTheme ?? themeData.primaryTextTheme;
     final TextStyle baseHeaderStyle = _getBaseHeaderStyle(headerTextTheme);
     final _TimePickerFragmentContext fragmentContext = _TimePickerFragmentContext(
       headerTextTheme: headerTextTheme,
@@ -902,16 +908,14 @@ class _TimePickerHeader2018 extends StatelessWidget {
     final ThemeData themeData = Theme.of(context);
     final TimeOfDayFormat timeOfDayFormat = MaterialLocalizations.of(context)
         .timeOfDayFormat(alwaysUse24HourFormat: MediaQuery.of(context).alwaysUse24HourFormat);
-    final TextTheme textTheme = themeData.textTheme;
+    final TextTheme textTheme = TimePickerTheme.of(context).headerTextTheme ?? themeData.textTheme;
 
     EdgeInsets padding;
-    double height;
     double width;
 
     assert(orientation != null);
     switch (orientation) {
       case Orientation.portrait:
-        height = _kTimePickerHeaderPortraitHeight2018;
         padding = const EdgeInsets.symmetric(horizontal: 24.0);
         break;
       case Orientation.landscape:
@@ -920,7 +924,7 @@ class _TimePickerHeader2018 extends StatelessWidget {
         break;
     }
 
-    final Color activeColor = themeData.colorScheme.primary;
+    final Color activeColor = TimePickerTheme.of(context).headerColor ?? themeData.colorScheme.primary;
     final Color inactiveColor = themeData.colorScheme.onBackground;
 
     final _TimePickerFragmentContext fragmentContext = _TimePickerFragmentContext(
@@ -956,13 +960,12 @@ class _TimePickerHeader2018 extends StatelessWidget {
 
     return Container(
       width: width,
-      height: height,
       padding: padding,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           const SizedBox(height: 16.0),
-          Text(helperText ?? 'SELECT TIME', style: textTheme.overline),
+          Text(helperText ?? 'SELECT TIME', style: textTheme.overline), // TODO: Localize.
           const SizedBox(height: 24.0),
           Container(
             height: 80.0,
@@ -1011,6 +1014,7 @@ class _HourControl2018 extends StatelessWidget {
     final Color backgroundColor = fragmentContext.mode == _TimePickerMode.hour
         ? fragmentContext.activeColor.withOpacity(0.12)
         : fragmentContext.inactiveColor.withOpacity(0.06);
+    final ShapeBorder shape = TimePickerTheme.of(context).shape ?? _kDefaultShape;
 
     TimeOfDay hoursFromSelected(int hoursToAdd) {
       if (fragmentContext.use24HourDials) {
@@ -1054,7 +1058,7 @@ class _HourControl2018 extends StatelessWidget {
       child: Material(
         color: backgroundColor,
         clipBehavior: Clip.antiAlias,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4.0)), // TODO: Theming
+        shape: shape,
         child: InkWell(
           onTap: Feedback.wrapForTap(() => fragmentContext.onModeChange(_TimePickerMode.hour), context),
           child: Center(
@@ -1121,6 +1125,7 @@ class _MinuteControl2018 extends StatelessWidget {
     final Color backgroundColor = fragmentContext.mode == _TimePickerMode.minute
         ? fragmentContext.activeColor.withOpacity(0.12)
         : fragmentContext.inactiveColor.withOpacity(0.06);
+    final ShapeBorder shape = TimePickerTheme.of(context).shape ?? _kDefaultShape;
 
     return Semantics(
       excludeSemantics: true,
@@ -1137,7 +1142,7 @@ class _MinuteControl2018 extends StatelessWidget {
       child: Material(
         color: backgroundColor,
         clipBehavior: Clip.antiAlias,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4.0)), // TODO: Theming
+        shape: shape,
         child: InkWell(
           onTap: Feedback.wrapForTap(() => fragmentContext.onModeChange(_TimePickerMode.minute), context),
           child: Center(
@@ -1209,7 +1214,7 @@ class _DayPeriodControl2018 extends StatelessWidget {
     final TextTheme headerTextTheme = fragmentContext.headerTextTheme;
     final TimeOfDay selectedTime = fragmentContext.selectedTime;
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
-    final Color activeBackgroundColor = colorScheme.surface;
+    final Color activeBackgroundColor = TimePickerTheme.of(context).activeDayPeriodColor ?? colorScheme.surface;
     final Color backgroundColor = colorScheme.onBackground.withOpacity(0.06);
     final Color activeColor = colorScheme.onBackground;
     final Color inactiveColor = colorScheme.onBackground.withOpacity(0.38);
@@ -1220,6 +1225,12 @@ class _DayPeriodControl2018 extends StatelessWidget {
     final TextStyle pmStyle = headerTextTheme.subtitle1.copyWith(
         color: !amSelected ? activeColor: inactiveColor
     );
+    final ShapeBorder shape = TimePickerTheme.of(context).dayPeriodShape ??
+        RoundedRectangleBorder(
+            borderRadius: _kDefaultBorderRadius,
+            side: BorderSide(color: Theme.of(context).dividerColor),
+        );
+
     final bool layoutPortrait = orientation == Orientation.portrait;
 
     final double buttonTextScaleFactor = math.min(MediaQuery.of(context).textScaleFactor, 2.0);
@@ -1296,12 +1307,8 @@ class _DayPeriodControl2018 extends StatelessWidget {
       padding: padding,
       child: Material(
         clipBehavior: Clip.antiAlias,
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(4.0), // TODO: Theming
-            side: BorderSide(
-              color: Theme.of(context).dividerColor,
-            )
-        ),
+        color: Colors.transparent,
+        shape: shape,
         child: buttons,
       ),
     );
@@ -1865,16 +1872,20 @@ class _DialState extends State<_Dial> with SingleTickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    Color backgroundColor;
-    switch (themeData.brightness) {
-      case Brightness.light:
-        backgroundColor = Colors.grey[200];
-        break;
-      case Brightness.dark:
-        backgroundColor = themeData.backgroundColor;
-        break;
+    Color backgroundColor = TimePickerTheme.of(context).dialBackgroundColor;
+    if (backgroundColor == null) {
+      switch (themeData.brightness) {
+        case Brightness.light:
+          backgroundColor = Colors.grey[200];
+          break;
+        case Brightness.dark:
+          backgroundColor = themeData.backgroundColor;
+          break;
+      }
     }
 
+    final Color accentColor = TimePickerTheme.of(context).dialHandColor ??
+        (widget.use2018Style ? themeData.colorScheme.primary : themeData.accentColor);
     final ThemeData theme = Theme.of(context);
     List<_TappableLabel> primaryOuterLabels;
     List<_TappableLabel> primaryInnerLabels;
@@ -1919,7 +1930,7 @@ class _DialState extends State<_Dial> with SingleTickerProviderStateMixin {
           secondaryOuterLabels: secondaryOuterLabels,
           secondaryInnerLabels: secondaryInnerLabels,
           backgroundColor: backgroundColor,
-          accentColor: widget.use2018Style ? themeData.colorScheme.primary : themeData.accentColor,
+          accentColor: accentColor,
           theta: _theta.value,
           activeRing: _activeRing,
           textDirection: Directionality.of(context),
@@ -2068,6 +2079,8 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
     final TimeOfDayFormat timeOfDayFormat = localizations.timeOfDayFormat(alwaysUse24HourFormat: media.alwaysUse24HourFormat);
     final bool use24HourDials = hourFormat(of: timeOfDayFormat) != HourFormat.h;
     final ThemeData theme = Theme.of(context);
+    final ShapeBorder shape = TimePickerTheme.of(context).shape ??
+        (widget.use2018Style ? _kDefaultShape : null);
 
     final Widget picker = Padding(
       padding: const EdgeInsets.all(16.0),
@@ -2101,9 +2114,8 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
     );
 
     return Dialog(
-      shape: widget.use2018Style
-          ? const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(4.0)))
-          : null,
+      shape: shape,
+      backgroundColor: TimePickerTheme.of(context).backgroundColor,
       child: OrientationBuilder(
         builder: (BuildContext context, Orientation orientation) {
           final Widget header = widget.use2018Style ? _TimePickerHeader2018(
@@ -2264,18 +2276,17 @@ Future<TimeOfDay> showTimePicker({
   @required TimeOfDay initialTime,
   TransitionBuilder builder,
   bool useRootNavigator = true,
-  bool use2018Style = false,
+  bool use2018Style,
   String helperText,
 }) async {
   assert(context != null);
   assert(initialTime != null);
   assert(useRootNavigator != null);
-  assert(use2018Style != null);
   assert(debugCheckHasMaterialLocalizations(context));
 
   final Widget dialog = _TimePickerDialog(
     initialTime: initialTime,
-    use2018Style: use2018Style,
+    use2018Style: TimePickerTheme.of(context).use2018Style ?? use2018Style ?? false,
     helperText: helperText,
   );
   return await showDialog<TimeOfDay>(

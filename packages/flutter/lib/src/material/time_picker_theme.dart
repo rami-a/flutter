@@ -5,6 +5,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
+import 'text_theme.dart';
 import 'theme.dart';
 
 /// Defines the visual properties of the widget displayed with [showTimePicker].
@@ -32,8 +33,10 @@ class TimePickerThemeData extends Diagnosticable {
     this.headerColor,
     this.dialHandColor,
     this.dialBackgroundColor,
-    this.headerTextStyle,
+    this.activeDayPeriodColor,
+    this.headerTextTheme,
     this.shape,
+    this.dayPeriodShape,
     this.use2018Style,
   });
 
@@ -75,11 +78,21 @@ class TimePickerThemeData extends Diagnosticable {
   /// dark theme.
   final Color dialBackgroundColor;
 
-  /// Used to configure the [TextStyle] for the header of the time picker.
+  /// The background color of the active day period in the time picker.
   ///
-  /// If this is null, the time picker defaults to values from
-  /// [ThemeData.textTheme].
-  final TextStyle headerTextStyle;
+  /// This is only used when [use2018Style] is true.
+  ///
+  /// If this is null, the time picker defaults to [ColorScheme.surface].
+  final Color activeDayPeriodColor;
+
+  /// Used to configure the [TextStyle]s for the header of the time picker.
+  ///
+  /// If this is null and [use2018Style] is true, the time picker defaults to
+  /// values from [ThemeData.textTheme].
+  ///
+  /// If this is null and [use2018Style] is false, the time picker defaults to
+  /// values from [ThemeData.primaryTextTheme].
+  final TextTheme headerTextTheme;
 
   /// The shape of the [Dialog] that the time picker is presented in.
   ///
@@ -93,6 +106,19 @@ class TimePickerThemeData extends Diagnosticable {
   /// [Dialog]'s default shape.
   final ShapeBorder shape;
 
+  /// The shape of the day period that the time picker uses.
+  ///
+  /// This is only used when [use2018Style] is true.
+  ///
+  /// If this is null, the time picker defaults to:
+  /// ```
+  /// RoundedRectangleBorder(
+  ///   borderRadius: BorderRadius.all(Radius.circular(4.0)),
+  ///   side: BorderSide(color: Theme.of(context).dividerColor),
+  /// )
+  /// ```
+  final ShapeBorder dayPeriodShape;
+
   /// Whether the time picker uses the updated 2018 Material Design style.
   ///
   /// If this is null, the time picker defaults to false.
@@ -105,8 +131,10 @@ class TimePickerThemeData extends Diagnosticable {
     Color headerColor,
     Color dialHandColor,
     Color dialBackgroundColor,
-    TextStyle headerTextStyle,
+    Color activeDayPeriodColor,
+    TextTheme headerTextTheme,
     ShapeBorder shape,
+    ShapeBorder dayPeriodShape,
     bool use2018Style,
   }) {
     return TimePickerThemeData(
@@ -114,8 +142,10 @@ class TimePickerThemeData extends Diagnosticable {
       headerColor: headerColor ?? this.headerColor,
       dialHandColor: dialHandColor ?? this.dialHandColor,
       dialBackgroundColor: dialBackgroundColor ?? this.dialBackgroundColor,
-      headerTextStyle: headerTextStyle ?? this.headerTextStyle,
+      activeDayPeriodColor: activeDayPeriodColor ?? this.activeDayPeriodColor,
+      headerTextTheme: headerTextTheme ?? this.headerTextTheme,
       shape: shape ?? this.shape,
+      dayPeriodShape: dayPeriodShape ?? this.dayPeriodShape,
       use2018Style: use2018Style ?? this.use2018Style,
     );
   }
@@ -132,8 +162,10 @@ class TimePickerThemeData extends Diagnosticable {
       headerColor: Color.lerp(a?.headerColor, b?.headerColor, t),
       dialHandColor: Color.lerp(a?.dialHandColor, b?.dialHandColor, t),
       dialBackgroundColor: Color.lerp(a?.dialBackgroundColor, b?.dialBackgroundColor, t),
-      headerTextStyle: TextStyle.lerp(a?.headerTextStyle, b?.headerTextStyle, t),
+      activeDayPeriodColor: Color.lerp(a?.activeDayPeriodColor, b?.activeDayPeriodColor, t),
+      headerTextTheme: TextTheme.lerp(a?.headerTextTheme, b?.headerTextTheme, t),
       shape: ShapeBorder.lerp(a?.shape, b?.shape, t),
+      dayPeriodShape: ShapeBorder.lerp(a?.dayPeriodShape, b?.dayPeriodShape, t),
       use2018Style: t < 0.5 ? a.use2018Style : b.use2018Style,
     );
   }
@@ -145,8 +177,10 @@ class TimePickerThemeData extends Diagnosticable {
       headerColor,
       dialHandColor,
       dialBackgroundColor,
-      headerTextStyle,
+      activeDayPeriodColor,
+      headerTextTheme,
       shape,
+      dayPeriodShape,
       use2018Style,
     );
   }
@@ -162,8 +196,10 @@ class TimePickerThemeData extends Diagnosticable {
         && other.headerColor == headerColor
         && other.dialHandColor == dialHandColor
         && other.dialBackgroundColor == dialBackgroundColor
-        && other.headerTextStyle == headerTextStyle
+        && other.activeDayPeriodColor == activeDayPeriodColor
+        && other.headerTextTheme == headerTextTheme
         && other.shape == shape
+        && other.dayPeriodShape == dayPeriodShape
         && other.use2018Style == use2018Style;
   }
 
@@ -174,8 +210,10 @@ class TimePickerThemeData extends Diagnosticable {
     properties.add(ColorProperty('headerColor', headerColor, defaultValue: null));
     properties.add(ColorProperty('dialHandColor', dialHandColor, defaultValue: null));
     properties.add(ColorProperty('dialBackgroundColor', dialBackgroundColor, defaultValue: null));
-    properties.add(DiagnosticsProperty<TextStyle>('headerTextStyle', headerTextStyle, defaultValue: null));
+    properties.add(ColorProperty('activeDayPeriodColor', activeDayPeriodColor, defaultValue: null));
+    properties.add(DiagnosticsProperty<TextTheme>('headerTextTheme', headerTextTheme, defaultValue: null));
     properties.add(DiagnosticsProperty<ShapeBorder>('shape', shape, defaultValue: null));
+    properties.add(DiagnosticsProperty<ShapeBorder>('dayPeriodShape', dayPeriodShape, defaultValue: null));
     properties.add(DiagnosticsProperty<bool>('use2018Style', use2018Style, defaultValue: null));
   }
 }
