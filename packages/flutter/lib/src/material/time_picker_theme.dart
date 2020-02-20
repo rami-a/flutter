@@ -36,6 +36,7 @@ class TimePickerThemeData extends Diagnosticable {
     this.activeDayPeriodColor,
     this.headerTextTheme,
     this.shape,
+    this.hourMinuteShape,
     this.dayPeriodShape,
     this.use2018Style,
   });
@@ -106,6 +107,14 @@ class TimePickerThemeData extends Diagnosticable {
   /// [Dialog]'s default shape.
   final ShapeBorder shape;
 
+  /// The shape of the hour and minute controls that the time picker uses.
+  ///
+  /// This is only used when [use2018Style] is true.
+  ///
+  /// If this is null, the time picker defaults to
+  /// `RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(4.0)))`.
+  final ShapeBorder hourMinuteShape;
+
   /// The shape of the day period that the time picker uses.
   ///
   /// This is only used when [use2018Style] is true.
@@ -134,6 +143,7 @@ class TimePickerThemeData extends Diagnosticable {
     Color activeDayPeriodColor,
     TextTheme headerTextTheme,
     ShapeBorder shape,
+    ShapeBorder hourMinuteShape,
     ShapeBorder dayPeriodShape,
     bool use2018Style,
   }) {
@@ -145,6 +155,7 @@ class TimePickerThemeData extends Diagnosticable {
       activeDayPeriodColor: activeDayPeriodColor ?? this.activeDayPeriodColor,
       headerTextTheme: headerTextTheme ?? this.headerTextTheme,
       shape: shape ?? this.shape,
+      hourMinuteShape: hourMinuteShape ?? this.hourMinuteShape,
       dayPeriodShape: dayPeriodShape ?? this.dayPeriodShape,
       use2018Style: use2018Style ?? this.use2018Style,
     );
@@ -165,6 +176,7 @@ class TimePickerThemeData extends Diagnosticable {
       activeDayPeriodColor: Color.lerp(a?.activeDayPeriodColor, b?.activeDayPeriodColor, t),
       headerTextTheme: TextTheme.lerp(a?.headerTextTheme, b?.headerTextTheme, t),
       shape: ShapeBorder.lerp(a?.shape, b?.shape, t),
+      hourMinuteShape: ShapeBorder.lerp(a?.hourMinuteShape, b?.hourMinuteShape, t),
       dayPeriodShape: ShapeBorder.lerp(a?.dayPeriodShape, b?.dayPeriodShape, t),
       use2018Style: t < 0.5 ? a.use2018Style : b.use2018Style,
     );
@@ -180,6 +192,7 @@ class TimePickerThemeData extends Diagnosticable {
       activeDayPeriodColor,
       headerTextTheme,
       shape,
+      hourMinuteShape,
       dayPeriodShape,
       use2018Style,
     );
@@ -199,6 +212,7 @@ class TimePickerThemeData extends Diagnosticable {
         && other.activeDayPeriodColor == activeDayPeriodColor
         && other.headerTextTheme == headerTextTheme
         && other.shape == shape
+        && other.hourMinuteShape == hourMinuteShape
         && other.dayPeriodShape == dayPeriodShape
         && other.use2018Style == use2018Style;
   }
@@ -213,6 +227,7 @@ class TimePickerThemeData extends Diagnosticable {
     properties.add(ColorProperty('activeDayPeriodColor', activeDayPeriodColor, defaultValue: null));
     properties.add(DiagnosticsProperty<TextTheme>('headerTextTheme', headerTextTheme, defaultValue: null));
     properties.add(DiagnosticsProperty<ShapeBorder>('shape', shape, defaultValue: null));
+    properties.add(DiagnosticsProperty<ShapeBorder>('hourMinuteShape', hourMinuteShape, defaultValue: null));
     properties.add(DiagnosticsProperty<ShapeBorder>('dayPeriodShape', dayPeriodShape, defaultValue: null));
     properties.add(DiagnosticsProperty<bool>('use2018Style', use2018Style, defaultValue: null));
   }

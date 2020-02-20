@@ -21,6 +21,7 @@ void main() {
     expect(timePickerTheme.activeDayPeriodColor, null);
     expect(timePickerTheme.headerTextTheme, null);
     expect(timePickerTheme.shape, null);
+    expect(timePickerTheme.hourMinuteShape, null);
     expect(timePickerTheme.dayPeriodShape, null);
     expect(timePickerTheme.use2018Style, null);
   });
@@ -47,6 +48,7 @@ void main() {
       activeDayPeriodColor: Color(0xFFFFFFFF),
       headerTextTheme: TextTheme(),
       shape: RoundedRectangleBorder(),
+      hourMinuteShape: RoundedRectangleBorder(),
       dayPeriodShape: RoundedRectangleBorder(),
       use2018Style: true,
     ).debugFillProperties(builder);
@@ -64,6 +66,7 @@ void main() {
     'activeDayPeriodColor: Color(0xffffffff)',
     'headerTextTheme: TextTheme#6fb5d(headline1: null, headline2: null, headline3: null, headline4: null, headline5: null, headline6: null, subtitle1: null, subtitle2: null, bodyText1: null, bodyText2: null, caption: null, button: null, overline: null)',
     'shape: RoundedRectangleBorder(BorderSide(Color(0xff000000), 0.0, BorderStyle.none), BorderRadius.zero)',
+    'hourMinuteShape: RoundedRectangleBorder(BorderSide(Color(0xff000000), 0.0, BorderStyle.none), BorderRadius.zero)',
     'dayPeriodShape: RoundedRectangleBorder(BorderSide(Color(0xff000000), 0.0, BorderStyle.none), BorderRadius.zero)',
     'use2018Style: true'
     ]);
@@ -93,6 +96,7 @@ TimePickerThemeData _timePickerTheme({bool use2018Style = false}) {
     activeDayPeriodColor: Colors.teal,
     headerTextTheme: ThemeData.light().textTheme,
     shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16.0))),
+    hourMinuteShape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16.0))),
     dayPeriodShape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16.0))),
     use2018Style: use2018Style,
   );

@@ -1014,7 +1014,7 @@ class _HourControl2018 extends StatelessWidget {
     final Color backgroundColor = fragmentContext.mode == _TimePickerMode.hour
         ? fragmentContext.activeColor.withOpacity(0.12)
         : fragmentContext.inactiveColor.withOpacity(0.06);
-    final ShapeBorder shape = TimePickerTheme.of(context).shape ?? _kDefaultShape;
+    final ShapeBorder shape = TimePickerTheme.of(context).hourMinuteShape ?? _kDefaultShape;
 
     TimeOfDay hoursFromSelected(int hoursToAdd) {
       if (fragmentContext.use24HourDials) {
@@ -1125,7 +1125,7 @@ class _MinuteControl2018 extends StatelessWidget {
     final Color backgroundColor = fragmentContext.mode == _TimePickerMode.minute
         ? fragmentContext.activeColor.withOpacity(0.12)
         : fragmentContext.inactiveColor.withOpacity(0.06);
-    final ShapeBorder shape = TimePickerTheme.of(context).shape ?? _kDefaultShape;
+    final ShapeBorder shape = TimePickerTheme.of(context).hourMinuteShape ?? _kDefaultShape;
 
     return Semantics(
       excludeSemantics: true,
@@ -1619,7 +1619,7 @@ class _DialState extends State<_Dial> with SingleTickerProviderStateMixin {
     return (math.pi / 2.0 - fraction * _kTwoPi) % _kTwoPi;
   }
 
-  TimeOfDay _getTimeForTheta(double theta) {
+  TimeOfDay _getTimeForTheta(double theta, {bool roundMinutes = false}) {
     final double fraction = (0.25 - (theta % _kTwoPi) / _kTwoPi) % 1.0;
     if (widget.mode == _TimePickerMode.hour) {
       int newHour = (fraction * TimeOfDay.hoursPerPeriod).round() % TimeOfDay.hoursPerPeriod;
@@ -1635,8 +1635,13 @@ class _DialState extends State<_Dial> with SingleTickerProviderStateMixin {
       }
       return widget.selectedTime.replacing(hour: newHour);
     } else {
+      print('-------------- _getTimeForTheta: $fraction');
+      final int minute = (fraction * TimeOfDay.minutesPerHour).round() % TimeOfDay.minutesPerHour;
+      if (roundMinutes) {
+        // Round
+      }
       return widget.selectedTime.replacing(
-        minute: (fraction * TimeOfDay.minutesPerHour).round() % TimeOfDay.minutesPerHour
+        minute: minute
       );
     }
   }
@@ -1719,7 +1724,7 @@ class _DialState extends State<_Dial> with SingleTickerProviderStateMixin {
     } else {
       _announceToAccessibility(context, localizations.formatDecimal(newTime.minute));
     }
-    _animateTo(_getThetaForTime(_getTimeForTheta(_theta.value)));
+    _animateTo(_getThetaForTime(_getTimeForTheta(_theta.value, roundMinutes: true)));
     _dragging = false;
     _position = null;
     _center = null;
