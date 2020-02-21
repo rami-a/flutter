@@ -695,22 +695,15 @@ void _tests() {
   });
 
   testWidgets('header touch regions are large enough - 2018', (WidgetTester tester) async {
+    // Ensure picker is displayed in portrait mode.
+    tester.binding.window.physicalSizeTestValue = const Size(400, 800);
+    tester.binding.window.devicePixelRatioTestValue = 1;
     await mediaQueryBoilerplate(tester, false, use2018Style: true);
 
-    // TODO: Make this work by checking something else.
-    final Size amSize = tester.getSize(find.ancestor(
-      of: find.text('AM'),
-      matching: find.byType(InkWell),
-    ));
-    expect(amSize.width, greaterThanOrEqualTo(48.0));
-    expect(amSize.height, greaterThanOrEqualTo(48.0));
-
-    final Size pmSize = tester.getSize(find.ancestor(
-      of: find.text('PM'),
-      matching: find.byType(InkWell),
-    ));
-    expect(pmSize.width, greaterThanOrEqualTo(48.0));
-    expect(pmSize.height, greaterThanOrEqualTo(48.0));
+    final Size dayPeriodControlSize = tester.getSize(find.byWidgetPredicate((Widget w) => '${w.runtimeType}' == '_DayPeriodControl2018'));
+    expect(dayPeriodControlSize.width, greaterThanOrEqualTo(48.0));
+    // Height should be double the minimum size to account for both AM/PM stacked.
+    expect(dayPeriodControlSize.height, greaterThanOrEqualTo(48.0 * 2));
 
     final Size hourSize = tester.getSize(find.ancestor(
       of: find.text('7'),
@@ -725,6 +718,9 @@ void _tests() {
     ));
     expect(minuteSize.width, greaterThanOrEqualTo(48.0));
     expect(minuteSize.height, greaterThanOrEqualTo(48.0));
+
+    tester.binding.window.physicalSizeTestValue = null;
+    tester.binding.window.devicePixelRatioTestValue = null;
   });
 
   testWidgets('builder parameter', (WidgetTester tester) async {
