@@ -40,6 +40,7 @@ const double _kTimePickerHeaderPortraitHeight = 96.0;
 const double _kTimePickerHeaderLandscapeWidth = 168.0;
 
 const double _kTimePickerHeaderLandscapeWidth2018 = 198.0; // TODO: Is this correct?
+const double _kTimePickerHeaderControlHeight = 80.0;
 
 const double _kTimePickerWidthPortrait = 328.0;
 const double _kTimePickerWidthLandscape = 512.0;
@@ -966,9 +967,9 @@ class _TimePickerHeader2018 extends StatelessWidget {
         children: <Widget>[
           const SizedBox(height: 16.0),
           Text(helperText ?? 'SELECT TIME', style: textTheme.overline), // TODO: Localize.
-          const SizedBox(height: 24.0),
+          const SizedBox(height: 16.0),
           Container(
-            height: 80.0,
+            height: kMinInteractiveDimension * 2,
             child: Row(
               children: <Widget>[
                 Expanded(child: _HourControl2018(fragmentContext: fragmentContext)),
@@ -1055,17 +1056,20 @@ class _HourControl2018 extends StatelessWidget {
       onDecrease: () {
         fragmentContext.onTimeChange(previousHour);
       },
-      child: Material(
-        color: backgroundColor,
-        clipBehavior: Clip.antiAlias,
-        shape: shape,
-        child: InkWell(
-          onTap: Feedback.wrapForTap(() => fragmentContext.onModeChange(_TimePickerMode.hour), context),
-          child: Center(
-            child: Text(
-              formattedHour,
-              style: hourStyle,
-              textScaleFactor: 1.0, // TODO: Is this correct?
+      child: Container(
+        height: _kTimePickerHeaderControlHeight,
+        child: Material(
+          color: backgroundColor,
+          clipBehavior: Clip.antiAlias,
+          shape: shape,
+          child: InkWell(
+            onTap: Feedback.wrapForTap(() => fragmentContext.onModeChange(_TimePickerMode.hour), context),
+            child: Center(
+              child: Text(
+                formattedHour,
+                style: hourStyle,
+                textScaleFactor: 1.0, // TODO: Is this correct?
+              ),
             ),
           ),
         ),
@@ -1139,17 +1143,20 @@ class _MinuteControl2018 extends StatelessWidget {
       onDecrease: () {
         fragmentContext.onTimeChange(previousMinute);
       },
-      child: Material(
-        color: backgroundColor,
-        clipBehavior: Clip.antiAlias,
-        shape: shape,
-        child: InkWell(
-          onTap: Feedback.wrapForTap(() => fragmentContext.onModeChange(_TimePickerMode.minute), context),
-          child: Center(
-            child: Text(
-              formattedMinute,
-              style: minuteStyle,
-              textScaleFactor: 1.0, // TODO: Is this correct?
+      child: Container(
+        height: _kTimePickerHeaderControlHeight,
+        child: Material(
+          color: backgroundColor,
+          clipBehavior: Clip.antiAlias,
+          shape: shape,
+          child: InkWell(
+            onTap: Feedback.wrapForTap(() => fragmentContext.onModeChange(_TimePickerMode.minute), context),
+            child: Center(
+              child: Text(
+                formattedMinute,
+                style: minuteStyle,
+                textScaleFactor: 1.0, // TODO: Is this correct?
+              ),
             ),
           ),
         ),
@@ -1275,42 +1282,142 @@ class _DayPeriodControl2018 extends StatelessWidget {
       ),
     );
 
-    Widget buttons;
-    double height;
-    double width;
-    EdgeInsets padding;
     switch (orientation) {
       case Orientation.portrait:
-        buttons = Column(
-          children: <Widget>[
-            Expanded(child: amButton),
-            Expanded(child: pmButton),
-          ],
+        const double width = 52.0;
+        return _DayPeriodInputPadding(
+          minSize: const Size(width, kMinInteractiveDimension * 2),
+          child: Container(
+            width: width,
+            height: _kTimePickerHeaderControlHeight,
+            child: Material(
+              clipBehavior: Clip.antiAlias,
+              color: Colors.transparent,
+              shape: shape,
+              child: Column(
+                children: <Widget>[
+                  Expanded(child: amButton),
+                  Expanded(child: pmButton),
+                ],
+              ),
+            ),
+          ),
         );
-        width = 52.0;
         break;
       case Orientation.landscape: // TODO: What is the real landscape layout?
-        buttons = Row(
-          children: <Widget>[
-            Expanded(child: amButton),
-            Expanded(child: pmButton),
-          ],
+        return Container(
+          height: 48.0,
+          padding: const EdgeInsets.all(8),
+          child: Material(
+            clipBehavior: Clip.antiAlias,
+            color: Colors.transparent,
+            shape: shape,
+            child: Row(
+              children: <Widget>[
+                Expanded(child: amButton),
+                Expanded(child: pmButton),
+              ],
+            ),
+          ),
         );
-        height = 48.0;
-        padding = const EdgeInsets.all(8);
         break;
     }
+  }
+}
 
-    return Container(
-      width: width,
-      height: height,
-      padding: padding,
-      child: Material(
-        clipBehavior: Clip.antiAlias,
-        color: Colors.transparent,
-        shape: shape,
-        child: buttons,
-      ),
+/// A widget to pad the area around the [_DayPeriodControl2018]'s inner [Material].
+class _DayPeriodInputPadding extends SingleChildRenderObjectWidget {
+  const _DayPeriodInputPadding({
+    Key key,
+    Widget child,
+    this.minSize,
+  }) : super(key: key, child: child);
+
+  final Size minSize;
+
+  @override
+  RenderObject createRenderObject(BuildContext context) {
+    return _RenderInputPadding(minSize);
+  }
+
+  @override
+  void updateRenderObject(BuildContext context, covariant _RenderInputPadding renderObject) {
+    renderObject.minSize = minSize;
+  }
+}
+
+class _RenderInputPadding extends RenderShiftedBox {
+  _RenderInputPadding(this._minSize, [RenderBox child]) : super(child);
+
+  Size get minSize => _minSize;
+  Size _minSize;
+  set minSize(Size value) {
+    if (_minSize == value)
+      return;
+    _minSize = value;
+    markNeedsLayout();
+  }
+
+  @override
+  double computeMinIntrinsicWidth(double height) {
+    if (child != null)
+      return math.max(child.getMinIntrinsicWidth(height), minSize.width);
+    return 0.0;
+  }
+
+  @override
+  double computeMinIntrinsicHeight(double width) {
+    if (child != null)
+      return math.max(child.getMinIntrinsicHeight(width), minSize.height);
+    return 0.0;
+  }
+
+  @override
+  double computeMaxIntrinsicWidth(double height) {
+    if (child != null)
+      return math.max(child.getMaxIntrinsicWidth(height), minSize.width);
+    return 0.0;
+  }
+
+  @override
+  double computeMaxIntrinsicHeight(double width) {
+    if (child != null)
+      return math.max(child.getMaxIntrinsicHeight(width), minSize.height);
+    return 0.0;
+  }
+
+  @override
+  void performLayout() {
+    if (child != null) {
+      child.layout(constraints, parentUsesSize: true);
+      final double height = math.max(child.size.width, minSize.width);
+      final double width = math.max(child.size.height, minSize.height);
+      size = constraints.constrain(Size(height, width));
+      final BoxParentData childParentData = child.parentData as BoxParentData;
+      childParentData.offset = Alignment.center.alongOffset(size - child.size as Offset);
+    } else {
+      size = Size.zero;
+    }
+  }
+
+  @override
+  bool hitTest(BoxHitTestResult result, { Offset position }) {
+    if (super.hitTest(result, position: position)) {
+      return true;
+    }
+    Offset newPosition = child.size.center(Offset.zero);
+    if (position.dy > newPosition.dy) {
+      newPosition = newPosition + const Offset(0, 1);
+    } else {
+      newPosition = newPosition + const Offset(0, -1);
+    }
+    return result.addWithRawTransform(
+      transform: MatrixUtils.forceToPoint(newPosition),
+      position: newPosition,
+      hitTest: (BoxHitTestResult result, Offset position) {
+        assert(position == newPosition);
+        return child.hitTest(result, position: newPosition);
+      },
     );
   }
 }
@@ -2291,7 +2398,7 @@ Future<TimeOfDay> showTimePicker({
 
   final Widget dialog = _TimePickerDialog(
     initialTime: initialTime,
-    use2018Style: TimePickerTheme.of(context).use2018Style ?? use2018Style ?? false,
+    use2018Style: TimePickerTheme.of(context).use2018Style ?? use2018Style ?? true,
     helperText: helperText,
   );
   return await showDialog<TimeOfDay>(
