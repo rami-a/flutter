@@ -1390,9 +1390,9 @@ class _RenderInputPadding extends RenderShiftedBox {
   void performLayout() {
     if (child != null) {
       child.layout(constraints, parentUsesSize: true);
-      final double height = math.max(child.size.width, minSize.width);
-      final double width = math.max(child.size.height, minSize.height);
-      size = constraints.constrain(Size(height, width));
+      final double width = math.max(child.size.width, minSize.width);
+      final double height = math.max(child.size.height, minSize.height);
+      size = constraints.constrain(Size(width, height));
       final BoxParentData childParentData = child.parentData as BoxParentData;
       childParentData.offset = Alignment.center.alongOffset(size - child.size as Offset);
     } else {
@@ -1405,12 +1405,21 @@ class _RenderInputPadding extends RenderShiftedBox {
     if (super.hitTest(result, position: position)) {
       return true;
     }
+
+    if (position.dx < 0 ||
+        position.dx > math.max(child.size.width, minSize.width) ||
+        position.dy < 0 ||
+        position.dy > math.max(child.size.height, minSize.height)) {
+      return false;
+    }
+
     Offset newPosition = child.size.center(Offset.zero);
     if (position.dy > newPosition.dy) {
       newPosition = newPosition + const Offset(0, 1);
     } else {
       newPosition = newPosition + const Offset(0, -1);
     }
+
     return result.addWithRawTransform(
       transform: MatrixUtils.forceToPoint(newPosition),
       position: newPosition,
