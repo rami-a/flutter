@@ -248,10 +248,11 @@ class _DayPeriodControl extends StatelessWidget {
     final Color activeColor = fragmentContext.activeColor;
     final Color inactiveColor = fragmentContext.inactiveColor;
     final bool amSelected = selectedTime.period == DayPeriod.am;
-    final TextStyle amStyle = headerTextTheme.subtitle1.copyWith(
+    final TextStyle textStyle = TimePickerTheme.of(context).dayPeriodTextStyle ?? headerTextTheme.subtitle1;
+    final TextStyle amStyle = textStyle.copyWith(
       color: amSelected ? activeColor: inactiveColor
     );
-    final TextStyle pmStyle = headerTextTheme.subtitle1.copyWith(
+    final TextStyle pmStyle = textStyle.copyWith(
       color: !amSelected ? activeColor: inactiveColor
     );
     final bool layoutPortrait = orientation == Orientation.portrait;
@@ -836,8 +837,9 @@ class _TimePickerHeader extends StatelessWidget {
         break;
     }
 
-    final TextTheme headerTextTheme = TimePickerTheme.of(context).headerTextTheme ?? themeData.primaryTextTheme;
-    final TextStyle baseHeaderStyle = _getBaseHeaderStyle(headerTextTheme);
+    final TextTheme headerTextTheme = themeData.primaryTextTheme;
+    final TextStyle baseHeaderStyle = TimePickerTheme.of(context).hourMinuteTextStyle
+        ?? _getBaseHeaderStyle(headerTextTheme);
     final _TimePickerFragmentContext fragmentContext = _TimePickerFragmentContext(
       headerTextTheme: headerTextTheme,
       textDirection: Directionality.of(context),
@@ -909,7 +911,6 @@ class _TimePickerHeader2018 extends StatelessWidget {
     final ThemeData themeData = Theme.of(context);
     final TimeOfDayFormat timeOfDayFormat = MaterialLocalizations.of(context)
         .timeOfDayFormat(alwaysUse24HourFormat: MediaQuery.of(context).alwaysUse24HourFormat);
-    final TextTheme textTheme = TimePickerTheme.of(context).headerTextTheme ?? themeData.textTheme;
 
     EdgeInsets padding;
     double width;
@@ -928,15 +929,16 @@ class _TimePickerHeader2018 extends StatelessWidget {
     final Color activeColor = TimePickerTheme.of(context).headerColor ?? themeData.colorScheme.primary;
     final Color inactiveColor = themeData.colorScheme.onBackground;
 
+    final TextStyle hourMinuteStyle = TimePickerTheme.of(context).hourMinuteTextStyle ?? themeData.textTheme.headline3;
     final _TimePickerFragmentContext fragmentContext = _TimePickerFragmentContext(
-      headerTextTheme: textTheme,
+      headerTextTheme: themeData.textTheme,
       textDirection: Directionality.of(context),
       selectedTime: selectedTime,
       mode: mode,
       activeColor: activeColor,
-      activeStyle: textTheme.headline3.copyWith(color: activeColor),
+      activeStyle: hourMinuteStyle.copyWith(color: activeColor),
       inactiveColor: inactiveColor,
-      inactiveStyle: textTheme.headline3.copyWith(color: inactiveColor),
+      inactiveStyle: hourMinuteStyle.copyWith(color: inactiveColor),
       onTimeChange: onChanged,
       onModeChange: _handleChangeMode,
       targetPlatform: themeData.platform,
@@ -966,7 +968,10 @@ class _TimePickerHeader2018 extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           const SizedBox(height: 16.0),
-          Text(helperText ?? 'SELECT TIME', style: textTheme.overline), // TODO: Localize.
+          Text(
+            helperText ?? 'SELECT TIME', // TODO: Localize.
+            style: TimePickerTheme.of(context).helperTextStyle ?? themeData.textTheme.overline,
+          ),
           const SizedBox(height: 16.0),
           Container(
             height: kMinInteractiveDimension * 2,
@@ -1218,7 +1223,6 @@ class _DayPeriodControl2018 extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final MaterialLocalizations materialLocalizations = MaterialLocalizations.of(context);
-    final TextTheme headerTextTheme = fragmentContext.headerTextTheme;
     final TimeOfDay selectedTime = fragmentContext.selectedTime;
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
     final Color activeBackgroundColor = TimePickerTheme.of(context).activeDayPeriodColor ?? colorScheme.surface;
@@ -1226,10 +1230,12 @@ class _DayPeriodControl2018 extends StatelessWidget {
     final Color activeColor = colorScheme.onBackground;
     final Color inactiveColor = colorScheme.onBackground.withOpacity(0.38);
     final bool amSelected = selectedTime.period == DayPeriod.am;
-    final TextStyle amStyle = headerTextTheme.subtitle1.copyWith(
+    final TextStyle textStyle = TimePickerTheme.of(context).dayPeriodTextStyle
+        ?? fragmentContext.headerTextTheme.subtitle1;
+    final TextStyle amStyle = textStyle.copyWith(
         color: amSelected ? activeColor: inactiveColor
     );
-    final TextStyle pmStyle = headerTextTheme.subtitle1.copyWith(
+    final TextStyle pmStyle = textStyle.copyWith(
         color: !amSelected ? activeColor: inactiveColor
     );
     final ShapeBorder shape = TimePickerTheme.of(context).dayPeriodShape ??
@@ -2075,6 +2081,8 @@ class _TimePickerDialog extends StatefulWidget {
     Key key,
     @required this.initialTime,
     @required this.use2018Style,
+    @required this.cancelText,
+    @required this.confirmText,
     @required this.helperText,
   }) : assert(initialTime != null),
        super(key: key);
@@ -2084,6 +2092,16 @@ class _TimePickerDialog extends StatefulWidget {
 
   /// Uses the updated 2018 Material Design time picker style.
   final bool use2018Style;
+
+  /// Optionally provide your own text for the cancel button.
+  ///
+  /// If null, the button uses [MaterialLocalizations.cancelButtonLabel].
+  final String cancelText;
+
+  /// Optionally provide your own text for the confirm button.
+  ///
+  /// If null, the button uses [MaterialLocalizations.okButtonLabel].
+  final String confirmText;
 
   /// Optionally provide your own help text to the header of the 2018 time picker.
   final String helperText;
@@ -2224,11 +2242,11 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
           : ButtonBarLayoutBehavior.padded,
       children: <Widget>[
         FlatButton(
-          child: Text(localizations.cancelButtonLabel),
+          child: Text(widget.cancelText ?? localizations.cancelButtonLabel),
           onPressed: _handleCancel,
         ),
         FlatButton(
-          child: Text(localizations.okButtonLabel),
+          child: Text(widget.confirmText ?? localizations.okButtonLabel),
           onPressed: _handleOk,
         ),
       ],
@@ -2354,6 +2372,9 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
 /// When [use2018Style] is true, the [helperText] parameter can be used to
 /// customize the help text in the header of the picker.
 ///
+/// Optional strings for the [cancelText] and [confirmText] can be provided to
+/// override the default values.
+///
 /// {@tool snippet}
 /// Show a dialog with the text direction overridden to be [TextDirection.rtl].
 ///
@@ -2398,6 +2419,8 @@ Future<TimeOfDay> showTimePicker({
   TransitionBuilder builder,
   bool useRootNavigator = true,
   bool use2018Style,
+  String cancelText,
+  String confirmText,
   String helperText,
 }) async {
   assert(context != null);
@@ -2408,6 +2431,8 @@ Future<TimeOfDay> showTimePicker({
   final Widget dialog = _TimePickerDialog(
     initialTime: initialTime,
     use2018Style: TimePickerTheme.of(context).use2018Style ?? use2018Style ?? true,
+    cancelText: cancelText,
+    confirmText: confirmText,
     helperText: helperText,
   );
   return await showDialog<TimeOfDay>(

@@ -22,7 +22,9 @@ void main() {
     expect(timePickerTheme.dialHandColor, null);
     expect(timePickerTheme.dialBackgroundColor, null);
     expect(timePickerTheme.activeDayPeriodColor, null);
-    expect(timePickerTheme.headerTextTheme, null);
+    expect(timePickerTheme.hourMinuteTextStyle, null);
+    expect(timePickerTheme.dayPeriodTextStyle, null);
+    expect(timePickerTheme.helperTextStyle, null);
     expect(timePickerTheme.shape, null);
     expect(timePickerTheme.hourMinuteShape, null);
     expect(timePickerTheme.dayPeriodShape, null);
@@ -49,7 +51,9 @@ void main() {
       dialHandColor: Color(0xFFFFFFFF),
       dialBackgroundColor: Color(0xFFFFFFFF),
       activeDayPeriodColor: Color(0xFFFFFFFF),
-      headerTextTheme: TextTheme(),
+      hourMinuteTextStyle: TextStyle(),
+      dayPeriodTextStyle: TextStyle(),
+      helperTextStyle: TextStyle(),
       shape: RoundedRectangleBorder(),
       hourMinuteShape: RoundedRectangleBorder(),
       dayPeriodShape: RoundedRectangleBorder(),
@@ -67,7 +71,9 @@ void main() {
       'dialHandColor: Color(0xffffffff)',
       'dialBackgroundColor: Color(0xffffffff)',
       'activeDayPeriodColor: Color(0xffffffff)',
-      'headerTextTheme: TextTheme#6fb5d(headline1: null, headline2: null, headline3: null, headline4: null, headline5: null, headline6: null, subtitle1: null, subtitle2: null, bodyText1: null, bodyText2: null, caption: null, button: null, overline: null)',
+      'hourMinuteTextStyle: TextStyle(<all styles inherited>)',
+      'dayPeriodTextStyle: TextStyle(<all styles inherited>)',
+      'helperTextStyle: TextStyle(<all styles inherited>)',
       'shape: RoundedRectangleBorder(BorderSide(Color(0xff000000), 0.0, BorderStyle.none), BorderRadius.zero)',
       'hourMinuteShape: RoundedRectangleBorder(BorderSide(Color(0xff000000), 0.0, BorderStyle.none), BorderRadius.zero)',
       'dayPeriodShape: RoundedRectangleBorder(BorderSide(Color(0xff000000), 0.0, BorderStyle.none), BorderRadius.zero)',
@@ -96,16 +102,26 @@ void main() {
     final Container headerContainer = _headerContainer(tester);
     expect(headerContainer.decoration, const BoxDecoration(color: Colors.blue));
 
-    final RenderParagraph content = _getTextRenderObjectFromDialog(tester, '7');
+    final RenderParagraph hourText = _getTextRenderObjectFromDialog(tester, '7');
     expect(
-      content.text.style,
-      Typography.material2014().englishLike.headline3.merge(Typography.material2014().black.headline3).copyWith(fontSize: 50, color: Colors.white),
+      hourText.text.style,
+      Typography.material2014().englishLike.headline3
+          .merge(Typography.material2014().black.headline3)
+          .copyWith(fontSize: 50, color: Colors.white),
+    );
+
+    final RenderParagraph amText = _getTextRenderObjectFromDialog(tester, 'AM');
+    expect(
+      amText.text.style,
+      Typography.material2014().englishLike.subtitle1
+          .merge(Typography.material2014().black.subtitle1)
+          .copyWith(color: Colors.white),
     );
   });
 
   testWidgets('Passing no TimePickerThemeData uses defaults - 2018', (WidgetTester tester) async {
     final ThemeData defaultTheme = ThemeData.fallback();
-    await tester.pumpWidget(const _TimePickerLauncher(use2018Style: true,));
+    await tester.pumpWidget(const _TimePickerLauncher(use2018Style: true));
     await tester.tap(find.text('X'));
     await tester.pumpAndSettle(const Duration(seconds: 1));
 
@@ -121,10 +137,27 @@ void main() {
         ..circle(color: Color(defaultTheme.colorScheme.primary.value)), // Dial hand color.
     );
 
-    final RenderParagraph content = _getTextRenderObjectFromDialog(tester, '7');
+    final RenderParagraph hourText = _getTextRenderObjectFromDialog(tester, '7');
     expect(
-      content.text.style,
-      Typography.material2014().englishLike.headline3.merge(Typography.material2014().black.headline3).copyWith(color: defaultTheme.colorScheme.primary),
+      hourText.text.style,
+      Typography.material2014().englishLike.headline3
+          .merge(Typography.material2014().black.headline3)
+          .copyWith(color: defaultTheme.colorScheme.primary),
+    );
+
+    final RenderParagraph amText = _getTextRenderObjectFromDialog(tester, 'AM');
+    expect(
+      amText.text.style,
+      Typography.material2014().englishLike.subtitle1
+          .merge(Typography.material2014().black.subtitle1)
+          .copyWith(color: defaultTheme.colorScheme.onBackground),
+    );
+
+    final RenderParagraph helperText = _getTextRenderObjectFromDialog(tester, 'SELECT TIME');
+    expect(
+      helperText.text.style,
+      Typography.material2014().englishLike.overline
+          .merge(Typography.material2014().black.overline),
     );
 
     final Material hourMaterial = _textMaterial(tester, '7');
@@ -165,19 +198,29 @@ void main() {
     final Container headerContainer = _headerContainer(tester);
     expect(headerContainer.decoration, BoxDecoration(color: timePickerTheme.headerColor));
 
-    final RenderParagraph content = _getTextRenderObjectFromDialog(tester, '7');
+    final RenderParagraph hourText = _getTextRenderObjectFromDialog(tester, '7');
     expect(
-      content.text.style,
+      hourText.text.style,
       Typography.material2014().englishLike.bodyText2
           .merge(Typography.material2014().black.bodyText2)
-          .merge(timePickerTheme.headerTextTheme.headline3)
-          .copyWith(fontSize: 50, color: Colors.white),
+          .merge(timePickerTheme.hourMinuteTextStyle)
+          .copyWith(color: Colors.white),
+    );
+
+    final RenderParagraph amText = _getTextRenderObjectFromDialog(tester, 'AM');
+    expect(
+      amText.text.style,
+      Typography.material2014().englishLike.subtitle1
+          .merge(Typography.material2014().black.subtitle1)
+          .merge(timePickerTheme.dayPeriodTextStyle)
+          .copyWith(color: Colors.white),
     );
   });
 
   testWidgets('Time picker uses values from TimePickerThemeData - 2018', (WidgetTester tester) async {
     final TimePickerThemeData timePickerTheme = _timePickerTheme(use2018Style: true);
-    await tester.pumpWidget(_TimePickerLauncher(themeData: ThemeData(timePickerTheme: timePickerTheme), use2018Style: true,));
+    final ThemeData theme = ThemeData(timePickerTheme: timePickerTheme);
+    await tester.pumpWidget(_TimePickerLauncher(themeData: theme, use2018Style: true,));
     await tester.tap(find.text('X'));
     await tester.pumpAndSettle(const Duration(seconds: 1));
 
@@ -193,13 +236,30 @@ void main() {
         ..circle(color: Color(timePickerTheme.dialHandColor.value)), // Dial hand color.
     );
 
-    final RenderParagraph content = _getTextRenderObjectFromDialog(tester, '7');
+    final RenderParagraph hourText = _getTextRenderObjectFromDialog(tester, '7');
     expect(
-      content.text.style,
+      hourText.text.style,
       Typography.material2014().englishLike.bodyText2
           .merge(Typography.material2014().black.bodyText2)
-          .merge(timePickerTheme.headerTextTheme.headline3)
+          .merge(timePickerTheme.hourMinuteTextStyle)
           .copyWith(color: timePickerTheme.headerColor),
+    );
+
+    final RenderParagraph amText = _getTextRenderObjectFromDialog(tester, 'AM');
+    expect(
+      amText.text.style,
+      Typography.material2014().englishLike.subtitle1
+          .merge(Typography.material2014().black.subtitle1)
+          .merge(timePickerTheme.dayPeriodTextStyle)
+          .copyWith(color: theme.colorScheme.onBackground),
+    );
+
+    final RenderParagraph helperText = _getTextRenderObjectFromDialog(tester, 'SELECT TIME');
+    expect(
+      helperText.text.style,
+      Typography.material2014().englishLike.bodyText2
+          .merge(Typography.material2014().black.bodyText2)
+          .merge(timePickerTheme.helperTextStyle),
     );
 
     final Material hourMaterial = _textMaterial(tester, '7');
@@ -221,7 +281,9 @@ TimePickerThemeData _timePickerTheme({bool use2018Style = false}) {
     dialHandColor: Colors.brown,
     dialBackgroundColor: Colors.pinkAccent,
     activeDayPeriodColor: Colors.teal,
-    headerTextTheme: Typography.englishLike2018,
+    hourMinuteTextStyle: const TextStyle(fontSize: 8),
+    dayPeriodTextStyle: const TextStyle(fontSize: 8),
+    helperTextStyle: const TextStyle(fontSize: 8),
     shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16.0))),
     hourMinuteShape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16.0))),
     dayPeriodShape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16.0))),

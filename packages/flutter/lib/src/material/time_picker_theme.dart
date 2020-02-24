@@ -34,7 +34,9 @@ class TimePickerThemeData extends Diagnosticable {
     this.dialHandColor,
     this.dialBackgroundColor,
     this.activeDayPeriodColor,
-    this.headerTextTheme,
+    this.hourMinuteTextStyle,
+    this.dayPeriodTextStyle,
+    this.helperTextStyle,
     this.shape,
     this.hourMinuteShape,
     this.dayPeriodShape,
@@ -86,14 +88,31 @@ class TimePickerThemeData extends Diagnosticable {
   /// If this is null, the time picker defaults to [ColorScheme.surface].
   final Color activeDayPeriodColor;
 
-  /// Used to configure the [TextStyle]s for the header of the time picker.
+  /// Used to configure the [TextStyle]s for the hour/minute controls.
   ///
   /// If this is null and [use2018Style] is true, the time picker defaults to
-  /// values from [ThemeData.textTheme].
+  /// `Theme.of(context).textTheme.headline3`.
   ///
-  /// If this is null and [use2018Style] is false, the time picker defaults to
-  /// values from [ThemeData.primaryTextTheme].
-  final TextTheme headerTextTheme;
+  /// If this is null and [use2018Style] is false, the time picker defaults to:
+  /// * `Theme.of(context).primaryTextTheme.headline2.copyWith(fontSize: 60.0)`
+  ///    in portrait.
+  /// * `Theme.of(context).primaryTextTheme.headline3.copyWith(fontSize: 50.0)`
+  ///    in landscape.
+  final TextStyle hourMinuteTextStyle;
+
+  /// Used to configure the [TextStyle]s for the day period control.
+  ///
+  /// If this is null, the time picker defaults to
+  /// `Theme.of(context).primaryTextTheme.subtitle1`.
+  final TextStyle dayPeriodTextStyle;
+
+  /// Used to configure the [TextStyle]s for the helper text in the header.
+  ///
+  /// This is only used when [use2018Style] is true.
+  ///
+  /// If this is null, the time picker defaults to
+  /// `Theme.of(context).textTheme.overline`.
+  final TextStyle helperTextStyle;
 
   /// The shape of the [Dialog] that the time picker is presented in.
   ///
@@ -141,7 +160,9 @@ class TimePickerThemeData extends Diagnosticable {
     Color dialHandColor,
     Color dialBackgroundColor,
     Color activeDayPeriodColor,
-    TextTheme headerTextTheme,
+    TextStyle hourMinuteTextStyle,
+    TextStyle dayPeriodTextStyle,
+    TextStyle helperTextStyle,
     ShapeBorder shape,
     ShapeBorder hourMinuteShape,
     ShapeBorder dayPeriodShape,
@@ -153,7 +174,9 @@ class TimePickerThemeData extends Diagnosticable {
       dialHandColor: dialHandColor ?? this.dialHandColor,
       dialBackgroundColor: dialBackgroundColor ?? this.dialBackgroundColor,
       activeDayPeriodColor: activeDayPeriodColor ?? this.activeDayPeriodColor,
-      headerTextTheme: headerTextTheme ?? this.headerTextTheme,
+      hourMinuteTextStyle: hourMinuteTextStyle ?? this.hourMinuteTextStyle,
+      dayPeriodTextStyle: dayPeriodTextStyle ?? this.dayPeriodTextStyle,
+      helperTextStyle: helperTextStyle ?? this.helperTextStyle,
       shape: shape ?? this.shape,
       hourMinuteShape: hourMinuteShape ?? this.hourMinuteShape,
       dayPeriodShape: dayPeriodShape ?? this.dayPeriodShape,
@@ -174,7 +197,9 @@ class TimePickerThemeData extends Diagnosticable {
       dialHandColor: Color.lerp(a?.dialHandColor, b?.dialHandColor, t),
       dialBackgroundColor: Color.lerp(a?.dialBackgroundColor, b?.dialBackgroundColor, t),
       activeDayPeriodColor: Color.lerp(a?.activeDayPeriodColor, b?.activeDayPeriodColor, t),
-      headerTextTheme: TextTheme.lerp(a?.headerTextTheme, b?.headerTextTheme, t),
+      hourMinuteTextStyle: TextStyle.lerp(a?.hourMinuteTextStyle, b?.hourMinuteTextStyle, t),
+      dayPeriodTextStyle: TextStyle.lerp(a?.dayPeriodTextStyle, b?.dayPeriodTextStyle, t),
+      helperTextStyle: TextStyle.lerp(a?.helperTextStyle, b?.helperTextStyle, t),
       shape: ShapeBorder.lerp(a?.shape, b?.shape, t),
       hourMinuteShape: ShapeBorder.lerp(a?.hourMinuteShape, b?.hourMinuteShape, t),
       dayPeriodShape: ShapeBorder.lerp(a?.dayPeriodShape, b?.dayPeriodShape, t),
@@ -190,7 +215,9 @@ class TimePickerThemeData extends Diagnosticable {
       dialHandColor,
       dialBackgroundColor,
       activeDayPeriodColor,
-      headerTextTheme,
+      hourMinuteTextStyle,
+      dayPeriodTextStyle,
+      helperTextStyle,
       shape,
       hourMinuteShape,
       dayPeriodShape,
@@ -210,7 +237,9 @@ class TimePickerThemeData extends Diagnosticable {
         && other.dialHandColor == dialHandColor
         && other.dialBackgroundColor == dialBackgroundColor
         && other.activeDayPeriodColor == activeDayPeriodColor
-        && other.headerTextTheme == headerTextTheme
+        && other.hourMinuteTextStyle == hourMinuteTextStyle
+        && other.dayPeriodTextStyle == dayPeriodTextStyle
+        && other.helperTextStyle == helperTextStyle
         && other.shape == shape
         && other.hourMinuteShape == hourMinuteShape
         && other.dayPeriodShape == dayPeriodShape
@@ -225,7 +254,9 @@ class TimePickerThemeData extends Diagnosticable {
     properties.add(ColorProperty('dialHandColor', dialHandColor, defaultValue: null));
     properties.add(ColorProperty('dialBackgroundColor', dialBackgroundColor, defaultValue: null));
     properties.add(ColorProperty('activeDayPeriodColor', activeDayPeriodColor, defaultValue: null));
-    properties.add(DiagnosticsProperty<TextTheme>('headerTextTheme', headerTextTheme, defaultValue: null));
+    properties.add(DiagnosticsProperty<TextStyle>('hourMinuteTextStyle', hourMinuteTextStyle, defaultValue: null));
+    properties.add(DiagnosticsProperty<TextStyle>('dayPeriodTextStyle', dayPeriodTextStyle, defaultValue: null));
+    properties.add(DiagnosticsProperty<TextStyle>('helperTextStyle', helperTextStyle, defaultValue: null));
     properties.add(DiagnosticsProperty<ShapeBorder>('shape', shape, defaultValue: null));
     properties.add(DiagnosticsProperty<ShapeBorder>('hourMinuteShape', hourMinuteShape, defaultValue: null));
     properties.add(DiagnosticsProperty<ShapeBorder>('dayPeriodShape', dayPeriodShape, defaultValue: null));

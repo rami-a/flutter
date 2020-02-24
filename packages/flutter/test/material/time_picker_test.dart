@@ -838,6 +838,43 @@ void _tests() {
     expect(nestedObserver.pickerCount, 1);
   });
 
+  testWidgets('optional text parameters are utilized', (WidgetTester tester) async {
+    const String cancelText = 'Custom Cancel';
+    const String confirmText = 'Custom OK';
+    const String helperText = 'Custom Help';
+    await tester.pumpWidget(MaterialApp(
+      home: Material(
+        child: Center(
+          child: Builder(
+              builder: (BuildContext context) {
+                return RaisedButton(
+                  child: const Text('X'),
+                  onPressed: () async {
+                    await showTimePicker(
+                      context: context,
+                      initialTime: const TimeOfDay(hour: 7, minute: 0),
+                      use2018Style: true,
+                      cancelText: cancelText,
+                      confirmText: confirmText,
+                      helperText: helperText,
+                    );
+                  },
+                );
+              }
+          ),
+        ),
+      )
+    ));
+
+    // Open the picker.
+    await tester.tap(find.text('X'));
+    await tester.pumpAndSettle(const Duration(seconds: 1));
+
+    expect(find.text(cancelText), findsOneWidget);
+    expect(find.text(confirmText), findsOneWidget);
+    expect(find.text(helperText), findsOneWidget);
+  });
+
   testWidgets('text scale affects certain elements and not others',
       (WidgetTester tester) async {
     await mediaQueryBoilerplate(
