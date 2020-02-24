@@ -23,10 +23,11 @@ final Finder _minuteControl2018 = find.byWidgetPredicate((Widget widget) => '${w
 final Finder _timePickerDialog = find.byWidgetPredicate((Widget widget) => '${widget.runtimeType}' == '_TimePickerDialog');
 
 class _TimePickerLauncher extends StatelessWidget {
-  const _TimePickerLauncher({ Key key, this.onChanged, this.locale }) : super(key: key);
+  const _TimePickerLauncher({ Key key, this.onChanged, this.locale, this.use2018Style = false }) : super(key: key);
 
   final ValueChanged<TimeOfDay> onChanged;
   final Locale locale;
+  final bool use2018Style;
 
   @override
   Widget build(BuildContext context) {
@@ -42,6 +43,7 @@ class _TimePickerLauncher extends StatelessWidget {
                   onChanged(await showTimePicker(
                     context: context,
                     initialTime: const TimeOfDay(hour: 7, minute: 0),
+                    use2018Style: use2018Style,
                   ));
                 },
               );
@@ -53,8 +55,8 @@ class _TimePickerLauncher extends StatelessWidget {
   }
 }
 
-Future<Offset> startPicker(WidgetTester tester, ValueChanged<TimeOfDay> onChanged) async {
-  await tester.pumpWidget(_TimePickerLauncher(onChanged: onChanged, locale: const Locale('en', 'US')));
+Future<Offset> startPicker(WidgetTester tester, ValueChanged<TimeOfDay> onChanged, { bool use2018Style = false }) async {
+  await tester.pumpWidget(_TimePickerLauncher(onChanged: onChanged, locale: const Locale('en', 'US'), use2018Style: use2018Style));
   await tester.tap(find.text('X'));
   await tester.pumpAndSettle(const Duration(seconds: 1));
   return tester.getCenter(find.byKey(const ValueKey<String>('time-picker-dial')));
@@ -168,6 +170,48 @@ void _tests() {
     await gesture.up();
     await finishPicker(tester);
     expect(result, equals(const TimeOfDay(hour: 9, minute: 15)));
+  });
+
+  testWidgets('tap-select allows 1 minute increments', (WidgetTester tester) async {
+    TimeOfDay result;
+
+    final Offset center = await startPicker(tester, (TimeOfDay time) { result = time; });
+    final Offset hour6 = Offset(center.dx, center.dy + 50.0); // 6:00
+    final Offset min46 = Offset(center.dx - 50.0, center.dy - 5); // 46 mins
+
+    await tester.tapAt(hour6);
+    await tester.pump(const Duration(milliseconds: 50));
+    await tester.tapAt(min46);
+    await finishPicker(tester);
+    expect(result, equals(const TimeOfDay(hour: 6, minute: 46)));
+  });
+
+  testWidgets('tap-select rounds down to nearest 5 minute increment - 2018', (WidgetTester tester) async {
+    TimeOfDay result;
+
+    final Offset center = await startPicker(tester, (TimeOfDay time) { result = time; }, use2018Style: true);
+    final Offset hour6 = Offset(center.dx, center.dy + 50.0); // 6:00
+    final Offset min46 = Offset(center.dx - 50.0, center.dy - 5); // 46 mins
+
+    await tester.tapAt(hour6);
+    await tester.pump(const Duration(milliseconds: 50));
+    await tester.tapAt(min46);
+    await finishPicker(tester);
+    expect(result, equals(const TimeOfDay(hour: 6, minute: 45)));
+  });
+
+  testWidgets('tap-select rounds up to nearest 5 minute increment - 2018', (WidgetTester tester) async {
+    TimeOfDay result;
+
+    final Offset center = await startPicker(tester, (TimeOfDay time) { result = time; }, use2018Style: true);
+    final Offset hour6 = Offset(center.dx, center.dy + 50.0); // 6:00
+    final Offset min46 = Offset(center.dx - 50.0, center.dy - 15); // 48 mins
+
+    await tester.tapAt(hour6);
+    await tester.pump(const Duration(milliseconds: 50));
+    await tester.tapAt(min46);
+    await finishPicker(tester);
+    expect(result, equals(const TimeOfDay(hour: 6, minute: 50)));
   });
 
   group('haptic feedback', () {

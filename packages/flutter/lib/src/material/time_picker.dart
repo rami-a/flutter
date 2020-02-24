@@ -1757,10 +1757,10 @@ class _DialState extends State<_Dial> with SingleTickerProviderStateMixin {
       }
       return widget.selectedTime.replacing(hour: newHour);
     } else {
-      print('-------------- _getTimeForTheta: $fraction');
-      final int minute = (fraction * TimeOfDay.minutesPerHour).round() % TimeOfDay.minutesPerHour;
+      int minute = (fraction * TimeOfDay.minutesPerHour).round() % TimeOfDay.minutesPerHour;
       if (roundMinutes) {
-        // Round
+        // Round the minutes to nearest 5 minute interval.
+        minute = ((minute + 2) ~/ 5) * 5 % TimeOfDay.minutesPerHour;
       }
       return widget.selectedTime.replacing(
         minute: minute
@@ -1768,8 +1768,8 @@ class _DialState extends State<_Dial> with SingleTickerProviderStateMixin {
     }
   }
 
-  TimeOfDay _notifyOnChangedIfNeeded() {
-    final TimeOfDay current = _getTimeForTheta(_theta.value);
+  TimeOfDay _notifyOnChangedIfNeeded({ bool roundMinutes = false }) {
+    final TimeOfDay current = _getTimeForTheta(_theta.value, roundMinutes: roundMinutes);
     if (widget.onChanged == null)
       return current;
     if (current != widget.selectedTime)
@@ -1833,7 +1833,7 @@ class _DialState extends State<_Dial> with SingleTickerProviderStateMixin {
     _position = box.globalToLocal(details.globalPosition);
     _center = box.size.center(Offset.zero);
     _updateThetaForPan();
-    final TimeOfDay newTime = _notifyOnChangedIfNeeded();
+    final TimeOfDay newTime = _notifyOnChangedIfNeeded(roundMinutes: widget.use2018Style);
     if (widget.mode == _TimePickerMode.hour) {
       if (widget.use24HourDials) {
         _announceToAccessibility(context, localizations.formatDecimal(newTime.hour));
@@ -1846,7 +1846,7 @@ class _DialState extends State<_Dial> with SingleTickerProviderStateMixin {
     } else {
       _announceToAccessibility(context, localizations.formatDecimal(newTime.minute));
     }
-    _animateTo(_getThetaForTime(_getTimeForTheta(_theta.value, roundMinutes: true)));
+    _animateTo(_getThetaForTime(_getTimeForTheta(_theta.value, roundMinutes: widget.use2018Style)));
     _dragging = false;
     _position = null;
     _center = null;
@@ -2430,7 +2430,7 @@ Future<TimeOfDay> showTimePicker({
 
   final Widget dialog = _TimePickerDialog(
     initialTime: initialTime,
-    use2018Style: TimePickerTheme.of(context).use2018Style ?? use2018Style ?? true,
+    use2018Style: TimePickerTheme.of(context).use2018Style ?? use2018Style ?? false,
     cancelText: cancelText,
     confirmText: confirmText,
     helperText: helperText,
