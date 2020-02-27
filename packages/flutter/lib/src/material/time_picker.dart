@@ -1777,10 +1777,13 @@ class _DialState extends State<_Dial> with SingleTickerProviderStateMixin {
     return current;
   }
 
-  void _updateThetaForPan() {
+  void _updateThetaForPan({ bool roundMinutes = false }) {
     setState(() {
       final Offset offset = _position - _center;
-      final double angle = (math.atan2(offset.dx, offset.dy) - math.pi / 2.0) % _kTwoPi;
+      double angle = (math.atan2(offset.dx, offset.dy) - math.pi / 2.0) % _kTwoPi;
+      if (roundMinutes) {
+        angle = _getThetaForTime(_getTimeForTheta(angle, roundMinutes: roundMinutes));
+      }
       _thetaTween
         ..begin = angle
         ..end = angle; // The controller doesn't animate during the pan gesture.
@@ -1832,7 +1835,7 @@ class _DialState extends State<_Dial> with SingleTickerProviderStateMixin {
     final RenderBox box = context.findRenderObject() as RenderBox;
     _position = box.globalToLocal(details.globalPosition);
     _center = box.size.center(Offset.zero);
-    _updateThetaForPan();
+    _updateThetaForPan(roundMinutes: widget.use2018Style);
     final TimeOfDay newTime = _notifyOnChangedIfNeeded(roundMinutes: widget.use2018Style);
     if (widget.mode == _TimePickerMode.hour) {
       if (widget.use24HourDials) {
