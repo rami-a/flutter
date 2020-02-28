@@ -264,6 +264,7 @@ void main() {
       bannerTheme: const MaterialBannerThemeData(backgroundColor: Colors.black),
       dividerTheme: const DividerThemeData(color: Colors.black),
       buttonBarTheme: const ButtonBarThemeData(alignment: MainAxisAlignment.start),
+      timePickerTheme: const TimePickerThemeData(backgroundColor: Colors.black),
     );
 
     final SliderThemeData otherSliderTheme = SliderThemeData.fromPrimaryColors(
@@ -343,6 +344,7 @@ void main() {
       bannerTheme: const MaterialBannerThemeData(backgroundColor: Colors.white),
       dividerTheme: const DividerThemeData(color: Colors.white),
       buttonBarTheme: const ButtonBarThemeData(alignment: MainAxisAlignment.end),
+      timePickerTheme: const TimePickerThemeData(backgroundColor: Colors.white),
     );
 
     final ThemeData themeDataCopy = theme.copyWith(
@@ -408,6 +410,7 @@ void main() {
       bannerTheme: otherTheme.bannerTheme,
       dividerTheme: otherTheme.dividerTheme,
       buttonBarTheme: otherTheme.buttonBarTheme,
+      timePickerTheme: otherTheme.timePickerTheme,
     );
 
     expect(themeDataCopy.brightness, equals(otherTheme.brightness));
@@ -474,6 +477,7 @@ void main() {
     expect(themeDataCopy.bannerTheme, equals(otherTheme.bannerTheme));
     expect(themeDataCopy.dividerTheme, equals(otherTheme.dividerTheme));
     expect(themeDataCopy.buttonBarTheme, equals(otherTheme.buttonBarTheme));
+    expect(themeDataCopy.timePickerTheme, equals(otherTheme.timePickerTheme));
   });
 
   testWidgets('ThemeData.toString has less than 200 characters output', (WidgetTester tester) async {
