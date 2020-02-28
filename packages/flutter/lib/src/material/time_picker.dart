@@ -39,7 +39,7 @@ enum _TimePickerMode { hour, minute }
 const double _kTimePickerHeaderPortraitHeight = 96.0;
 const double _kTimePickerHeaderLandscapeWidth = 168.0;
 
-const double _kTimePickerHeaderLandscapeWidth2018 = 198.0; // TODO: Is this correct?
+const double _kTimePickerHeaderLandscapeWidth2018 = 220.0; // TODO: Is this correct?
 const double _kTimePickerHeaderControlHeight = 80.0;
 
 const double _kTimePickerWidthPortrait = 328.0;
@@ -912,20 +912,6 @@ class _TimePickerHeader2018 extends StatelessWidget {
     final TimeOfDayFormat timeOfDayFormat = MaterialLocalizations.of(context)
         .timeOfDayFormat(alwaysUse24HourFormat: MediaQuery.of(context).alwaysUse24HourFormat);
 
-    EdgeInsets padding;
-    double width;
-
-    assert(orientation != null);
-    switch (orientation) {
-      case Orientation.portrait:
-        padding = const EdgeInsets.symmetric(horizontal: 24.0);
-        break;
-      case Orientation.landscape:
-        width = _kTimePickerHeaderLandscapeWidth2018;
-        padding = const EdgeInsets.symmetric(horizontal: 16.0);
-        break;
-    }
-
     final Color activeColor = TimePickerTheme.of(context).headerColor ?? themeData.colorScheme.primary;
     final Color inactiveColor = themeData.colorScheme.onBackground;
 
@@ -961,6 +947,59 @@ class _TimePickerHeader2018 extends StatelessWidget {
         break;
     }
 
+    EdgeInsets padding;
+    double width;
+    Widget controls;
+
+    assert(orientation != null);
+    switch (orientation) {
+      case Orientation.portrait:
+        padding = const EdgeInsets.symmetric(horizontal: 24.0);
+        controls = Column(
+          children: <Widget>[
+            const SizedBox(height: 16.0),
+            Container(
+              height: kMinInteractiveDimension * 2,
+              child: Row(
+                children: <Widget>[
+                  Expanded(child: _HourControl2018(fragmentContext: fragmentContext)),
+                  _StringFragment2018(fragmentContext: fragmentContext, value: stringFragmentValue),
+                  Expanded(child: _MinuteControl2018(fragmentContext: fragmentContext)),
+                  if (!use24HourDials) ...<Widget>[
+                    const SizedBox(width: 12.0),
+                    _DayPeriodControl2018(fragmentContext: fragmentContext, orientation: orientation),
+                  ]
+                ],
+              ),
+            ),
+          ],
+        );
+        break;
+      case Orientation.landscape:
+        width = _kTimePickerHeaderLandscapeWidth2018;
+        padding = const EdgeInsets.symmetric(horizontal: 16.0);
+        controls = Expanded(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Container(
+                height: kMinInteractiveDimension * 2,
+                child: Row(
+                  children: <Widget>[
+                    Expanded(child: _HourControl2018(fragmentContext: fragmentContext)),
+                    _StringFragment2018(fragmentContext: fragmentContext, value: stringFragmentValue),
+                    Expanded(child: _MinuteControl2018(fragmentContext: fragmentContext)),
+                  ],
+                ),
+              ),
+              if (!use24HourDials)
+                _DayPeriodControl2018(fragmentContext: fragmentContext, orientation: orientation),
+            ],
+          ),
+        );
+        break;
+    }
+
     return Container(
       width: width,
       padding: padding,
@@ -972,23 +1011,7 @@ class _TimePickerHeader2018 extends StatelessWidget {
             helperText ?? 'SELECT TIME', // TODO: Localize.
             style: TimePickerTheme.of(context).helperTextStyle ?? themeData.textTheme.overline,
           ),
-          const SizedBox(height: 16.0),
-          Container(
-            height: kMinInteractiveDimension * 2,
-            child: Row(
-              children: <Widget>[
-                Expanded(child: _HourControl2018(fragmentContext: fragmentContext)),
-                _StringFragment2018(fragmentContext: fragmentContext, value: stringFragmentValue),
-                Expanded(child: _MinuteControl2018(fragmentContext: fragmentContext)),
-                if (!use24HourDials && orientation == Orientation.portrait) ...<Widget>[
-                  const SizedBox(width: 12.0),
-                  _DayPeriodControl2018(fragmentContext: fragmentContext, orientation: orientation),
-                ]
-              ],
-            ),
-          ),
-          if (!use24HourDials && orientation == Orientation.landscape)
-            _DayPeriodControl2018(fragmentContext: fragmentContext, orientation: orientation),
+          controls,
         ],
       ),
     );
@@ -1293,6 +1316,7 @@ class _DayPeriodControl2018 extends StatelessWidget {
         const double width = 52.0;
         return _DayPeriodInputPadding(
           minSize: const Size(width, kMinInteractiveDimension * 2),
+          orientation: orientation,
           child: Container(
             width: width,
             height: _kTimePickerHeaderControlHeight,
@@ -1310,19 +1334,22 @@ class _DayPeriodControl2018 extends StatelessWidget {
           ),
         );
         break;
-      case Orientation.landscape: // TODO: What is the real landscape layout?
-        return Container(
-          height: 48.0,
-          padding: const EdgeInsets.all(8),
-          child: Material(
-            clipBehavior: Clip.antiAlias,
-            color: Colors.transparent,
-            shape: shape,
-            child: Row(
-              children: <Widget>[
-                Expanded(child: amButton),
-                Expanded(child: pmButton),
-              ],
+      case Orientation.landscape:
+        return _DayPeriodInputPadding(
+          minSize: const Size(0, kMinInteractiveDimension),
+          orientation: orientation,
+          child: Container(
+            height: 40,
+            child: Material(
+              clipBehavior: Clip.antiAlias,
+              color: Colors.transparent,
+              shape: shape,
+              child: Row(
+                children: <Widget>[
+                  Expanded(child: amButton),
+                  Expanded(child: pmButton),
+                ],
+              ),
             ),
           ),
         );
@@ -1337,13 +1364,15 @@ class _DayPeriodInputPadding extends SingleChildRenderObjectWidget {
     Key key,
     Widget child,
     this.minSize,
+    this.orientation,
   }) : super(key: key, child: child);
 
   final Size minSize;
+  final Orientation orientation;
 
   @override
   RenderObject createRenderObject(BuildContext context) {
-    return _RenderInputPadding(minSize);
+    return _RenderInputPadding(minSize, orientation);
   }
 
   @override
@@ -1353,7 +1382,9 @@ class _DayPeriodInputPadding extends SingleChildRenderObjectWidget {
 }
 
 class _RenderInputPadding extends RenderShiftedBox {
-  _RenderInputPadding(this._minSize, [RenderBox child]) : super(child);
+  _RenderInputPadding(this._minSize, this.orientation, [RenderBox child]) : super(child);
+
+  final Orientation orientation;
 
   Size get minSize => _minSize;
   Size _minSize;
@@ -1420,11 +1451,23 @@ class _RenderInputPadding extends RenderShiftedBox {
     }
 
     Offset newPosition = child.size.center(Offset.zero);
-    if (position.dy > newPosition.dy) {
-      newPosition = newPosition + const Offset(0, 1);
-    } else {
-      newPosition = newPosition + const Offset(0, -1);
+    switch (orientation) {
+      case Orientation.portrait:
+        if (position.dy > newPosition.dy) {
+          newPosition = newPosition + const Offset(0, 1);
+        } else {
+          newPosition = newPosition + const Offset(0, -1);
+        }
+        break;
+      case Orientation.landscape:
+        if (position.dx > newPosition.dx) {
+          newPosition = newPosition + const Offset(1, 0);
+        } else {
+          newPosition = newPosition + const Offset(-1, 0);
+        }
+        break;
     }
+
 
     return result.addWithRawTransform(
       transform: MatrixUtils.forceToPoint(newPosition),
@@ -2318,20 +2361,40 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
                 ),
               );
             case Orientation.landscape:
-              return SizedBox(
-                width: _kTimePickerWidthLandscape,
-                height: timePickerHeightLandscape,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: <Widget>[
-                    header,
-                    Flexible(
-                      child: pickerAndActions,
-                    ),
-                  ],
-                ),
-              );
+              if (widget.use2018Style) {
+                return SizedBox(
+                  width: _kTimePickerWidthLandscape,
+                  height: timePickerHeightLandscape,
+                  child: Column(
+                    children: <Widget>[
+                      Expanded(
+                        child: Row(
+                          children: <Widget>[
+                            header,
+                            Expanded(child: picker),
+                          ],
+                        ),
+                      ),
+                      actions,
+                    ],
+                  ),
+                );
+              } else {
+                return SizedBox(
+                  width: _kTimePickerWidthLandscape,
+                  height: timePickerHeightLandscape,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: <Widget>[
+                      header,
+                      Flexible(
+                        child: pickerAndActions,
+                      ),
+                    ],
+                  ),
+                );
+              }
           }
           return null;
         }
