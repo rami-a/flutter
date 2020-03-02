@@ -952,7 +952,7 @@ class _TimePickerHeader2018 extends StatelessWidget {
               child: Row(
                 children: <Widget>[
                   Expanded(child: _HourControl2018(fragmentContext: fragmentContext)),
-                  _StringFragment2018(fragmentContext: fragmentContext, value: _stringFragmentValue(timeOfDayFormat)),
+                  _StringFragment2018(textStyle: fragmentContext.inactiveStyle, timeOfDayFormat: timeOfDayFormat),
                   Expanded(child: _MinuteControl2018(fragmentContext: fragmentContext)),
                   if (!use24HourDials) ...<Widget>[
                     const SizedBox(width: 12.0),
@@ -976,7 +976,7 @@ class _TimePickerHeader2018 extends StatelessWidget {
                 child: Row(
                   children: <Widget>[
                     Expanded(child: _HourControl2018(fragmentContext: fragmentContext)),
-                    _StringFragment2018(fragmentContext: fragmentContext, value: _stringFragmentValue(timeOfDayFormat)),
+                    _StringFragment2018(textStyle: fragmentContext.inactiveStyle, timeOfDayFormat: timeOfDayFormat),
                     Expanded(child: _MinuteControl2018(fragmentContext: fragmentContext)),
                   ],
                 ),
@@ -1005,25 +1005,6 @@ class _TimePickerHeader2018 extends StatelessWidget {
       ),
     );
   }
-}
-
-String _stringFragmentValue(TimeOfDayFormat timeOfDayFormat) {
-  String stringFragmentValue;
-  switch (timeOfDayFormat) {
-    case TimeOfDayFormat.h_colon_mm_space_a:
-    case TimeOfDayFormat.a_space_h_colon_mm:
-    case TimeOfDayFormat.H_colon_mm:
-    case TimeOfDayFormat.HH_colon_mm:
-      stringFragmentValue = ':';
-      break;
-    case TimeOfDayFormat.HH_dot_mm:
-      stringFragmentValue = '.';
-      break;
-    case TimeOfDayFormat.frenchCanadian:
-      stringFragmentValue = 'h';
-      break;
-  }
-  return stringFragmentValue;
 }
 
 /// Displays the hour fragment.
@@ -1117,12 +1098,31 @@ class _HourControl2018 extends StatelessWidget {
 /// A passive fragment showing a string value.
 class _StringFragment2018 extends StatelessWidget {
   const _StringFragment2018({
-    @required this.fragmentContext,
-    @required this.value,
+    @required this.textStyle,
+    @required this.timeOfDayFormat,
   });
 
-  final _TimePickerFragmentContext fragmentContext;
-  final String value;
+  final TextStyle textStyle;
+  final TimeOfDayFormat timeOfDayFormat;
+
+  String _stringFragmentValue(TimeOfDayFormat timeOfDayFormat) {
+    String stringFragmentValue;
+    switch (timeOfDayFormat) {
+      case TimeOfDayFormat.h_colon_mm_space_a:
+      case TimeOfDayFormat.a_space_h_colon_mm:
+      case TimeOfDayFormat.H_colon_mm:
+      case TimeOfDayFormat.HH_colon_mm:
+        stringFragmentValue = ':';
+        break;
+      case TimeOfDayFormat.HH_dot_mm:
+        stringFragmentValue = '.';
+        break;
+      case TimeOfDayFormat.frenchCanadian:
+        stringFragmentValue = 'h';
+        break;
+    }
+    return stringFragmentValue;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1130,7 +1130,11 @@ class _StringFragment2018 extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 6),
         child: Center(
-          child: Text(value, style: fragmentContext.inactiveStyle, textScaleFactor: 1.0),
+          child: Text(
+            _stringFragmentValue(timeOfDayFormat),
+            style: textStyle,
+            textScaleFactor: 1.0,
+          ),
         ),
       ),
     );
@@ -2544,7 +2548,7 @@ class _TimePickerInputDialogState extends State<_TimePickerInputDialog> {
       activeStyle: hourMinuteStyle.copyWith(color: activeColor),
       inactiveColor: inactiveColor,
       inactiveStyle: hourMinuteStyle.copyWith(color: inactiveColor),
-      onTimeChange: (time) {},
+      onTimeChange: _handleTimeChanged,
       onModeChange: (mode) {},
       targetPlatform: theme.platform,
       use24HourDials: use24HourDials,
@@ -2566,7 +2570,7 @@ class _TimePickerInputDialogState extends State<_TimePickerInputDialog> {
               children: <Widget>[
                 // TODO: Replace with textfields.
                 Expanded(child: _HourControl2018(fragmentContext: fragmentContext)),
-                _StringFragment2018(fragmentContext: fragmentContext, value: _stringFragmentValue(timeOfDayFormat)),
+                _StringFragment2018(textStyle: fragmentContext.inactiveStyle, timeOfDayFormat: timeOfDayFormat),
                 Expanded(child: _MinuteControl2018(fragmentContext: fragmentContext)),
                 if (!use24HourDials) ...<Widget>[
                   const SizedBox(width: 12.0),
