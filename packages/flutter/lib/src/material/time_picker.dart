@@ -2617,13 +2617,16 @@ class _TimePickerInputDialogState extends State<_TimePickerInputDialog> {
     return Dialog(
       shape: shape,
       backgroundColor: TimePickerTheme.of(context).backgroundColor,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          picker,
-          actions,
-        ],
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 344.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            picker,
+            actions,
+          ],
+        ),
       ),
     );
   }
