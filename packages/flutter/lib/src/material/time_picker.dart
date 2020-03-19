@@ -2125,6 +2125,105 @@ class _DialState extends State<_Dial> with SingleTickerProviderStateMixin {
   }
 }
 
+class _TimePickerInput extends StatefulWidget {
+  const _TimePickerInput({
+    Key key,
+    @required this.selectedTime,
+    @required this.helperText,
+  }) : assert(selectedTime != null),
+        super(key: key);
+
+  /// The time initially selected when the dialog is shown.
+  final TimeOfDay selectedTime;
+
+  /// Optionally provide your own help text to the time picker.
+  final String helperText;
+
+  @override
+  _TimePickerInputState createState() => _TimePickerInputState();
+}
+
+class _TimePickerInputState extends State<_TimePickerInput> {
+  @override
+  void initState() {
+    super.initState();
+    _selectedTime = widget.selectedTime;
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    localizations = MaterialLocalizations.of(context);
+  }
+
+  TimeOfDay get selectedTime => _selectedTime;
+  TimeOfDay _selectedTime;
+  MaterialLocalizations localizations;
+
+  void _handleTimeChanged(TimeOfDay value) {
+    setState(() {
+      _selectedTime = value;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    assert(debugCheckHasMediaQuery(context));
+    final MediaQueryData media = MediaQuery.of(context);
+    final TimeOfDayFormat timeOfDayFormat = localizations.timeOfDayFormat(alwaysUse24HourFormat: media.alwaysUse24HourFormat);
+    final bool use24HourDials = hourFormat(of: timeOfDayFormat) != HourFormat.h;
+    final ThemeData theme = Theme.of(context);
+
+    final Color activeColor = TimePickerTheme.of(context).headerColor ?? theme.colorScheme.primary;
+    final Color inactiveColor = theme.colorScheme.onBackground;
+    final TextStyle hourMinuteStyle = TimePickerTheme.of(context).hourMinuteTextStyle ?? theme.textTheme.headline3;
+    // TODO: Replace use of this fragment context.
+    final _TimePickerFragmentContext fragmentContext = _TimePickerFragmentContext(
+      headerTextTheme: theme.textTheme,
+      textDirection: Directionality.of(context),
+      selectedTime: selectedTime,
+      mode: _TimePickerMode.hour,
+      activeColor: activeColor,
+      activeStyle: hourMinuteStyle.copyWith(color: activeColor),
+      inactiveColor: inactiveColor,
+      inactiveStyle: hourMinuteStyle.copyWith(color: inactiveColor),
+      onTimeChange: _handleTimeChanged,
+      onModeChange: (mode) {},
+      targetPlatform: theme.platform,
+      use24HourDials: use24HourDials,
+    );
+
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text(
+            widget.helperText ?? 'ENTER TIME', // TODO: Localize.
+            style: TimePickerTheme.of(context).helperTextStyle ?? theme.textTheme.overline,
+          ),
+          const SizedBox(height: 16.0),
+          Container(
+            height: kMinInteractiveDimension * 2,
+            child: Row(
+              children: <Widget>[
+                // TODO: Replace with textfields.
+                Expanded(child: _HourControl2018(fragmentContext: fragmentContext)),
+                _StringFragment2018(textStyle: fragmentContext.inactiveStyle, timeOfDayFormat: timeOfDayFormat),
+                Expanded(child: _MinuteControl2018(fragmentContext: fragmentContext)),
+                if (!use24HourDials) ...<Widget>[
+                  const SizedBox(width: 12.0),
+                  _DayPeriodControl2018(fragmentContext: fragmentContext, orientation: Orientation.portrait),
+                ]
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 /// A material design time picker designed to appear inside a popup dialog.
 ///
 /// Pass this widget to [showDialog]. The value returned by [showDialog] is the
@@ -2142,7 +2241,12 @@ class _TimePickerDialog extends StatefulWidget {
     @required this.cancelText,
     @required this.confirmText,
     @required this.helperText,
+    this.initialEntryMode = TimePickerEntryMode.dial,
   }) : assert(initialTime != null),
+       assert(
+         use2018Style || initialEntryMode == TimePickerEntryMode.dial,
+         'If use2018Style is false, than initialEntryMode must be dial.',
+       ),
        super(key: key);
 
   /// The time initially selected when the dialog is shown.
@@ -2150,6 +2254,9 @@ class _TimePickerDialog extends StatefulWidget {
 
   /// Uses the updated 2018 Material Design time picker style.
   final bool use2018Style;
+
+  /// The entry mode for the picker. Whether it's text input or a dial.
+  final TimePickerEntryMode initialEntryMode;
 
   /// Optionally provide your own text for the cancel button.
   ///
@@ -2173,6 +2280,7 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
   void initState() {
     super.initState();
     _selectedTime = widget.initialTime;
+    _entryMode = widget.initialEntryMode;
   }
 
   @override
@@ -2183,6 +2291,7 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
     _announceModeOnce();
   }
 
+  TimePickerEntryMode _entryMode;
   _TimePickerMode _mode = _TimePickerMode.hour;
   _TimePickerMode _lastModeAnnounced;
 
@@ -2213,6 +2322,19 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
     setState(() {
       _mode = mode;
       _announceModeOnce();
+    });
+  }
+
+  void _handleEntryModeToggle() {
+    setState(() {
+      switch (_entryMode) {
+        case TimePickerEntryMode.dial:
+          _entryMode = TimePickerEntryMode.input;
+          break;
+        case TimePickerEntryMode.input:
+          _entryMode = TimePickerEntryMode.dial;
+          break;
+      }
     });
   }
 
@@ -2266,7 +2388,7 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
   }
 
   void _handleOk() {
-    Navigator.pop(context, _TimePickerSwitcherData(selectedTime: _selectedTime));
+    Navigator.pop(context, _selectedTime);
   }
 
   @override
@@ -2278,21 +2400,6 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
     final ThemeData theme = Theme.of(context);
     final ShapeBorder shape = TimePickerTheme.of(context).shape ??
         (widget.use2018Style ? _kDefaultShape : null);
-
-    final Widget picker = Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: AspectRatio(
-        aspectRatio: 1.0,
-        child: _Dial(
-          mode: _mode,
-          use24HourDials: use24HourDials,
-          use2018Style: widget.use2018Style,
-          selectedTime: _selectedTime,
-          onChanged: _handleTimeChanged,
-          onHourSelected: _handleHourSelected,
-        ),
-      ),
-    );
 
     Widget actions = ButtonBar(
       layoutBehavior: widget.use2018Style
@@ -2316,12 +2423,7 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
           const SizedBox(width: 10.0),
           IconButton(
             color: Colors.grey[700], // TODO: Color
-            onPressed: () {
-              Navigator.pop(context, _TimePickerSwitcherData(
-                entryMode: TimePickerEntryMode.input,
-                selectedTime: _selectedTime,
-              ));
-            },
+            onPressed: _handleEntryModeToggle,
             icon: Icon(Icons.keyboard),
           ),
           Expanded(child: actions),
@@ -2329,107 +2431,144 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
       );
     }
 
-    return Dialog(
-      shape: shape,
-      backgroundColor: TimePickerTheme.of(context).backgroundColor,
-      child: OrientationBuilder(
-        builder: (BuildContext context, Orientation orientation) {
-          final Widget header = widget.use2018Style ? _TimePickerHeader2018(
-            selectedTime: _selectedTime,
-            mode: _mode,
-            orientation: orientation,
-            onModeChanged: _handleModeChanged,
-            onChanged: _handleTimeChanged,
-            use24HourDials: use24HourDials,
-            helperText: widget.helperText,
-          ) : _TimePickerHeader(
-            selectedTime: _selectedTime,
-            mode: _mode,
-            orientation: orientation,
-            onModeChanged: _handleModeChanged,
-            onChanged: _handleTimeChanged,
-            use24HourDials: use24HourDials,
-          );
+    Widget picker;
+    switch (_entryMode) {
+      case TimePickerEntryMode.dial:
+        picker = OrientationBuilder(
+            builder: (BuildContext context, Orientation orientation) {
+              final Widget dial = Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: AspectRatio(
+                  aspectRatio: 1.0,
+                  child: _Dial(
+                    mode: _mode,
+                    use24HourDials: use24HourDials,
+                    use2018Style: widget.use2018Style,
+                    selectedTime: _selectedTime,
+                    onChanged: _handleTimeChanged,
+                    onHourSelected: _handleHourSelected,
+                  ),
+                ),
+              );
 
-          final Widget pickerAndActions = Container(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                Expanded(child: picker), // picker grows and shrinks with the available space
-                actions,
-              ],
-            ),
-          );
+              final Widget header = widget.use2018Style ? _TimePickerHeader2018(
+                selectedTime: _selectedTime,
+                mode: _mode,
+                orientation: orientation,
+                onModeChanged: _handleModeChanged,
+                onChanged: _handleTimeChanged,
+                use24HourDials: use24HourDials,
+                helperText: widget.helperText,
+              ) : _TimePickerHeader(
+                selectedTime: _selectedTime,
+                mode: _mode,
+                orientation: orientation,
+                onModeChanged: _handleModeChanged,
+                onChanged: _handleTimeChanged,
+                use24HourDials: use24HourDials,
+              );
 
-          double timePickerHeightPortrait;
-          double timePickerHeightLandscape;
-          switch (theme.materialTapTargetSize) {
-            case MaterialTapTargetSize.padded:
-              timePickerHeightPortrait = _kTimePickerHeightPortrait;
-              timePickerHeightLandscape = _kTimePickerHeightLandscape;
-              break;
-            case MaterialTapTargetSize.shrinkWrap:
-              timePickerHeightPortrait = _kTimePickerHeightPortraitCollapsed;
-              timePickerHeightLandscape = _kTimePickerHeightLandscapeCollapsed;
-              break;
-          }
-
-          assert(orientation != null);
-          switch (orientation) {
-            case Orientation.portrait:
-              return SizedBox(
-                width: _kTimePickerWidthPortrait,
-                height: timePickerHeightPortrait,
+              final Widget pickerAndActions = Container(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: <Widget>[
-                    header,
-                    Expanded(
-                      child: pickerAndActions,
-                    ),
+                    Expanded(child: dial), // picker grows and shrinks with the available space
+                    actions,
                   ],
                 ),
               );
-            case Orientation.landscape:
-              if (widget.use2018Style) {
-                return SizedBox(
-                  width: _kTimePickerWidthLandscape,
-                  height: timePickerHeightLandscape,
-                  child: Column(
-                    children: <Widget>[
-                      Expanded(
-                        child: Row(
-                          children: <Widget>[
-                            header,
-                            Expanded(child: picker),
-                          ],
-                        ),
-                      ),
-                      actions,
-                    ],
-                  ),
-                );
-              } else {
-                return SizedBox(
-                  width: _kTimePickerWidthLandscape,
-                  height: timePickerHeightLandscape,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: <Widget>[
-                      header,
-                      Flexible(
-                        child: pickerAndActions,
-                      ),
-                    ],
-                  ),
-                );
+
+              double timePickerHeightPortrait;
+              double timePickerHeightLandscape;
+              switch (theme.materialTapTargetSize) {
+                case MaterialTapTargetSize.padded:
+                  timePickerHeightPortrait = _kTimePickerHeightPortrait;
+                  timePickerHeightLandscape = _kTimePickerHeightLandscape;
+                  break;
+                case MaterialTapTargetSize.shrinkWrap:
+                  timePickerHeightPortrait = _kTimePickerHeightPortraitCollapsed;
+                  timePickerHeightLandscape = _kTimePickerHeightLandscapeCollapsed;
+                  break;
               }
-          }
-          return null;
-        }
-      ),
+
+              assert(orientation != null);
+              switch (orientation) {
+                case Orientation.portrait:
+                  return SizedBox(
+                    width: _kTimePickerWidthPortrait,
+                    height: timePickerHeightPortrait,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: <Widget>[
+                        header,
+                        Expanded(
+                          child: pickerAndActions,
+                        ),
+                      ],
+                    ),
+                  );
+                case Orientation.landscape:
+                  if (widget.use2018Style) {
+                    return SizedBox(
+                      width: _kTimePickerWidthLandscape,
+                      height: timePickerHeightLandscape,
+                      child: Column(
+                        children: <Widget>[
+                          Expanded(
+                            child: Row(
+                              children: <Widget>[
+                                header,
+                                Expanded(child: dial),
+                              ],
+                            ),
+                          ),
+                          actions,
+                        ],
+                      ),
+                    );
+                  } else {
+                    return SizedBox(
+                      width: _kTimePickerWidthLandscape,
+                      height: timePickerHeightLandscape,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: <Widget>[
+                          header,
+                          Flexible(
+                            child: pickerAndActions,
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+              }
+              return null;
+            }
+        );
+        break;
+      case TimePickerEntryMode.input:
+        picker = Container(
+          constraints: const BoxConstraints(maxWidth: _kTimePickerWidthPortrait),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              _TimePickerInput(
+                selectedTime: _selectedTime,
+                helperText: widget.helperText,
+              ),
+              actions,
+            ],
+          ),
+        );
+        break;
+    }
+
+    return Dialog(
+      shape: shape,
+      backgroundColor: TimePickerTheme.of(context).backgroundColor,
+      child: picker,
     );
   }
 
@@ -2438,197 +2577,6 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
     _vibrateTimer?.cancel();
     _vibrateTimer = null;
     super.dispose();
-  }
-}
-
-/// A material design time picker for text input designed to appear inside a popup dialog.
-///
-/// Pass this widget to [showDialog]. The value returned by [showDialog] is the
-/// selected [TimeOfDay] if the user taps the "OK" button, or null if the user
-/// taps the "CANCEL" button. The selected time is reported by calling
-/// [Navigator.pop].
-class _TimePickerInputDialog extends StatefulWidget {
-  /// Creates a material time picker dialog for text input.
-  ///
-  /// [initialTime] must not be null.
-  const _TimePickerInputDialog({
-    Key key,
-    @required this.initialTime,
-    @required this.cancelText,
-    @required this.confirmText,
-    @required this.helperText,
-  }) : assert(initialTime != null),
-        super(key: key);
-
-  /// The time initially selected when the dialog is shown.
-  final TimeOfDay initialTime;
-
-  /// Optionally provide your own text for the cancel button.
-  ///
-  /// If null, the button uses [MaterialLocalizations.cancelButtonLabel].
-  final String cancelText;
-
-  /// Optionally provide your own text for the confirm button.
-  ///
-  /// If null, the button uses [MaterialLocalizations.okButtonLabel].
-  final String confirmText;
-
-  /// Optionally provide your own help text to the time picker.
-  final String helperText;
-
-  @override
-  _TimePickerInputDialogState createState() => _TimePickerInputDialogState();
-}
-
-class _TimePickerInputDialogState extends State<_TimePickerInputDialog> {
-  @override
-  void initState() {
-    super.initState();
-    _selectedTime = widget.initialTime;
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    localizations = MaterialLocalizations.of(context);
-    _announceInitialTimeOnce();
-  }
-
-  TimeOfDay get selectedTime => _selectedTime;
-  TimeOfDay _selectedTime;
-  MaterialLocalizations localizations;
-  bool _announcedInitialTime = false;
-
-  void _announceInitialTimeOnce() {
-    if (_announcedInitialTime)
-      return;
-
-    final MediaQueryData media = MediaQuery.of(context);
-    final MaterialLocalizations localizations = MaterialLocalizations.of(context);
-    _announceToAccessibility(
-      context,
-      localizations.formatTimeOfDay(widget.initialTime, alwaysUse24HourFormat: media.alwaysUse24HourFormat),
-    );
-    _announcedInitialTime = true;
-  }
-
-  void _handleTimeChanged(TimeOfDay value) {
-    setState(() {
-      _selectedTime = value;
-    });
-  }
-
-  void _handleCancel() {
-    Navigator.pop(context);
-  }
-
-  void _handleOk() {
-    Navigator.pop(context, _TimePickerSwitcherData(selectedTime: _selectedTime));
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    assert(debugCheckHasMediaQuery(context));
-    final MediaQueryData media = MediaQuery.of(context);
-    final TimeOfDayFormat timeOfDayFormat = localizations.timeOfDayFormat(alwaysUse24HourFormat: media.alwaysUse24HourFormat);
-    final bool use24HourDials = hourFormat(of: timeOfDayFormat) != HourFormat.h;
-    final ThemeData theme = Theme.of(context);
-    final ShapeBorder shape = TimePickerTheme.of(context).shape ?? _kDefaultShape;
-
-    final Color activeColor = TimePickerTheme.of(context).headerColor ?? theme.colorScheme.primary;
-    final Color inactiveColor = theme.colorScheme.onBackground;
-    final TextStyle hourMinuteStyle = TimePickerTheme.of(context).hourMinuteTextStyle ?? theme.textTheme.headline3;
-    // TODO: Replace use of this fragment context.
-    final _TimePickerFragmentContext fragmentContext = _TimePickerFragmentContext(
-      headerTextTheme: theme.textTheme,
-      textDirection: Directionality.of(context),
-      selectedTime: selectedTime,
-      mode: _TimePickerMode.hour,
-      activeColor: activeColor,
-      activeStyle: hourMinuteStyle.copyWith(color: activeColor),
-      inactiveColor: inactiveColor,
-      inactiveStyle: hourMinuteStyle.copyWith(color: inactiveColor),
-      onTimeChange: _handleTimeChanged,
-      onModeChange: (mode) {},
-      targetPlatform: theme.platform,
-      use24HourDials: use24HourDials,
-    );
-
-    final Widget picker = Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Text(
-            widget.helperText ?? 'ENTER TIME', // TODO: Localize.
-            style: TimePickerTheme.of(context).helperTextStyle ?? theme.textTheme.overline,
-          ),
-          const SizedBox(height: 16.0),
-          Container(
-            height: kMinInteractiveDimension * 2,
-            child: Row(
-              children: <Widget>[
-                // TODO: Replace with textfields.
-                Expanded(child: _HourControl2018(fragmentContext: fragmentContext)),
-                _StringFragment2018(textStyle: fragmentContext.inactiveStyle, timeOfDayFormat: timeOfDayFormat),
-                Expanded(child: _MinuteControl2018(fragmentContext: fragmentContext)),
-                if (!use24HourDials) ...<Widget>[
-                  const SizedBox(width: 12.0),
-                  _DayPeriodControl2018(fragmentContext: fragmentContext, orientation: Orientation.portrait),
-                ]
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-
-    final Widget actions = Row(
-      children: <Widget>[
-        const SizedBox(width: 2.0),
-        IconButton(
-          color: Colors.grey[700], // TODO: Color
-          onPressed: () {
-            Navigator.pop(context, _TimePickerSwitcherData(
-              entryMode: TimePickerEntryMode.dial,
-              selectedTime: _selectedTime,
-            ));
-          },
-          icon: Icon(Icons.access_time),
-        ),
-        Expanded(
-          child: ButtonBar(
-            layoutBehavior: ButtonBarLayoutBehavior.constrained,
-            children: <Widget>[
-              FlatButton(
-                child: Text(widget.cancelText ?? localizations.cancelButtonLabel),
-                onPressed: _handleCancel,
-              ),
-              FlatButton(
-                child: Text(widget.confirmText ?? localizations.okButtonLabel),
-                onPressed: _handleOk,
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-
-    return Dialog(
-      shape: shape,
-      backgroundColor: TimePickerTheme.of(context).backgroundColor,
-      child: Container(
-        constraints: const BoxConstraints(maxWidth: 344.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            picker,
-            actions,
-          ],
-        ),
-      ),
-    );
   }
 }
 
@@ -2723,78 +2671,20 @@ Future<TimeOfDay> showTimePicker({
   assert(debugCheckHasMaterialLocalizations(context));
 
   final bool resolvedUse2018Style = TimePickerTheme.of(context).use2018Style ?? use2018Style ?? false;
-  if (!resolvedUse2018Style) {
-    final Widget dialog = _TimePickerDialog(
-      initialTime: initialTime,
-      use2018Style: resolvedUse2018Style,
-      cancelText: cancelText,
-      confirmText: confirmText,
-      helperText: helperText,
-    );
-    final _TimePickerSwitcherData switcher = await showDialog<_TimePickerSwitcherData>(
-      context: context,
-      useRootNavigator: useRootNavigator,
-      builder: (BuildContext context) {
-        return builder == null ? dialog : builder(context, dialog);
-      },
-    );
-    return switcher?.selectedTime;
-  }
-
-  TimeOfDay selectedTime = initialTime;
-  TimePickerEntryMode entryMode = initialEntryMode;
-  while (true) {
-    Widget child;
-
-    switch (entryMode) {
-      case TimePickerEntryMode.dial:
-        child = _TimePickerDialog(
-          initialTime: selectedTime,
-          use2018Style: resolvedUse2018Style,
-          cancelText: cancelText,
-          confirmText: confirmText,
-          helperText: helperText,
-        );
-        break;
-      case TimePickerEntryMode.input:
-        child = _TimePickerInputDialog(
-          initialTime: selectedTime,
-          cancelText: cancelText,
-          confirmText: confirmText,
-          helperText: helperText,
-        );
-        break;
-    }
-
-    final _TimePickerSwitcherData switcher = await showDialog<_TimePickerSwitcherData>(
-      context: context,
-      useRootNavigator: useRootNavigator,
-      builder: (BuildContext context) {
-        return builder == null ? child : builder(context, child);
-      },
-    );
-
-    if (switcher?.entryMode != null) {
-      entryMode = switcher.entryMode;
-      selectedTime = switcher.selectedTime;
-    } else if (switcher?.selectedTime != null) {
-      return switcher.selectedTime;
-    } else {
-      return null;
-    }
-  }
-}
-
-/// Convenience object for the time picker to handle toggling between text
-/// input and dial entry modes.
-class _TimePickerSwitcherData {
-  _TimePickerSwitcherData({
-    this.selectedTime,
-    this.entryMode,
-  });
-
-  final TimeOfDay selectedTime;
-  final TimePickerEntryMode entryMode;
+  final Widget dialog = _TimePickerDialog(
+    initialTime: initialTime,
+    use2018Style: resolvedUse2018Style,
+    cancelText: cancelText,
+    confirmText: confirmText,
+    helperText: helperText,
+  );
+  return await showDialog<TimeOfDay>(
+    context: context,
+    useRootNavigator: useRootNavigator,
+    builder: (BuildContext context) {
+      return builder == null ? dialog : builder(context, dialog);
+    },
+  );
 }
 
 void _announceToAccessibility(BuildContext context, String message) {
