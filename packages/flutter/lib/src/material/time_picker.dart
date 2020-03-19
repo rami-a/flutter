@@ -2125,11 +2125,12 @@ class _DialState extends State<_Dial> with SingleTickerProviderStateMixin {
   }
 }
 
-class _TimePickerInput extends StatefulWidget {
+class _TimePickerInput extends StatelessWidget {
   const _TimePickerInput({
     Key key,
     @required this.selectedTime,
     @required this.helperText,
+    @required this.onChanged,
   }) : assert(selectedTime != null),
         super(key: key);
 
@@ -2139,38 +2140,13 @@ class _TimePickerInput extends StatefulWidget {
   /// Optionally provide your own help text to the time picker.
   final String helperText;
 
-  @override
-  _TimePickerInputState createState() => _TimePickerInputState();
-}
-
-class _TimePickerInputState extends State<_TimePickerInput> {
-  @override
-  void initState() {
-    super.initState();
-    _selectedTime = widget.selectedTime;
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    localizations = MaterialLocalizations.of(context);
-  }
-
-  TimeOfDay get selectedTime => _selectedTime;
-  TimeOfDay _selectedTime;
-  MaterialLocalizations localizations;
-
-  void _handleTimeChanged(TimeOfDay value) {
-    setState(() {
-      _selectedTime = value;
-    });
-  }
+  final ValueChanged<TimeOfDay> onChanged;
 
   @override
   Widget build(BuildContext context) {
     assert(debugCheckHasMediaQuery(context));
     final MediaQueryData media = MediaQuery.of(context);
-    final TimeOfDayFormat timeOfDayFormat = localizations.timeOfDayFormat(alwaysUse24HourFormat: media.alwaysUse24HourFormat);
+    final TimeOfDayFormat timeOfDayFormat = MaterialLocalizations.of(context).timeOfDayFormat(alwaysUse24HourFormat: media.alwaysUse24HourFormat);
     final bool use24HourDials = hourFormat(of: timeOfDayFormat) != HourFormat.h;
     final ThemeData theme = Theme.of(context);
 
@@ -2187,7 +2163,7 @@ class _TimePickerInputState extends State<_TimePickerInput> {
       activeStyle: hourMinuteStyle.copyWith(color: activeColor),
       inactiveColor: inactiveColor,
       inactiveStyle: hourMinuteStyle.copyWith(color: inactiveColor),
-      onTimeChange: _handleTimeChanged,
+      onTimeChange: onChanged,
       onModeChange: (mode) {},
       targetPlatform: theme.platform,
       use24HourDials: use24HourDials,
@@ -2199,7 +2175,7 @@ class _TimePickerInputState extends State<_TimePickerInput> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Text(
-            widget.helperText ?? 'ENTER TIME', // TODO: Localize.
+            helperText ?? 'ENTER TIME', // TODO: Localize.
             style: TimePickerTheme.of(context).helperTextStyle ?? theme.textTheme.overline,
           ),
           const SizedBox(height: 16.0),
@@ -2207,10 +2183,22 @@ class _TimePickerInputState extends State<_TimePickerInput> {
             height: kMinInteractiveDimension * 2,
             child: Row(
               children: <Widget>[
-                // TODO: Replace with textfields.
-                Expanded(child: _HourControl2018(fragmentContext: fragmentContext)),
+                // TODO: Style the textfields.
+                Expanded(child: TextField(
+                  keyboardType: TextInputType.number,
+                  onChanged: (String value) {
+                    final TimeOfDay updatedTime = TimeOfDay(hour: int.parse(value), minute: selectedTime.minute);
+                    onChanged(updatedTime);
+                  },
+                )),
                 _StringFragment2018(textStyle: fragmentContext.inactiveStyle, timeOfDayFormat: timeOfDayFormat),
-                Expanded(child: _MinuteControl2018(fragmentContext: fragmentContext)),
+                Expanded(child: TextField(
+                  keyboardType: TextInputType.number,
+                  onChanged: (String value) {
+                    final TimeOfDay updatedTime = TimeOfDay(hour: selectedTime.hour, minute: int.parse(value));
+                    onChanged(updatedTime);
+                  },
+                )),
                 if (!use24HourDials) ...<Widget>[
                   const SizedBox(width: 12.0),
                   _DayPeriodControl2018(fragmentContext: fragmentContext, orientation: Orientation.portrait),
@@ -2418,13 +2406,22 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
     );
 
     if (widget.use2018Style) {
+      Color toggleColor;
+      switch (theme.brightness) {
+        case Brightness.light:
+          toggleColor = Colors.grey[700];
+          break;
+        case Brightness.dark:
+          toggleColor = Colors.white;
+          break;
+      }
       actions = Row(
         children: <Widget>[
           const SizedBox(width: 10.0),
           IconButton(
-            color: Colors.grey[700], // TODO: Color
+            color: toggleColor,
             onPressed: _handleEntryModeToggle,
-            icon: Icon(Icons.keyboard),
+            icon: Icon(_entryMode == TimePickerEntryMode.dial ? Icons.keyboard : Icons.access_time),
           ),
           Expanded(child: actions),
         ],
@@ -2551,15 +2548,18 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
       case TimePickerEntryMode.input:
         picker = Container(
           constraints: const BoxConstraints(maxWidth: _kTimePickerWidthPortrait),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              _TimePickerInput(
-                selectedTime: _selectedTime,
-                helperText: widget.helperText,
-              ),
-              actions,
-            ],
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                _TimePickerInput(
+                  selectedTime: _selectedTime,
+                  helperText: widget.helperText,
+                  onChanged: _handleTimeChanged,
+                ),
+                actions,
+              ],
+            ),
           ),
         );
         break;
@@ -2568,6 +2568,7 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
     return Dialog(
       shape: shape,
       backgroundColor: TimePickerTheme.of(context).backgroundColor,
+      insetPadding: EdgeInsets.zero,
       child: picker,
     );
   }
