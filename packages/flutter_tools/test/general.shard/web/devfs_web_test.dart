@@ -11,7 +11,11 @@ import 'package:flutter_tools/src/compile.dart';
 import 'package:flutter_tools/src/convert.dart';
 import 'package:flutter_tools/src/build_runner/devfs_web.dart';
 import 'package:mockito/mockito.dart';
+// TODO(bkonyi): remove deprecated member usage, https://github.com/flutter/flutter/issues/51951
+// ignore: deprecated_member_use
 import 'package:package_config/discovery.dart';
+// TODO(bkonyi): remove deprecated member usage, https://github.com/flutter/flutter/issues/51951
+// ignore: deprecated_member_use
 import 'package:package_config/packages.dart';
 import 'package:platform/platform.dart';
 import 'package:flutter_tools/src/globals.dart' as globals;
@@ -32,6 +36,8 @@ void main() {
   Testbed testbed;
   WebAssetServer webAssetServer;
   Platform linux;
+  // TODO(bkonyi): remove deprecated member usage, https://github.com/flutter/flutter/issues/51951
+  // ignore: deprecated_member_use
   Packages packages;
   Platform windows;
   MockHttpServer mockHttpServer;
@@ -45,7 +51,13 @@ void main() {
     linux = FakePlatform(operatingSystem: 'linux', environment: <String, String>{});
     windows = FakePlatform(operatingSystem: 'windows', environment: <String, String>{});
     testbed = Testbed(setup: () {
-      webAssetServer = WebAssetServer(mockHttpServer, packages, InternetAddress.loopbackIPv4);
+      webAssetServer = WebAssetServer(
+        mockHttpServer,
+        packages,
+        InternetAddress.loopbackIPv4,
+        null,
+        null,
+      );
     });
   });
 
@@ -87,8 +99,9 @@ void main() {
       .handleRequest(Request('GET', Uri.parse('http://foobar/foo.js')));
 
     expect(response.headers, allOf(<Matcher>[
-      containsPair('content-length', source.lengthSync().toString()),
-      containsPair('content-type', 'application/javascript'),
+      containsPair(HttpHeaders.contentLengthHeader, source.lengthSync().toString()),
+      containsPair(HttpHeaders.contentTypeHeader, 'application/javascript'),
+      containsPair(HttpHeaders.etagHeader, isNotNull)
     ]));
     expect((await response.read().toList()).first, source.readAsBytesSync());
   }, overrides: <Type, Generator>{
@@ -96,16 +109,34 @@ void main() {
   }));
 
   test('serves JavaScript files from in memory cache not from manifest', () => testbed.run(() async {
-    webAssetServer.writeFile('/foo.js', 'main() {}');
+    webAssetServer.writeFile('foo.js', 'main() {}');
 
     final Response response = await webAssetServer
       .handleRequest(Request('GET', Uri.parse('http://foobar/foo.js')));
 
     expect(response.headers, allOf(<Matcher>[
-      containsPair('content-length', '9'),
-      containsPair('content-type', 'application/javascript'),
+      containsPair(HttpHeaders.contentLengthHeader, '9'),
+      containsPair(HttpHeaders.contentTypeHeader, 'application/javascript'),
+      containsPair(HttpHeaders.etagHeader, isNotNull),
+      containsPair(HttpHeaders.cacheControlHeader, 'max-age=0, must-revalidate')
     ]));
     expect((await response.read().toList()).first, utf8.encode('main() {}'));
+  }));
+
+  test('Returns notModified when the ifNoneMatch header matches the etag', () => testbed.run(() async {
+    webAssetServer.writeFile('foo.js', 'main() {}');
+
+    final Response response = await webAssetServer
+      .handleRequest(Request('GET', Uri.parse('http://foobar/foo.js')));
+    final String etag = response.headers[HttpHeaders.etagHeader];
+
+    final Response cachedResponse = await webAssetServer
+      .handleRequest(Request('GET', Uri.parse('http://foobar/foo.js'), headers: <String, String>{
+        HttpHeaders.ifNoneMatchHeader: etag
+      }));
+
+    expect(cachedResponse.statusCode, HttpStatus.notModified);
+    expect(await cachedResponse.read().toList(), isEmpty);
   }));
 
   test('handles missing JavaScript files from in memory cache', () => testbed.run(() async {
@@ -126,6 +157,24 @@ void main() {
     expect(response.statusCode, HttpStatus.notFound);
   }));
 
+  test('handles web server paths without .lib extension', () => testbed.run(() async {
+    final File source = globals.fs.file('source')
+      ..writeAsStringSync('main() {}');
+    final File sourcemap = globals.fs.file('sourcemap')
+      ..writeAsStringSync('{}');
+    final File manifest = globals.fs.file('manifest')
+      ..writeAsStringSync(json.encode(<String, Object>{'/foo.dart.lib.js': <String, Object>{
+        'code': <int>[0, source.lengthSync()],
+        'sourcemap': <int>[0, 2],
+      }}));
+    webAssetServer.write(source, manifest, sourcemap);
+
+    final Response response = await webAssetServer
+      .handleRequest(Request('GET', Uri.parse('http://foobar/foo.dart.js')));
+
+    expect(response.statusCode, HttpStatus.ok);
+  }));
+
   test('serves JavaScript files from in memory cache on Windows', () => testbed.run(() async {
     final File source = globals.fs.file('source')
       ..writeAsStringSync('main() {}');
@@ -141,8 +190,10 @@ void main() {
       .handleRequest(Request('GET', Uri.parse('http://localhost/foo.js')));
 
     expect(response.headers, allOf(<Matcher>[
-      containsPair('content-length', source.lengthSync().toString()),
-      containsPair('content-type', 'application/javascript'),
+      containsPair(HttpHeaders.contentLengthHeader, source.lengthSync().toString()),
+      containsPair(HttpHeaders.contentTypeHeader, 'application/javascript'),
+      containsPair(HttpHeaders.etagHeader, isNotNull),
+      containsPair(HttpHeaders.cacheControlHeader, 'max-age=0, must-revalidate')
     ]));
     expect((await response.read().toList()).first, source.readAsBytesSync());
   }, overrides: <Type, Generator>{
@@ -157,8 +208,25 @@ void main() {
       .handleRequest(Request('GET', Uri.parse('http://foobar/assets/abcd%25E8%25B1%25A1%25E5%25BD%25A2%25E5%25AD%2597.png')));
 
     expect(response.headers, allOf(<Matcher>[
-      containsPair('content-length', source.lengthSync().toString()),
-      containsPair('content-type', 'image/png'),
+      containsPair(HttpHeaders.contentLengthHeader, source.lengthSync().toString()),
+      containsPair(HttpHeaders.contentTypeHeader, 'image/png'),
+      containsPair(HttpHeaders.etagHeader, isNotNull),
+      containsPair(HttpHeaders.cacheControlHeader, 'max-age=0, must-revalidate')
+    ]));
+    expect((await response.read().toList()).first, source.readAsBytesSync());
+  }));
+  test('serves files from web directory', () => testbed.run(() async {
+    final File source = globals.fs.file(globals.fs.path.join('web', 'foo.png'))
+      ..createSync(recursive: true)
+      ..writeAsBytesSync(kTransparentImage);
+    final Response response = await webAssetServer
+      .handleRequest(Request('GET', Uri.parse('http://foobar/foo.png')));
+
+    expect(response.headers, allOf(<Matcher>[
+      containsPair(HttpHeaders.contentLengthHeader, source.lengthSync().toString()),
+      containsPair(HttpHeaders.contentTypeHeader, 'image/png'),
+      containsPair(HttpHeaders.etagHeader, isNotNull),
+      containsPair(HttpHeaders.cacheControlHeader, 'max-age=0, must-revalidate')
     ]));
     expect((await response.read().toList()).first, source.readAsBytesSync());
   }));
@@ -171,8 +239,10 @@ void main() {
       .handleRequest(Request('GET', Uri.parse('http://foobar/assets/foo.png')));
 
     expect(response.headers, allOf(<Matcher>[
-      containsPair('content-length', source.lengthSync().toString()),
-      containsPair('content-type', 'image/png'),
+      containsPair(HttpHeaders.contentLengthHeader, source.lengthSync().toString()),
+      containsPair(HttpHeaders.contentTypeHeader, 'image/png'),
+      containsPair(HttpHeaders.etagHeader, isNotNull),
+      containsPair(HttpHeaders.cacheControlHeader, 'max-age=0, must-revalidate')
     ]));
     expect((await response.read().toList()).first, source.readAsBytesSync());
   }, overrides: <Type,  Generator>{
@@ -187,7 +257,7 @@ void main() {
     final Response response = await webAssetServer
       .handleRequest(Request('GET', Uri.parse('http://foobar/foo.dart')));
 
-    expect(response.headers, containsPair('content-length', source.lengthSync().toString()));
+    expect(response.headers, containsPair(HttpHeaders.contentLengthHeader, source.lengthSync().toString()));
     expect((await response.read().toList()).first, source.readAsBytesSync());
   }, overrides: <Type,  Generator>{
     Platform: () => linux,
@@ -209,8 +279,8 @@ void main() {
       .handleRequest(Request('GET', Uri.parse('http://foobar/assets/foo.png')));
 
     expect(response.headers, allOf(<Matcher>[
-      containsPair('content-length', source.lengthSync().toString()),
-      containsPair('content-type', 'image/png'),
+      containsPair(HttpHeaders.contentLengthHeader, source.lengthSync().toString()),
+      containsPair(HttpHeaders.contentTypeHeader, 'image/png'),
     ]));
     expect((await response.read().toList()).first, source.readAsBytesSync());
   }));
@@ -224,8 +294,8 @@ void main() {
       .handleRequest(Request('GET', Uri.parse('http://foobar/assets/foo')));
 
     expect(response.headers, allOf(<Matcher>[
-      containsPair('content-length', '100'),
-      containsPair('content-type', 'application/octet-stream'),
+      containsPair(HttpHeaders.contentLengthHeader, '100'),
+      containsPair(HttpHeaders.contentTypeHeader, 'application/octet-stream'),
     ]));
     expect((await response.read().toList()).first, source.readAsBytesSync());
   }));
@@ -239,8 +309,8 @@ void main() {
       .handleRequest(Request('GET', Uri.parse('http://foobar/assets/foo')));
 
     expect(response.headers, allOf(<Matcher>[
-      containsPair('content-length', '3'),
-      containsPair('content-type', 'application/octet-stream'),
+      containsPair(HttpHeaders.contentLengthHeader, '3'),
+      containsPair(HttpHeaders.contentTypeHeader, 'application/octet-stream'),
     ]));
     expect((await response.read().toList()).first, source.readAsBytesSync());
   }));
@@ -264,8 +334,8 @@ void main() {
       .handleRequest(Request('GET', Uri.parse('http:///packages/flutter_tools/foo.dart')));
 
     expect(response.headers, allOf(<Matcher>[
-      containsPair('content-length', '3'),
-      containsPair('content-type', 'application/octet-stream'),
+      containsPair(HttpHeaders.contentLengthHeader, '3'),
+      containsPair(HttpHeaders.contentTypeHeader, 'application/octet-stream'),
     ]));
     expect((await response.read().toList()).first, source.readAsBytesSync());
   }));
@@ -308,9 +378,24 @@ void main() {
     webDevFS.stackTraceMapper.createSync(recursive: true);
 
     await webDevFS.create();
+    webDevFS.webAssetServer.entrypointCacheDirectory = globals.fs.currentDirectory;
+    globals.fs.currentDirectory
+      .childDirectory('lib')
+      .childFile('web_entrypoint.dart')
+      ..createSync(recursive: true)
+      ..writeAsStringSync('GENERATED');
     webDevFS.webAssetServer.dartSdk
       ..createSync(recursive: true)
       ..writeAsStringSync('HELLO');
+    webDevFS.webAssetServer.dartSdkSourcemap
+      ..createSync(recursive: true)
+      ..writeAsStringSync('THERE');
+    webDevFS.webAssetServer.canvasKitDartSdk
+      ..createSync(recursive: true)
+      ..writeAsStringSync('OL');
+    webDevFS.webAssetServer.canvasKitDartSdkSourcemap
+      ..createSync(recursive: true)
+      ..writeAsStringSync('CHUM');
     webDevFS.webAssetServer.dartSdkSourcemap.createSync(recursive: true);
 
     await webDevFS.update(
@@ -321,16 +406,28 @@ void main() {
       invalidatedFiles: <Uri>[],
     );
 
-    expect(webDevFS.webAssetServer.getFile('/main.dart'), isNotNull);
-    expect(webDevFS.webAssetServer.getFile('/manifest.json'), isNotNull);
-    expect(webDevFS.webAssetServer.getFile('/flutter_service_worker.js'), isNotNull);
-    expect(await webDevFS.webAssetServer.dartSourceContents('/dart_sdk.js'), 'HELLO');
+    expect(webDevFS.webAssetServer.getFile('require.js'), isNotNull);
+    expect(webDevFS.webAssetServer.getFile('stack_trace_mapper.js'), isNotNull);
+    expect(webDevFS.webAssetServer.getFile('main.dart'), isNotNull);
+    expect(webDevFS.webAssetServer.getFile('manifest.json'), isNotNull);
+    expect(webDevFS.webAssetServer.getFile('flutter_service_worker.js'), isNotNull);
+    expect(await webDevFS.webAssetServer.dartSourceContents('dart_sdk.js'), 'HELLO');
+    expect(await webDevFS.webAssetServer.dartSourceContents('dart_sdk.js.map'), 'THERE');
 
     // Update to the SDK.
     webDevFS.webAssetServer.dartSdk.writeAsStringSync('BELLOW');
 
     // New SDK should be visible..
-    expect(await webDevFS.webAssetServer.dartSourceContents('/dart_sdk.js'), 'BELLOW');
+    expect(await webDevFS.webAssetServer.dartSourceContents('dart_sdk.js'), 'BELLOW');
+
+    // Toggle CanvasKit
+    webDevFS.webAssetServer.canvasKitRendering = true;
+    expect(await webDevFS.webAssetServer.dartSourceContents('dart_sdk.js'), 'OL');
+    expect(await webDevFS.webAssetServer.dartSourceContents('dart_sdk.js.map'), 'CHUM');
+
+    // Generated entrypoint.
+    expect(await webDevFS.webAssetServer.dartSourceContents('web_entrypoint.dart'),
+      contains('GENERATED'));
 
     await webDevFS.destroy();
   }));

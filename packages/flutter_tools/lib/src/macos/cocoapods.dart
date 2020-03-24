@@ -16,7 +16,6 @@ import '../base/process.dart';
 import '../base/version.dart';
 import '../cache.dart';
 import '../globals.dart' as globals;
-import '../ios/xcodeproj.dart';
 import '../project.dart';
 
 const String noCocoaPodsConsequence = '''
@@ -69,7 +68,7 @@ class CocoaPods {
   Future<String> _versionText;
 
   String get cocoaPodsMinimumVersion => '1.6.0';
-  String get cocoaPodsRecommendedVersion => '1.6.0';
+  String get cocoaPodsRecommendedVersion => '1.8.0';
 
   Future<bool> get isInstalled =>
       processUtils.exitsHappy(<String>['which', 'pod']);
@@ -143,13 +142,14 @@ class CocoaPods {
       throwToolExit('Podfile missing');
     }
     bool podsProcessed = false;
-    if (await _checkPodCondition()) {
-      if (_shouldRunPodInstall(xcodeProject, dependenciesChanged)) {
-        await _runPodInstall(xcodeProject, engineDir);
-        podsProcessed = true;
+    if (_shouldRunPodInstall(xcodeProject, dependenciesChanged)) {
+      if (!await _checkPodCondition()) {
+        throwToolExit('CocoaPods not installed or not in valid state.');
       }
-      _warnIfPodfileOutOfDate(xcodeProject);
+      await _runPodInstall(xcodeProject, engineDir);
+      podsProcessed = true;
     }
+    _warnIfPodfileOutOfDate(xcodeProject);
     return podsProcessed;
   }
 
@@ -163,6 +163,15 @@ class CocoaPods {
           '$noCocoaPodsConsequence\n'
           'To install:\n'
           '$cocoaPodsInstallInstructions\n',
+          emphasis: true,
+        );
+        return false;
+      case CocoaPodsStatus.brokenInstall:
+        globals.printError(
+          'Warning: CocoaPods is installed but broken. Skipping pod install.\n'
+          '$brokenCocoaPodsConsequence\n'
+          'To re-install:\n'
+          '$cocoaPodsUpgradeInstructions\n',
           emphasis: true,
         );
         return false;
@@ -193,7 +202,7 @@ class CocoaPods {
           emphasis: true,
         );
         break;
-      default:
+      case CocoaPodsStatus.recommended:
         break;
     }
     if (!await isCocoaPodsInitialized) {
@@ -215,7 +224,7 @@ class CocoaPods {
   /// contains a suitable `Podfile` and that its `Flutter/Xxx.xcconfig` files
   /// include pods configuration.
   Future<void> setupPodfile(XcodeBasedProject xcodeProject) async {
-    if (!xcodeProjectInterpreter.isInstalled) {
+    if (!globals.xcodeProjectInterpreter.isInstalled) {
       // Don't do anything for iOS when host platform doesn't support it.
       return;
     }
@@ -232,7 +241,7 @@ class CocoaPods {
     if (xcodeProject is MacOSProject) {
       podfileTemplateName = 'Podfile-macos';
     } else {
-      final bool isSwift = (await xcodeProjectInterpreter.getBuildSettings(
+      final bool isSwift = (await globals.xcodeProjectInterpreter.getBuildSettings(
         runnerProject.path,
         'Runner',
       )).containsKey('SWIFT_VERSION');

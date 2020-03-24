@@ -201,7 +201,16 @@ class CompileMacOSFramework extends Target {
       throw Exception('precompiled macOS framework only supported in release/profile builds.');
     }
     final String splitDebugInfo = environment.defines[kSplitDebugInfo];
-    final int result = await AOTSnapshotter(reportTimings: false).build(
+    final bool dartObfuscation = environment.defines[kDartObfuscation] == 'true';
+    final AOTSnapshotter snapshotter = AOTSnapshotter(
+      reportTimings: false,
+      fileSystem: globals.fs,
+      logger: globals.logger,
+      xcode: globals.xcode,
+      artifacts: globals.artifacts,
+      processManager: globals.processManager
+    );
+    final int result = await snapshotter.build(
       bitcode: false,
       buildMode: buildMode,
       mainPath: environment.buildDir.childFile('app.dill').path,
@@ -210,6 +219,7 @@ class CompileMacOSFramework extends Target {
       darwinArch: DarwinArch.x86_64,
       packagesPath: environment.projectDir.childFile('.packages').path,
       splitDebugInfo: splitDebugInfo,
+      dartObfuscation: dartObfuscation,
     );
     if (result != 0) {
       throw Exception('gen shapshot failed.');
@@ -329,7 +339,7 @@ abstract class MacOSBundleFlutterAssets extends Target {
       try {
         final File sourceFile = environment.buildDir.childFile('app.dill');
         sourceFile.copySync(assetDirectory.childFile('kernel_blob.bin').path);
-      } catch (err) {
+      } on Exception catch (err) {
         throw Exception('Failed to copy app.dill: $err');
       }
       // Copy precompiled runtimes.
@@ -342,7 +352,7 @@ abstract class MacOSBundleFlutterAssets extends Target {
             assetDirectory.childFile('vm_snapshot_data').path);
         globals.fs.file(isolateSnapshotData).copySync(
             assetDirectory.childFile('isolate_snapshot_data').path);
-      } catch (err) {
+      } on Exception catch (err) {
         throw Exception('Failed to copy precompiled runtimes: $err');
       }
     }

@@ -220,6 +220,8 @@ class _DayPeriodControl extends StatelessWidget {
     switch (fragmentContext.targetPlatform) {
       case TargetPlatform.android:
       case TargetPlatform.fuchsia:
+      case TargetPlatform.linux:
+      case TargetPlatform.windows:
         _announceToAccessibility(context, MaterialLocalizations.of(context).anteMeridiemAbbreviation);
         break;
       case TargetPlatform.iOS:
@@ -236,6 +238,8 @@ class _DayPeriodControl extends StatelessWidget {
     switch (fragmentContext.targetPlatform) {
       case TargetPlatform.android:
       case TargetPlatform.fuchsia:
+      case TargetPlatform.linux:
+      case TargetPlatform.windows:
         _announceToAccessibility(context, MaterialLocalizations.of(context).postMeridiemAbbreviation);
         break;
       case TargetPlatform.iOS:
@@ -2293,6 +2297,8 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
     switch (Theme.of(context).platform) {
       case TargetPlatform.android:
       case TargetPlatform.fuchsia:
+      case TargetPlatform.linux:
+      case TargetPlatform.windows:
         _vibrateTimer?.cancel();
         _vibrateTimer = Timer(_kVibrateCommitDelay, () {
           HapticFeedback.vibrate();
@@ -2597,8 +2603,8 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
 /// ```
 /// {@end-tool}
 ///
-/// The [context] and [useRootNavigator] arguments are passed to [showDialog],
-/// the documentation for which discusses how it is used.
+/// The [context], [useRootNavigator] and [routeSettings] arguments are passed to
+/// [showDialog], the documentation for which discusses how it is used.
 ///
 /// The [builder] parameter can be used to wrap the dialog widget
 /// to add inherited widgets like [Localizations.override],
@@ -2664,6 +2670,7 @@ Future<TimeOfDay> showTimePicker({
   String cancelText,
   String confirmText,
   String helperText,
+  RouteSettings routeSettings,
 }) async {
   assert(context != null);
   assert(initialTime != null);
@@ -2685,6 +2692,7 @@ Future<TimeOfDay> showTimePicker({
     builder: (BuildContext context) {
       return builder == null ? dialog : builder(context, dialog);
     },
+    routeSettings: routeSettings,
   );
 }
 

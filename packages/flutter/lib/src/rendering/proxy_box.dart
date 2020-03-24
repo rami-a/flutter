@@ -17,6 +17,7 @@ import 'package:vector_math/vector_math_64.dart';
 import 'binding.dart';
 import 'box.dart';
 import 'layer.dart';
+import 'mouse_tracking.dart';
 import 'object.dart';
 
 export 'package:flutter/gestures.dart' show
@@ -260,6 +261,7 @@ class RenderConstrainedBox extends RenderProxyBox {
 
   @override
   void performLayout() {
+    final BoxConstraints constraints = this.constraints;
     if (child != null) {
       child.layout(_additionalConstraints.enforce(constraints), parentUsesSize: true);
       size = child.size;
@@ -351,6 +353,7 @@ class RenderLimitedBox extends RenderProxyBox {
   @override
   void performLayout() {
     if (child != null) {
+      final BoxConstraints constraints = this.constraints;
       child.layout(_limitConstraints(constraints), parentUsesSize: true);
       size = constraints.constrain(child.size);
     } else {
