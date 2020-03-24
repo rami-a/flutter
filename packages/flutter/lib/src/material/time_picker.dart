@@ -39,7 +39,7 @@ enum _TimePickerMode { hour, minute }
 const double _kTimePickerHeaderPortraitHeight = 96.0;
 const double _kTimePickerHeaderLandscapeWidth = 168.0;
 
-const double _kTimePickerHeaderLandscapeWidth2018 = 220.0; // TODO: Is this correct?
+const double _kTimePickerHeaderLandscapeWidth2018 = 264.0;
 const double _kTimePickerHeaderControlHeight = 80.0;
 
 const double _kTimePickerWidthPortrait = 328.0;
@@ -970,7 +970,7 @@ class _TimePickerHeader2018 extends StatelessWidget {
         break;
       case Orientation.landscape:
         width = _kTimePickerHeaderLandscapeWidth2018;
-        padding = const EdgeInsets.symmetric(horizontal: 16.0);
+        padding = const EdgeInsets.symmetric(horizontal: 24.0);
         controls = Expanded(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -2174,7 +2174,7 @@ class _TimePickerInput extends StatelessWidget {
     );
 
     return Padding(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -2189,6 +2189,7 @@ class _TimePickerInput extends StatelessWidget {
               children: <Widget>[
                 Expanded(child: _HourMinuteTextField(
                   selectedTime: selectedTime,
+                  isHour: true,
                   onChanged: (String value) {
                     final TimeOfDay updatedTime = TimeOfDay(hour: int.parse(value), minute: selectedTime.minute);
                     onChanged(updatedTime);
@@ -2197,6 +2198,7 @@ class _TimePickerInput extends StatelessWidget {
                 _StringFragment2018(textStyle: fragmentContext.inactiveStyle, timeOfDayFormat: timeOfDayFormat),
                 Expanded(child: _HourMinuteTextField(
                   selectedTime: selectedTime,
+                  isHour: false,
                   onChanged: (String value) {
                     final TimeOfDay updatedTime = TimeOfDay(hour: selectedTime.hour, minute: int.parse(value));
                     onChanged(updatedTime);
@@ -2215,15 +2217,39 @@ class _TimePickerInput extends StatelessWidget {
   }
 }
 
-class _HourMinuteTextField extends StatelessWidget {
+class _HourMinuteTextField extends StatefulWidget {
   const _HourMinuteTextField({
     Key key,
     @required this.selectedTime,
+    @required this.isHour,
     @required this.onChanged,
   }) : super(key: key);
 
   final TimeOfDay selectedTime;
+  final bool isHour;
   final ValueChanged<String> onChanged;
+
+  @override
+  __HourMinuteTextFieldState createState() => __HourMinuteTextFieldState();
+}
+
+class __HourMinuteTextFieldState extends State<_HourMinuteTextField> {
+  TextEditingController controller;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    controller ??= TextEditingController(text: _formattedValue());
+  }
+
+  String _formattedValue() {
+    final bool alwaysUse24HourFormat = MediaQuery.of(context).alwaysUse24HourFormat;
+    final MaterialLocalizations localizations = MaterialLocalizations.of(context);
+    return widget.isHour ? localizations.formatHour(
+      widget.selectedTime,
+      alwaysUse24HourFormat: alwaysUse24HourFormat,
+    ) : localizations.formatMinute(widget.selectedTime);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -2231,12 +2257,16 @@ class _HourMinuteTextField extends StatelessWidget {
     final ColorScheme colorScheme = theme.colorScheme;
     final TextStyle style = TimePickerTheme.of(context).hourMinuteTextStyle
       ?? theme.textTheme.headline3;
+    final String value = _formattedValue();
     return SizedBox(
       height: _kTimePickerHeaderControlHeight,
       child: TextFormField(
+        textAlign: TextAlign.center,
         keyboardType: TextInputType.number,
-        style: style,
+        style: style.copyWith(color: colorScheme.onBackground),
+        controller: TextEditingController(text: value),
         decoration: InputDecoration(
+          contentPadding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 10.0),
           filled: true,
           fillColor: colorScheme.onBackground.withOpacity(0.06),
           enabledBorder: OutlineInputBorder(
@@ -2248,10 +2278,15 @@ class _HourMinuteTextField extends StatelessWidget {
           focusedErrorBorder: OutlineInputBorder(
             borderSide: BorderSide(color: colorScheme.error, width: 2),
           ),
-          hintText: '07',
+          hintText: value,
+          hintStyle: style.copyWith(color: colorScheme.onBackground.withOpacity(0.36))
         ),
-        onChanged: onChanged,
-        
+        onChanged: (String value) {
+
+        },
+        onEditingComplete: () {},
+        onSaved: (String value) {},
+        onFieldSubmitted: (String value) {},
       ),
     );
   }
