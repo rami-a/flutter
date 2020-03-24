@@ -2187,17 +2187,16 @@ class _TimePickerInput extends StatelessWidget {
             height: kMinInteractiveDimension * 2,
             child: Row(
               children: <Widget>[
-                // TODO: Style the textfields.
-                Expanded(child: TextField(
-                  keyboardType: TextInputType.number,
+                Expanded(child: _HourMinuteTextField(
+                  selectedTime: selectedTime,
                   onChanged: (String value) {
                     final TimeOfDay updatedTime = TimeOfDay(hour: int.parse(value), minute: selectedTime.minute);
                     onChanged(updatedTime);
-                  },
+                    },
                 )),
                 _StringFragment2018(textStyle: fragmentContext.inactiveStyle, timeOfDayFormat: timeOfDayFormat),
-                Expanded(child: TextField(
-                  keyboardType: TextInputType.number,
+                Expanded(child: _HourMinuteTextField(
+                  selectedTime: selectedTime,
                   onChanged: (String value) {
                     final TimeOfDay updatedTime = TimeOfDay(hour: selectedTime.hour, minute: int.parse(value));
                     onChanged(updatedTime);
@@ -2211,6 +2210,48 @@ class _TimePickerInput extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _HourMinuteTextField extends StatelessWidget {
+  const _HourMinuteTextField({
+    Key key,
+    @required this.selectedTime,
+    @required this.onChanged,
+  }) : super(key: key);
+
+  final TimeOfDay selectedTime;
+  final ValueChanged<String> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final ColorScheme colorScheme = theme.colorScheme;
+    final TextStyle style = TimePickerTheme.of(context).hourMinuteTextStyle
+      ?? theme.textTheme.headline3;
+    return SizedBox(
+      height: _kTimePickerHeaderControlHeight,
+      child: TextFormField(
+        keyboardType: TextInputType.number,
+        style: style,
+        decoration: InputDecoration(
+          filled: true,
+          fillColor: colorScheme.onBackground.withOpacity(0.06),
+          enabledBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: Colors.transparent),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: colorScheme.primary, width: 2),
+          ),
+          focusedErrorBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: colorScheme.error, width: 2),
+          ),
+          hintText: '07',
+        ),
+        onChanged: onChanged,
+        
       ),
     );
   }
