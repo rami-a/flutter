@@ -2187,6 +2187,7 @@ class _TimePickerInput extends StatelessWidget {
             height: kMinInteractiveDimension * 2,
             child: Row(
               children: <Widget>[
+                // TODO: Hour/minute/error labels.
                 Expanded(child: _HourMinuteTextField(
                   selectedTime: selectedTime,
                   isHour: true,
@@ -2257,6 +2258,7 @@ class __HourMinuteTextFieldState extends State<_HourMinuteTextField> {
     final ColorScheme colorScheme = theme.colorScheme;
     final TextStyle style = TimePickerTheme.of(context).hourMinuteTextStyle
       ?? theme.textTheme.headline3;
+    // TODO: Theme support for border shape.
     final String value = _formattedValue();
     return SizedBox(
       height: _kTimePickerHeaderControlHeight,
@@ -2268,6 +2270,7 @@ class __HourMinuteTextFieldState extends State<_HourMinuteTextField> {
         decoration: InputDecoration(
           contentPadding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 10.0),
           filled: true,
+          // TODO: fillColor should change depending on focused or not.
           fillColor: colorScheme.onBackground.withOpacity(0.06),
           enabledBorder: OutlineInputBorder(
             borderSide: BorderSide(color: Colors.transparent),
@@ -2281,6 +2284,7 @@ class __HourMinuteTextFieldState extends State<_HourMinuteTextField> {
           hintText: value,
           hintStyle: style.copyWith(color: colorScheme.onBackground.withOpacity(0.36))
         ),
+        // TODO: Handle text changing. Auto advance to minutes after typing hours.
         onChanged: (String value) {
 
         },
