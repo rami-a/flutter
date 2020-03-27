@@ -2651,10 +2651,13 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
         break;
     }
 
+    // TODO: Animate entry mode change like date picker.
     return Dialog(
       shape: shape,
       backgroundColor: TimePickerTheme.of(context).backgroundColor,
-      insetPadding: EdgeInsets.zero,
+      insetPadding: _entryMode == TimePickerEntryMode.input
+          ? EdgeInsets.zero
+          : const EdgeInsets.symmetric(horizontal: 40.0, vertical: 24.0),
       child: picker,
     );
   }
