@@ -960,7 +960,11 @@ class _TimePickerHeader2018 extends StatelessWidget {
                   Expanded(child: _MinuteControl2018(fragmentContext: fragmentContext)),
                   if (!use24HourDials) ...<Widget>[
                     const SizedBox(width: 12.0),
-                    _DayPeriodControl2018(fragmentContext: fragmentContext, orientation: orientation),
+                    _DayPeriodControl2018(
+                      selectedTime: selectedTime,
+                      orientation: orientation,
+                      onChanged: onChanged,
+                    ),
                   ]
                 ],
               ),
@@ -986,7 +990,11 @@ class _TimePickerHeader2018 extends StatelessWidget {
                 ),
               ),
               if (!use24HourDials)
-                _DayPeriodControl2018(fragmentContext: fragmentContext, orientation: orientation),
+                _DayPeriodControl2018(
+                  selectedTime: selectedTime,
+                  orientation: orientation,
+                  onChanged: onChanged,
+                ),
             ],
           ),
         );
@@ -1214,24 +1222,27 @@ class _MinuteControl2018 extends StatelessWidget {
 /// and pm.
 class _DayPeriodControl2018 extends StatelessWidget {
   const _DayPeriodControl2018({
-    @required this.fragmentContext,
+    @required this.selectedTime,
+    @required this.onChanged,
     @required this.orientation,
   });
 
-  final _TimePickerFragmentContext fragmentContext;
+  final TimeOfDay selectedTime;
   final Orientation orientation;
+  final ValueChanged<TimeOfDay> onChanged;
 
   void _togglePeriod() {
-    final int newHour = (fragmentContext.selectedTime.hour + TimeOfDay.hoursPerPeriod) % TimeOfDay.hoursPerDay;
-    final TimeOfDay newTime = fragmentContext.selectedTime.replacing(hour: newHour);
-    fragmentContext.onTimeChange(newTime);
+    final int newHour = (selectedTime.hour + TimeOfDay.hoursPerPeriod) % TimeOfDay.hoursPerDay;
+    final TimeOfDay newTime = selectedTime.replacing(hour: newHour);
+    print('---------- old time: $selectedTime new time: $newTime');
+    onChanged(newTime);
   }
 
   void _setAm(BuildContext context) {
-    if (fragmentContext.selectedTime.period == DayPeriod.am) {
+    if (selectedTime.period == DayPeriod.am) {
       return;
     }
-    switch (fragmentContext.targetPlatform) {
+    switch (Theme.of(context).platform) {
       case TargetPlatform.android:
       case TargetPlatform.fuchsia:
         _announceToAccessibility(context, MaterialLocalizations.of(context).anteMeridiemAbbreviation);
@@ -1244,10 +1255,10 @@ class _DayPeriodControl2018 extends StatelessWidget {
   }
 
   void _setPm(BuildContext context) {
-    if (fragmentContext.selectedTime.period == DayPeriod.pm) {
+    if (selectedTime.period == DayPeriod.pm) {
       return;
     }
-    switch (fragmentContext.targetPlatform) {
+    switch (Theme.of(context).platform) {
       case TargetPlatform.android:
       case TargetPlatform.fuchsia:
         _announceToAccessibility(context, MaterialLocalizations.of(context).postMeridiemAbbreviation);
@@ -1262,7 +1273,6 @@ class _DayPeriodControl2018 extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final MaterialLocalizations materialLocalizations = MaterialLocalizations.of(context);
-    final TimeOfDay selectedTime = fragmentContext.selectedTime;
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
     final Color activeBackgroundColor = TimePickerTheme.of(context).activeDayPeriodColor ?? colorScheme.surface;
     final Color backgroundColor = colorScheme.onBackground.withOpacity(0.06);
@@ -1270,7 +1280,7 @@ class _DayPeriodControl2018 extends StatelessWidget {
     final Color inactiveColor = colorScheme.onBackground.withOpacity(0.38);
     final bool amSelected = selectedTime.period == DayPeriod.am;
     final TextStyle textStyle = TimePickerTheme.of(context).dayPeriodTextStyle
-        ?? fragmentContext.headerTextTheme.subtitle1;
+        ?? Theme.of(context).textTheme.subtitle1;
     final TextStyle amStyle = textStyle.copyWith(
         color: amSelected ? activeColor: inactiveColor
     );
@@ -2129,22 +2139,47 @@ class _DialState extends State<_Dial> with SingleTickerProviderStateMixin {
   }
 }
 
-class _TimePickerInput extends StatelessWidget {
+class _TimePickerInput extends StatefulWidget {
   const _TimePickerInput({
     Key key,
-    @required this.selectedTime,
+    @required this.initialSelectedTime,
     @required this.helperText,
     @required this.onChanged,
-  }) : assert(selectedTime != null),
+  }) : assert(initialSelectedTime != null),
         super(key: key);
 
   /// The time initially selected when the dialog is shown.
-  final TimeOfDay selectedTime;
+  final TimeOfDay initialSelectedTime;
 
   /// Optionally provide your own help text to the time picker.
   final String helperText;
 
   final ValueChanged<TimeOfDay> onChanged;
+
+  @override
+  __TimePickerInputState createState() => __TimePickerInputState();
+}
+
+class __TimePickerInputState extends State<_TimePickerInput> {
+  TimeOfDay _selectedTime;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedTime = widget.initialSelectedTime;
+  }
+
+  void _handleHourSavedSubmitted(String value) {
+    // TODO: Validate the input.
+    _selectedTime = TimeOfDay(hour: int.parse(value), minute: _selectedTime.minute);
+    widget.onChanged(_selectedTime);
+  }
+
+  void _handleMinuteSavedSubmitted(String value) {
+    // TODO: Validate the input.
+    _selectedTime = TimeOfDay(hour: _selectedTime.hour, minute: int.parse(value));
+    widget.onChanged(_selectedTime);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -2153,25 +2188,9 @@ class _TimePickerInput extends StatelessWidget {
     final TimeOfDayFormat timeOfDayFormat = MaterialLocalizations.of(context).timeOfDayFormat(alwaysUse24HourFormat: media.alwaysUse24HourFormat);
     final bool use24HourDials = hourFormat(of: timeOfDayFormat) != HourFormat.h;
     final ThemeData theme = Theme.of(context);
-
-    final Color activeColor = TimePickerTheme.of(context).headerColor ?? theme.colorScheme.primary;
-    final Color inactiveColor = theme.colorScheme.onBackground;
     final TextStyle hourMinuteStyle = TimePickerTheme.of(context).hourMinuteTextStyle ?? theme.textTheme.headline3;
-    // TODO: Replace use of this fragment context.
-    final _TimePickerFragmentContext fragmentContext = _TimePickerFragmentContext(
-      headerTextTheme: theme.textTheme,
-      textDirection: Directionality.of(context),
-      selectedTime: selectedTime,
-      mode: _TimePickerMode.hour,
-      activeColor: activeColor,
-      activeStyle: hourMinuteStyle.copyWith(color: activeColor),
-      inactiveColor: inactiveColor,
-      inactiveStyle: hourMinuteStyle.copyWith(color: inactiveColor),
-      onTimeChange: onChanged,
-      onModeChange: (mode) {},
-      targetPlatform: theme.platform,
-      use24HourDials: use24HourDials,
-    );
+
+    // TODO: Auto advance to minutes after typing hours.
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
@@ -2179,7 +2198,7 @@ class _TimePickerInput extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Text(
-            helperText ?? 'ENTER TIME', // TODO: Localize.
+            widget.helperText ?? 'ENTER TIME', // TODO: Localize.
             style: TimePickerTheme.of(context).helperTextStyle ?? theme.textTheme.overline,
           ),
           const SizedBox(height: 16.0),
@@ -2189,25 +2208,30 @@ class _TimePickerInput extends StatelessWidget {
               children: <Widget>[
                 // TODO: Hour/minute/error labels.
                 Expanded(child: _HourMinuteTextField(
-                  selectedTime: selectedTime,
+                  selectedTime: _selectedTime,
                   isHour: true,
-                  onChanged: (String value) {
-                    final TimeOfDay updatedTime = TimeOfDay(hour: int.parse(value), minute: selectedTime.minute);
-                    onChanged(updatedTime);
-                    },
+                  onSavedSubmitted: _handleHourSavedSubmitted,
                 )),
-                _StringFragment2018(textStyle: fragmentContext.inactiveStyle, timeOfDayFormat: timeOfDayFormat),
+                _StringFragment2018(
+                  textStyle: hourMinuteStyle.copyWith(color: theme.colorScheme.onBackground),
+                  timeOfDayFormat: timeOfDayFormat,
+                ),
                 Expanded(child: _HourMinuteTextField(
-                  selectedTime: selectedTime,
+                  selectedTime: _selectedTime,
                   isHour: false,
-                  onChanged: (String value) {
-                    final TimeOfDay updatedTime = TimeOfDay(hour: selectedTime.hour, minute: int.parse(value));
-                    onChanged(updatedTime);
-                  },
+                  onSavedSubmitted: _handleMinuteSavedSubmitted,
                 )),
                 if (!use24HourDials) ...<Widget>[
                   const SizedBox(width: 12.0),
-                  _DayPeriodControl2018(fragmentContext: fragmentContext, orientation: Orientation.portrait),
+                  // TODO: Why is the onChanged not being respected.
+                  _DayPeriodControl2018(
+                    selectedTime: _selectedTime,
+                    orientation: Orientation.portrait,
+                    onChanged: (TimeOfDay value) {
+                      _selectedTime = value;
+                      widget.onChanged(value);
+                    },
+                  ),
                 ]
               ],
             ),
@@ -2223,12 +2247,12 @@ class _HourMinuteTextField extends StatefulWidget {
     Key key,
     @required this.selectedTime,
     @required this.isHour,
-    @required this.onChanged,
+    @required this.onSavedSubmitted,
   }) : super(key: key);
 
   final TimeOfDay selectedTime;
   final bool isHour;
-  final ValueChanged<String> onChanged;
+  final ValueChanged<String> onSavedSubmitted;
 
   @override
   __HourMinuteTextFieldState createState() => __HourMinuteTextFieldState();
@@ -2266,7 +2290,7 @@ class __HourMinuteTextFieldState extends State<_HourMinuteTextField> {
         textAlign: TextAlign.center,
         keyboardType: TextInputType.number,
         style: style.copyWith(color: colorScheme.onBackground),
-        controller: TextEditingController(text: value),
+        controller: controller,
         decoration: InputDecoration(
           contentPadding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 10.0),
           filled: true,
@@ -2284,13 +2308,9 @@ class __HourMinuteTextFieldState extends State<_HourMinuteTextField> {
           hintText: value,
           hintStyle: style.copyWith(color: colorScheme.onBackground.withOpacity(0.36))
         ),
-        // TODO: Handle text changing. Auto advance to minutes after typing hours.
-        onChanged: (String value) {
-
-        },
-        onEditingComplete: () {},
-        onSaved: (String value) {},
-        onFieldSubmitted: (String value) {},
+        onEditingComplete: () => widget.onSavedSubmitted(controller.text),
+        onSaved: widget.onSavedSubmitted,
+        onFieldSubmitted: widget.onSavedSubmitted,
       ),
     );
   }
@@ -2348,6 +2368,8 @@ class _TimePickerDialog extends StatefulWidget {
 }
 
 class _TimePickerDialogState extends State<_TimePickerDialog> {
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
   @override
   void initState() {
     super.initState();
@@ -2406,6 +2428,7 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
           _entryMode = TimePickerEntryMode.input;
           break;
         case TimePickerEntryMode.input:
+          _formKey.currentState.save();
           _entryMode = TimePickerEntryMode.dial;
           break;
       }
@@ -2632,19 +2655,22 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
         );
         break;
       case TimePickerEntryMode.input:
-        picker = Container(
-          constraints: const BoxConstraints(maxWidth: _kTimePickerWidthPortrait),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                _TimePickerInput(
-                  selectedTime: _selectedTime,
-                  helperText: widget.helperText,
-                  onChanged: _handleTimeChanged,
-                ),
-                actions,
-              ],
+        picker = Form(
+          key: _formKey,
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: _kTimePickerWidthPortrait),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  _TimePickerInput(
+                    initialSelectedTime: _selectedTime,
+                    helperText: widget.helperText,
+                    onChanged: _handleTimeChanged,
+                  ),
+                  actions,
+                ],
+              ),
             ),
           ),
         );

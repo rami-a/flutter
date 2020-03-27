@@ -513,7 +513,7 @@ void _tests() {
 
     // Ensure we preserve day period as we roll over.
     final dynamic pickerState = tester.state(_timePickerDialog);
-    expect(pickerState.selectedTime, const TimeOfDay(hour: 1, minute: 0));
+    expect(pickerState.initialSelectedTime, const TimeOfDay(hour: 1, minute: 0));
 
     await actAndExpect(
       initialValue: '1',
@@ -579,7 +579,7 @@ void _tests() {
 
     // Ensure we preserve day period as we roll over.
     final dynamic pickerState = tester.state(_timePickerDialog);
-    expect(pickerState.selectedTime, const TimeOfDay(hour: 1, minute: 0));
+    expect(pickerState.initialSelectedTime, const TimeOfDay(hour: 1, minute: 0));
 
     await actAndExpect(
       initialValue: '1',
@@ -644,7 +644,7 @@ void _tests() {
 
     // Ensure we preserve hour period as we roll over.
     final dynamic pickerState = tester.state(_timePickerDialog);
-    expect(pickerState.selectedTime, const TimeOfDay(hour: 11, minute: 0));
+    expect(pickerState.initialSelectedTime, const TimeOfDay(hour: 11, minute: 0));
 
     await actAndExpect(
       initialValue: '00',
@@ -690,7 +690,7 @@ void _tests() {
 
     // Ensure we preserve hour period as we roll over.
     final dynamic pickerState = tester.state(_timePickerDialog);
-    expect(pickerState.selectedTime, const TimeOfDay(hour: 11, minute: 0));
+    expect(pickerState.initialSelectedTime, const TimeOfDay(hour: 11, minute: 0));
 
     await actAndExpect(
       initialValue: '00',
