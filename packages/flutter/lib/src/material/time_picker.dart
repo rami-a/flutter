@@ -36,10 +36,7 @@ const Duration _kVibrateCommitDelay = Duration(milliseconds: 100);
 
 enum _TimePickerMode { hour, minute }
 
-const double _kTimePickerHeaderPortraitHeight = 96.0;
-const double _kTimePickerHeaderLandscapeWidth = 168.0;
-
-const double _kTimePickerHeaderLandscapeWidth2018 = 264.0;
+const double _kTimePickerHeaderLandscapeWidth = 264.0;
 const double _kTimePickerHeaderControlHeight = 80.0;
 
 const double _kTimePickerWidthPortrait = 328.0;
@@ -51,23 +48,12 @@ const double _kTimePickerHeightLandscape = 316.0;
 const double _kTimePickerHeightPortraitCollapsed = 484.0;
 const double _kTimePickerHeightLandscapeCollapsed = 304.0;
 
-const BoxConstraints _kMinTappableRegion = BoxConstraints(minWidth: 48, minHeight: 48);
-
 const BorderRadius _kDefaultBorderRadius = BorderRadius.all(Radius.circular(4.0));
 const ShapeBorder _kDefaultShape = RoundedRectangleBorder(borderRadius: _kDefaultBorderRadius);
 
 enum TimePickerEntryMode {
   dial, // Clock dial.
   input, // Text input.
-}
-
-enum _TimePickerHeaderId {
-  hour,
-  colon,
-  minute,
-  period, // AM/PM picker
-  dot,
-  hString, // French Canadian "h" literal
 }
 
 /// Provides properties for rendering time picker header fragments.
@@ -113,782 +99,8 @@ class _TimePickerFragmentContext {
   final bool use24HourDials;
 }
 
-/// Contains the [widget] and layout properties of an atom of time information,
-/// such as am/pm indicator, hour, minute and string literals appearing in the
-/// formatted time string.
-class _TimePickerHeaderFragment {
-  const _TimePickerHeaderFragment({
-    @required this.layoutId,
-    @required this.widget,
-    this.startMargin = 0.0,
-  }) : assert(layoutId != null),
-       assert(widget != null),
-       assert(startMargin != null);
-
-  /// Identifier used by the custom layout to refer to the widget.
-  final _TimePickerHeaderId layoutId;
-
-  /// The widget that renders a piece of time information.
-  final Widget widget;
-
-  /// Horizontal distance from the fragment appearing at the start of this
-  /// fragment.
-  ///
-  /// This value contributes to the total horizontal width of all fragments
-  /// appearing on the same line, unless it is the first fragment on the line,
-  /// in which case this value is ignored.
-  final double startMargin;
-}
-
-/// An unbreakable part of the time picker header.
-///
-/// When the picker is laid out vertically, [fragments] of the piece are laid
-/// out on the same line, with each piece getting its own line.
-class _TimePickerHeaderPiece {
-  /// Creates a time picker header piece.
-  ///
-  /// All arguments must be non-null. If the piece does not contain a pivot
-  /// fragment, use the value -1 as a convention.
-  const _TimePickerHeaderPiece(this.pivotIndex, this.fragments, { this.bottomMargin = 0.0 })
-    : assert(pivotIndex != null),
-      assert(fragments != null),
-      assert(bottomMargin != null);
-
-  /// Index into the [fragments] list, pointing at the fragment that's centered
-  /// horizontally.
-  final int pivotIndex;
-
-  /// Fragments this piece is made of.
-  final List<_TimePickerHeaderFragment> fragments;
-
-  /// Vertical distance between this piece and the next piece.
-  ///
-  /// This property applies only when the header is laid out vertically.
-  final double bottomMargin;
-}
-
-/// Describes how the time picker header must be formatted.
-///
-/// A [_TimePickerHeaderFormat] is made of multiple [_TimePickerHeaderPiece]s.
-/// A piece is made of multiple [_TimePickerHeaderFragment]s. A fragment has a
-/// widget used to render some time information and contains some layout
-/// properties.
-///
-/// ## Layout rules
-///
-/// Pieces are laid out such that all fragments inside the same piece are laid
-/// out horizontally. Pieces are laid out horizontally if portrait orientation,
-/// and vertically in landscape orientation.
-///
-/// One of the pieces is identified as a _centerpiece_. It is a piece that is
-/// positioned in the center of the header, with all other pieces positioned
-/// to the left or right of it.
-class _TimePickerHeaderFormat {
-  const _TimePickerHeaderFormat(this.centerpieceIndex, this.pieces)
-    : assert(centerpieceIndex != null),
-      assert(pieces != null);
-
-  /// Index into the [pieces] list pointing at the piece that contains the
-  /// pivot fragment.
-  final int centerpieceIndex;
-
-  /// Pieces that constitute a time picker header.
-  final List<_TimePickerHeaderPiece> pieces;
-}
-
-/// Displays the am/pm fragment and provides controls for switching between am
-/// and pm.
-class _DayPeriodControl extends StatelessWidget {
-  const _DayPeriodControl({
-    @required this.fragmentContext,
-    @required this.orientation,
-  });
-
-  final _TimePickerFragmentContext fragmentContext;
-  final Orientation orientation;
-
-  void _togglePeriod() {
-    final int newHour = (fragmentContext.selectedTime.hour + TimeOfDay.hoursPerPeriod) % TimeOfDay.hoursPerDay;
-    final TimeOfDay newTime = fragmentContext.selectedTime.replacing(hour: newHour);
-    fragmentContext.onTimeChange(newTime);
-  }
-
-  void _setAm(BuildContext context) {
-    if (fragmentContext.selectedTime.period == DayPeriod.am) {
-      return;
-    }
-    switch (fragmentContext.targetPlatform) {
-      case TargetPlatform.android:
-      case TargetPlatform.fuchsia:
-      case TargetPlatform.linux:
-      case TargetPlatform.windows:
-        _announceToAccessibility(context, MaterialLocalizations.of(context).anteMeridiemAbbreviation);
-        break;
-      case TargetPlatform.iOS:
-      case TargetPlatform.macOS:
-        break;
-    }
-    _togglePeriod();
-  }
-
-  void _setPm(BuildContext context) {
-    if (fragmentContext.selectedTime.period == DayPeriod.pm) {
-      return;
-    }
-    switch (fragmentContext.targetPlatform) {
-      case TargetPlatform.android:
-      case TargetPlatform.fuchsia:
-      case TargetPlatform.linux:
-      case TargetPlatform.windows:
-        _announceToAccessibility(context, MaterialLocalizations.of(context).postMeridiemAbbreviation);
-        break;
-      case TargetPlatform.iOS:
-      case TargetPlatform.macOS:
-        break;
-    }
-    _togglePeriod();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final MaterialLocalizations materialLocalizations = MaterialLocalizations.of(context);
-    final TextTheme headerTextTheme = fragmentContext.headerTextTheme;
-    final TimeOfDay selectedTime = fragmentContext.selectedTime;
-    final Color activeColor = fragmentContext.activeColor;
-    final Color inactiveColor = fragmentContext.inactiveColor;
-    final bool amSelected = selectedTime.period == DayPeriod.am;
-    final TextStyle textStyle = TimePickerTheme.of(context).dayPeriodTextStyle ?? headerTextTheme.subtitle1;
-    final TextStyle amStyle = textStyle.copyWith(
-      color: amSelected ? activeColor: inactiveColor
-    );
-    final TextStyle pmStyle = textStyle.copyWith(
-      color: !amSelected ? activeColor: inactiveColor
-    );
-    final bool layoutPortrait = orientation == Orientation.portrait;
-
-    final double buttonTextScaleFactor = math.min(MediaQuery.of(context).textScaleFactor, 2.0);
-
-    final Widget amButton = ConstrainedBox(
-      constraints: _kMinTappableRegion,
-      child: Material(
-        type: MaterialType.transparency,
-        child: InkWell(
-          onTap: Feedback.wrapForTap(() => _setAm(context), context),
-          child: Padding(
-            padding: layoutPortrait ? const EdgeInsets.only(bottom: 2.0) : const EdgeInsets.only(right: 4.0),
-            child: Align(
-              alignment: layoutPortrait ? Alignment.bottomCenter : Alignment.centerRight,
-              widthFactor: 1,
-              heightFactor: 1,
-              child: Semantics(
-                selected: amSelected,
-                child: Text(
-                    materialLocalizations.anteMeridiemAbbreviation,
-                    style: amStyle,
-                    textScaleFactor: buttonTextScaleFactor,
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-
-    final Widget pmButton = ConstrainedBox(
-      constraints: _kMinTappableRegion,
-      child: Material(
-        type: MaterialType.transparency,
-        textStyle: pmStyle,
-        child: InkWell(
-          onTap: Feedback.wrapForTap(() => _setPm(context), context),
-          child: Padding(
-            padding: layoutPortrait ? const EdgeInsets.only(top: 2.0) : const EdgeInsets.only(left: 4.0),
-            child: Align(
-              alignment: orientation == Orientation.portrait ? Alignment.topCenter : Alignment.centerLeft,
-              widthFactor: 1,
-              heightFactor: 1,
-              child: Semantics(
-                selected: !amSelected,
-                child: Text(
-                    materialLocalizations.postMeridiemAbbreviation,
-                    style: pmStyle,
-                    textScaleFactor: buttonTextScaleFactor,
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-
-    switch (orientation) {
-      case Orientation.portrait:
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            amButton,
-            pmButton,
-          ],
-        );
-
-      case Orientation.landscape:
-        return Row(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            amButton,
-            pmButton,
-          ],
-        );
-    }
-    return null;
-  }
-}
-
-/// Displays the hour fragment.
-///
-/// When tapped changes time picker dial mode to [_TimePickerMode.hour].
-class _HourControl extends StatelessWidget {
-  const _HourControl({
-    @required this.fragmentContext,
-  });
-
-  final _TimePickerFragmentContext fragmentContext;
-
-  @override
-  Widget build(BuildContext context) {
-    assert(debugCheckHasMediaQuery(context));
-    final bool alwaysUse24HourFormat = MediaQuery.of(context).alwaysUse24HourFormat;
-    final MaterialLocalizations localizations = MaterialLocalizations.of(context);
-    final TextStyle hourStyle = fragmentContext.mode == _TimePickerMode.hour
-        ? fragmentContext.activeStyle
-        : fragmentContext.inactiveStyle;
-    final String formattedHour = localizations.formatHour(
-      fragmentContext.selectedTime,
-      alwaysUse24HourFormat: alwaysUse24HourFormat,
-    );
-
-    TimeOfDay hoursFromSelected(int hoursToAdd) {
-      if (fragmentContext.use24HourDials) {
-        final int selectedHour = fragmentContext.selectedTime.hour;
-        return fragmentContext.selectedTime.replacing(
-          hour: (selectedHour + hoursToAdd) % TimeOfDay.hoursPerDay,
-        );
-      } else {
-        // Cycle 1 through 12 without changing day period.
-        final int periodOffset = fragmentContext.selectedTime.periodOffset;
-        final int hours = fragmentContext.selectedTime.hourOfPeriod;
-        return fragmentContext.selectedTime.replacing(
-          hour: periodOffset + (hours + hoursToAdd) % TimeOfDay.hoursPerPeriod,
-        );
-      }
-    }
-
-    final TimeOfDay nextHour = hoursFromSelected(1);
-    final String formattedNextHour = localizations.formatHour(
-      nextHour,
-      alwaysUse24HourFormat: alwaysUse24HourFormat,
-    );
-    final TimeOfDay previousHour = hoursFromSelected(-1);
-    final String formattedPreviousHour = localizations.formatHour(
-      previousHour,
-      alwaysUse24HourFormat: alwaysUse24HourFormat,
-    );
-
-    return Semantics(
-      hint: localizations.timePickerHourModeAnnouncement,
-      value: formattedHour,
-      excludeSemantics: true,
-      increasedValue: formattedNextHour,
-      onIncrease: () {
-        fragmentContext.onTimeChange(nextHour);
-      },
-      decreasedValue: formattedPreviousHour,
-      onDecrease: () {
-        fragmentContext.onTimeChange(previousHour);
-      },
-      child: ConstrainedBox(
-        constraints: _kMinTappableRegion,
-        child: Material(
-          type: MaterialType.transparency,
-          child: InkWell(
-            onTap: Feedback.wrapForTap(() => fragmentContext.onModeChange(_TimePickerMode.hour), context),
-            child: Text(
-              formattedHour,
-              style: hourStyle,
-              textAlign: TextAlign.end,
-              textScaleFactor: 1.0,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// A passive fragment showing a string value.
-class _StringFragment extends StatelessWidget {
-  const _StringFragment({
-    @required this.fragmentContext,
-    @required this.value,
-  });
-
-  final _TimePickerFragmentContext fragmentContext;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return ExcludeSemantics(
-      child: Text(value, style: fragmentContext.inactiveStyle, textScaleFactor: 1.0),
-    );
-  }
-}
-
-/// Displays the minute fragment.
-///
-/// When tapped changes time picker dial mode to [_TimePickerMode.minute].
-class _MinuteControl extends StatelessWidget {
-  const _MinuteControl({
-    @required this.fragmentContext,
-  });
-
-  final _TimePickerFragmentContext fragmentContext;
-
-  @override
-  Widget build(BuildContext context) {
-    final MaterialLocalizations localizations = MaterialLocalizations.of(context);
-    final TextStyle minuteStyle = fragmentContext.mode == _TimePickerMode.minute
-        ? fragmentContext.activeStyle
-        : fragmentContext.inactiveStyle;
-    final String formattedMinute = localizations.formatMinute(fragmentContext.selectedTime);
-    final TimeOfDay nextMinute = fragmentContext.selectedTime.replacing(
-      minute: (fragmentContext.selectedTime.minute + 1) % TimeOfDay.minutesPerHour,
-    );
-    final String formattedNextMinute = localizations.formatMinute(nextMinute);
-    final TimeOfDay previousMinute = fragmentContext.selectedTime.replacing(
-      minute: (fragmentContext.selectedTime.minute - 1) % TimeOfDay.minutesPerHour,
-    );
-    final String formattedPreviousMinute = localizations.formatMinute(previousMinute);
-
-    return Semantics(
-      excludeSemantics: true,
-      hint: localizations.timePickerMinuteModeAnnouncement,
-      value: formattedMinute,
-      increasedValue: formattedNextMinute,
-      onIncrease: () {
-        fragmentContext.onTimeChange(nextMinute);
-      },
-      decreasedValue: formattedPreviousMinute,
-      onDecrease: () {
-        fragmentContext.onTimeChange(previousMinute);
-      },
-      child: ConstrainedBox(
-        constraints: _kMinTappableRegion,
-        child: Material(
-          type: MaterialType.transparency,
-          child: InkWell(
-            onTap: Feedback.wrapForTap(() => fragmentContext.onModeChange(_TimePickerMode.minute), context),
-            child: Text(formattedMinute, style: minuteStyle, textAlign: TextAlign.start, textScaleFactor: 1.0),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Provides time picker header layout configuration for the given
-/// [timeOfDayFormat] passing [context] to each widget in the
-/// configuration.
-///
-/// The [timeOfDayFormat] and [context] arguments must not be null.
-_TimePickerHeaderFormat _buildHeaderFormat(
-  TimeOfDayFormat timeOfDayFormat,
-  _TimePickerFragmentContext context,
-  Orientation orientation,
-) {
-  // Creates an hour fragment.
-  _TimePickerHeaderFragment hour() {
-    return _TimePickerHeaderFragment(
-      layoutId: _TimePickerHeaderId.hour,
-      widget: _HourControl(fragmentContext: context),
-    );
-  }
-
-  // Creates a minute fragment.
-  _TimePickerHeaderFragment minute() {
-    return _TimePickerHeaderFragment(
-      layoutId: _TimePickerHeaderId.minute,
-      widget: _MinuteControl(fragmentContext: context),
-    );
-  }
-
-  // Creates a string fragment.
-  _TimePickerHeaderFragment string(_TimePickerHeaderId layoutId, String value) {
-    return _TimePickerHeaderFragment(
-      layoutId: layoutId,
-      widget: _StringFragment(
-        fragmentContext: context,
-        value: value,
-      ),
-    );
-  }
-
-  // Creates an am/pm fragment.
-  _TimePickerHeaderFragment dayPeriod() {
-    return _TimePickerHeaderFragment(
-      layoutId: _TimePickerHeaderId.period,
-      widget: _DayPeriodControl(fragmentContext: context, orientation: orientation),
-    );
-  }
-
-  // Convenience function for creating a time header format with up to two pieces.
-  _TimePickerHeaderFormat format(
-    _TimePickerHeaderPiece piece1, [
-    _TimePickerHeaderPiece piece2,
-  ]) {
-    final List<_TimePickerHeaderPiece> pieces = <_TimePickerHeaderPiece>[];
-    switch (context.textDirection) {
-      case TextDirection.ltr:
-        pieces.add(piece1);
-        if (piece2 != null)
-          pieces.add(piece2);
-        break;
-      case TextDirection.rtl:
-        if (piece2 != null)
-          pieces.add(piece2);
-        pieces.add(piece1);
-        break;
-    }
-    int centerpieceIndex;
-    for (int i = 0; i < pieces.length; i += 1) {
-      if (pieces[i].pivotIndex >= 0) {
-        centerpieceIndex = i;
-      }
-    }
-    assert(centerpieceIndex != null);
-    return _TimePickerHeaderFormat(centerpieceIndex, pieces);
-  }
-
-  // Convenience function for creating a time header piece with up to three fragments.
-  _TimePickerHeaderPiece piece({
-    int pivotIndex = -1,
-    double bottomMargin = 0.0,
-    _TimePickerHeaderFragment fragment1,
-    _TimePickerHeaderFragment fragment2,
-    _TimePickerHeaderFragment fragment3,
-  }) {
-    final List<_TimePickerHeaderFragment> fragments = <_TimePickerHeaderFragment>[
-      fragment1,
-      if (fragment2 != null) ...<_TimePickerHeaderFragment>[
-        fragment2,
-        if (fragment3 != null) fragment3,
-      ],
-    ];
-    return _TimePickerHeaderPiece(pivotIndex, fragments, bottomMargin: bottomMargin);
-  }
-
-  switch (timeOfDayFormat) {
-    case TimeOfDayFormat.h_colon_mm_space_a:
-      return format(
-        piece(
-          pivotIndex: 1,
-          fragment1: hour(),
-          fragment2: string(_TimePickerHeaderId.colon, ':'),
-          fragment3: minute(),
-        ),
-        piece(
-          fragment1: dayPeriod(),
-        ),
-      );
-    case TimeOfDayFormat.H_colon_mm:
-      return format(piece(
-        pivotIndex: 1,
-        fragment1: hour(),
-        fragment2: string(_TimePickerHeaderId.colon, ':'),
-        fragment3: minute(),
-      ));
-    case TimeOfDayFormat.HH_dot_mm:
-      return format(piece(
-        pivotIndex: 1,
-        fragment1: hour(),
-        fragment2: string(_TimePickerHeaderId.dot, '.'),
-        fragment3: minute(),
-      ));
-    case TimeOfDayFormat.a_space_h_colon_mm:
-      return format(
-        piece(
-          fragment1: dayPeriod(),
-        ),
-        piece(
-          pivotIndex: 1,
-          fragment1: hour(),
-          fragment2: string(_TimePickerHeaderId.colon, ':'),
-          fragment3: minute(),
-        ),
-      );
-    case TimeOfDayFormat.frenchCanadian:
-      return format(piece(
-        pivotIndex: 1,
-        fragment1: hour(),
-        fragment2: string(_TimePickerHeaderId.hString, 'h'),
-        fragment3: minute(),
-      ));
-    case TimeOfDayFormat.HH_colon_mm:
-      return format(piece(
-        pivotIndex: 1,
-        fragment1: hour(),
-        fragment2: string(_TimePickerHeaderId.colon, ':'),
-        fragment3: minute(),
-      ));
-  }
-
-  return null;
-}
-
-class _TimePickerHeaderLayout extends MultiChildLayoutDelegate {
-  _TimePickerHeaderLayout(this.orientation, this.format)
-    : assert(orientation != null),
-      assert(format != null);
-
-  final Orientation orientation;
-  final _TimePickerHeaderFormat format;
-
-  @override
-  void performLayout(Size size) {
-    final BoxConstraints constraints = BoxConstraints.loose(size);
-
-    switch (orientation) {
-      case Orientation.portrait:
-        _layoutHorizontally(size, constraints);
-        break;
-      case Orientation.landscape:
-        _layoutVertically(size, constraints);
-        break;
-    }
-  }
-
-  void _layoutHorizontally(Size size, BoxConstraints constraints) {
-    final List<_TimePickerHeaderFragment> fragmentsFlattened = <_TimePickerHeaderFragment>[];
-    final Map<_TimePickerHeaderId, Size> childSizes = <_TimePickerHeaderId, Size>{};
-    int pivotIndex = 0;
-    for (int pieceIndex = 0; pieceIndex < format.pieces.length; pieceIndex += 1) {
-      final _TimePickerHeaderPiece piece = format.pieces[pieceIndex];
-      for (final _TimePickerHeaderFragment fragment in piece.fragments) {
-        childSizes[fragment.layoutId] = layoutChild(fragment.layoutId, constraints);
-        fragmentsFlattened.add(fragment);
-      }
-
-      if (pieceIndex == format.centerpieceIndex)
-        pivotIndex += format.pieces[format.centerpieceIndex].pivotIndex;
-      else if (pieceIndex < format.centerpieceIndex)
-        pivotIndex += piece.fragments.length;
-    }
-
-    _positionPivoted(size.width, size.height / 2.0, childSizes, fragmentsFlattened, pivotIndex);
-  }
-
-  void _layoutVertically(Size size, BoxConstraints constraints) {
-    final Map<_TimePickerHeaderId, Size> childSizes = <_TimePickerHeaderId, Size>{};
-    final List<double> pieceHeights = <double>[];
-    double height = 0.0;
-    double margin = 0.0;
-    for (final _TimePickerHeaderPiece piece in format.pieces) {
-      double pieceHeight = 0.0;
-      for (final _TimePickerHeaderFragment fragment in piece.fragments) {
-        final Size childSize = childSizes[fragment.layoutId] = layoutChild(fragment.layoutId, constraints);
-        pieceHeight = math.max(pieceHeight, childSize.height);
-      }
-      pieceHeights.add(pieceHeight);
-      height += pieceHeight + margin;
-      // Delay application of margin until next piece because margin of the
-      // bottom-most piece should not contribute to the size.
-      margin = piece.bottomMargin;
-    }
-
-    final _TimePickerHeaderPiece centerpiece = format.pieces[format.centerpieceIndex];
-    double y = (size.height - height) / 2.0;
-    for (int pieceIndex = 0; pieceIndex < format.pieces.length; pieceIndex += 1) {
-      final double pieceVerticalCenter = y + pieceHeights[pieceIndex] / 2.0;
-      if (pieceIndex != format.centerpieceIndex)
-        _positionPiece(size.width, pieceVerticalCenter, childSizes, format.pieces[pieceIndex].fragments);
-      else
-        _positionPivoted(size.width, pieceVerticalCenter, childSizes, centerpiece.fragments, centerpiece.pivotIndex);
-
-      y += pieceHeights[pieceIndex] + format.pieces[pieceIndex].bottomMargin;
-    }
-  }
-
-  void _positionPivoted(double width, double y, Map<_TimePickerHeaderId, Size> childSizes, List<_TimePickerHeaderFragment> fragments, int pivotIndex) {
-    double tailWidth = childSizes[fragments[pivotIndex].layoutId].width / 2.0;
-    for (final _TimePickerHeaderFragment fragment in fragments.skip(pivotIndex + 1)) {
-      tailWidth += childSizes[fragment.layoutId].width + fragment.startMargin;
-    }
-
-    double x = width / 2.0 + tailWidth;
-    x = math.min(x, width);
-    for (int i = fragments.length - 1; i >= 0; i -= 1) {
-      final _TimePickerHeaderFragment fragment = fragments[i];
-      final Size childSize = childSizes[fragment.layoutId];
-      x -= childSize.width;
-      positionChild(fragment.layoutId, Offset(x, y - childSize.height / 2.0));
-      x -= fragment.startMargin;
-    }
-  }
-
-  void _positionPiece(double width, double centeredAroundY, Map<_TimePickerHeaderId, Size> childSizes, List<_TimePickerHeaderFragment> fragments) {
-    double pieceWidth = 0.0;
-    double nextMargin = 0.0;
-    for (final _TimePickerHeaderFragment fragment in fragments) {
-      final Size childSize = childSizes[fragment.layoutId];
-      pieceWidth += childSize.width + nextMargin;
-      // Delay application of margin until next element because margin of the
-      // left-most fragment should not contribute to the size.
-      nextMargin = fragment.startMargin;
-    }
-    double x = (width + pieceWidth) / 2.0;
-    for (int i = fragments.length - 1; i >= 0; i -= 1) {
-      final _TimePickerHeaderFragment fragment = fragments[i];
-      final Size childSize = childSizes[fragment.layoutId];
-      x -= childSize.width;
-      positionChild(fragment.layoutId, Offset(x, centeredAroundY - childSize.height / 2.0));
-      x -= fragment.startMargin;
-    }
-  }
-
-  @override
-  bool shouldRelayout(_TimePickerHeaderLayout oldDelegate) => orientation != oldDelegate.orientation || format != oldDelegate.format;
-}
-
 class _TimePickerHeader extends StatelessWidget {
   const _TimePickerHeader({
-    @required this.selectedTime,
-    @required this.mode,
-    @required this.orientation,
-    @required this.onModeChanged,
-    @required this.onChanged,
-    @required this.use24HourDials,
-  }) : assert(selectedTime != null),
-       assert(mode != null),
-       assert(orientation != null),
-       assert(use24HourDials != null);
-
-  final TimeOfDay selectedTime;
-  final _TimePickerMode mode;
-  final Orientation orientation;
-  final ValueChanged<_TimePickerMode> onModeChanged;
-  final ValueChanged<TimeOfDay> onChanged;
-  final bool use24HourDials;
-
-  void _handleChangeMode(_TimePickerMode value) {
-    if (value != mode)
-      onModeChanged(value);
-  }
-
-  TextStyle _getBaseHeaderStyle(TextTheme headerTextTheme) {
-    // These font sizes aren't listed in the spec explicitly. I worked them out
-    // by measuring the text using a screen ruler and comparing them to the
-    // screen shots of the time picker in the spec.
-    assert(orientation != null);
-    switch (orientation) {
-      case Orientation.portrait:
-        return headerTextTheme.headline2.copyWith(fontSize: 60.0);
-      case Orientation.landscape:
-        return headerTextTheme.headline3.copyWith(fontSize: 50.0);
-    }
-    return null;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    assert(debugCheckHasMediaQuery(context));
-    final ThemeData themeData = Theme.of(context);
-    final MediaQueryData media = MediaQuery.of(context);
-    final TimeOfDayFormat timeOfDayFormat = MaterialLocalizations.of(context)
-        .timeOfDayFormat(alwaysUse24HourFormat: media.alwaysUse24HourFormat);
-
-    EdgeInsets padding;
-    double height;
-    double width;
-
-    assert(orientation != null);
-    switch (orientation) {
-      case Orientation.portrait:
-        height = _kTimePickerHeaderPortraitHeight;
-        padding = const EdgeInsets.symmetric(horizontal: 24.0);
-        break;
-      case Orientation.landscape:
-        width = _kTimePickerHeaderLandscapeWidth;
-        padding = const EdgeInsets.symmetric(horizontal: 16.0);
-        break;
-    }
-
-    Color backgroundColor = TimePickerTheme.of(context).headerColor;
-    if (backgroundColor == null) {
-      switch (themeData.brightness) {
-        case Brightness.light:
-          backgroundColor = themeData.primaryColor;
-          break;
-        case Brightness.dark:
-          backgroundColor = themeData.backgroundColor;
-          break;
-      }
-    }
-
-    Color activeColor;
-    Color inactiveColor;
-    switch (themeData.primaryColorBrightness) {
-      case Brightness.light:
-        activeColor = Colors.black87;
-        inactiveColor = Colors.black54;
-        break;
-      case Brightness.dark:
-        activeColor = Colors.white;
-        inactiveColor = Colors.white70;
-        break;
-    }
-
-    final TextTheme headerTextTheme = themeData.primaryTextTheme;
-    final TextStyle baseHeaderStyle = TimePickerTheme.of(context).hourMinuteTextStyle
-        ?? _getBaseHeaderStyle(headerTextTheme);
-    final _TimePickerFragmentContext fragmentContext = _TimePickerFragmentContext(
-      headerTextTheme: headerTextTheme,
-      textDirection: Directionality.of(context),
-      selectedTime: selectedTime,
-      mode: mode,
-      activeColor: activeColor,
-      activeStyle: baseHeaderStyle.copyWith(color: activeColor),
-      inactiveColor: inactiveColor,
-      inactiveStyle: baseHeaderStyle.copyWith(color: inactiveColor),
-      onTimeChange: onChanged,
-      onModeChange: _handleChangeMode,
-      targetPlatform: themeData.platform,
-      use24HourDials: use24HourDials,
-    );
-
-    final _TimePickerHeaderFormat format = _buildHeaderFormat(timeOfDayFormat, fragmentContext, orientation);
-
-    return Container(
-      width: width,
-      height: height,
-      padding: padding,
-      color: backgroundColor,
-      child: CustomMultiChildLayout(
-        delegate: _TimePickerHeaderLayout(orientation, format),
-        children: format.pieces
-          .expand<_TimePickerHeaderFragment>((_TimePickerHeaderPiece piece) => piece.fragments)
-          .map<Widget>((_TimePickerHeaderFragment fragment) {
-            return LayoutId(
-              id: fragment.layoutId,
-              child: fragment.widget,
-            );
-          })
-          .toList(),
-      ),
-    );
-  }
-}
-
-class _TimePickerHeader2018 extends StatelessWidget {
-  const _TimePickerHeader2018({
     @required this.selectedTime,
     @required this.mode,
     @required this.orientation,
@@ -955,12 +167,12 @@ class _TimePickerHeader2018 extends StatelessWidget {
               height: kMinInteractiveDimension * 2,
               child: Row(
                 children: <Widget>[
-                  Expanded(child: _HourControl2018(fragmentContext: fragmentContext)),
-                  _StringFragment2018(textStyle: fragmentContext.inactiveStyle, timeOfDayFormat: timeOfDayFormat),
-                  Expanded(child: _MinuteControl2018(fragmentContext: fragmentContext)),
+                  Expanded(child: _HourControl(fragmentContext: fragmentContext)),
+                  _StringFragment(textStyle: fragmentContext.inactiveStyle, timeOfDayFormat: timeOfDayFormat),
+                  Expanded(child: _MinuteControl(fragmentContext: fragmentContext)),
                   if (!use24HourDials) ...<Widget>[
                     const SizedBox(width: 12.0),
-                    _DayPeriodControl2018(
+                    _DayPeriodControl(
                       selectedTime: selectedTime,
                       orientation: orientation,
                       onChanged: onChanged,
@@ -973,7 +185,7 @@ class _TimePickerHeader2018 extends StatelessWidget {
         );
         break;
       case Orientation.landscape:
-        width = _kTimePickerHeaderLandscapeWidth2018;
+        width = _kTimePickerHeaderLandscapeWidth;
         padding = const EdgeInsets.symmetric(horizontal: 24.0);
         controls = Expanded(
           child: Column(
@@ -983,14 +195,14 @@ class _TimePickerHeader2018 extends StatelessWidget {
                 height: kMinInteractiveDimension * 2,
                 child: Row(
                   children: <Widget>[
-                    Expanded(child: _HourControl2018(fragmentContext: fragmentContext)),
-                    _StringFragment2018(textStyle: fragmentContext.inactiveStyle, timeOfDayFormat: timeOfDayFormat),
-                    Expanded(child: _MinuteControl2018(fragmentContext: fragmentContext)),
+                    Expanded(child: _HourControl(fragmentContext: fragmentContext)),
+                    _StringFragment(textStyle: fragmentContext.inactiveStyle, timeOfDayFormat: timeOfDayFormat),
+                    Expanded(child: _MinuteControl(fragmentContext: fragmentContext)),
                   ],
                 ),
               ),
               if (!use24HourDials)
-                _DayPeriodControl2018(
+                _DayPeriodControl(
                   selectedTime: selectedTime,
                   orientation: orientation,
                   onChanged: onChanged,
@@ -1022,8 +234,8 @@ class _TimePickerHeader2018 extends StatelessWidget {
 /// Displays the hour fragment.
 ///
 /// When tapped changes time picker dial mode to [_TimePickerMode.hour].
-class _HourControl2018 extends StatelessWidget {
-  const _HourControl2018({
+class _HourControl extends StatelessWidget {
+  const _HourControl({
     @required this.fragmentContext,
   });
 
@@ -1108,8 +320,8 @@ class _HourControl2018 extends StatelessWidget {
 }
 
 /// A passive fragment showing a string value.
-class _StringFragment2018 extends StatelessWidget {
-  const _StringFragment2018({
+class _StringFragment extends StatelessWidget {
+  const _StringFragment({
     @required this.textStyle,
     @required this.timeOfDayFormat,
   });
@@ -1156,8 +368,8 @@ class _StringFragment2018 extends StatelessWidget {
 /// Displays the minute fragment.
 ///
 /// When tapped changes time picker dial mode to [_TimePickerMode.minute].
-class _MinuteControl2018 extends StatelessWidget {
-  const _MinuteControl2018({
+class _MinuteControl extends StatelessWidget {
+  const _MinuteControl({
     @required this.fragmentContext,
   });
 
@@ -1220,8 +432,8 @@ class _MinuteControl2018 extends StatelessWidget {
 
 /// Displays the am/pm fragment and provides controls for switching between am
 /// and pm.
-class _DayPeriodControl2018 extends StatelessWidget {
-  const _DayPeriodControl2018({
+class _DayPeriodControl extends StatelessWidget {
+  const _DayPeriodControl({
     @required this.selectedTime,
     @required this.onChanged,
     @required this.orientation,
@@ -1384,7 +596,7 @@ class _DayPeriodControl2018 extends StatelessWidget {
   }
 }
 
-/// A widget to pad the area around the [_DayPeriodControl2018]'s inner [Material].
+/// A widget to pad the area around the [_DayPeriodControl]'s inner [Material].
 class _DayPeriodInputPadding extends SingleChildRenderObjectWidget {
   const _DayPeriodInputPadding({
     Key key,
@@ -1709,7 +921,6 @@ class _Dial extends StatefulWidget {
     @required this.selectedTime,
     @required this.mode,
     @required this.use24HourDials,
-    @required this.use2018Style,
     @required this.onChanged,
     @required this.onHourSelected,
   }) : assert(selectedTime != null),
@@ -1719,7 +930,6 @@ class _Dial extends StatefulWidget {
   final TimeOfDay selectedTime;
   final _TimePickerMode mode;
   final bool use24HourDials;
-  final bool use2018Style;
   final ValueChanged<TimeOfDay> onChanged;
   final VoidCallback onHourSelected;
 
@@ -1904,8 +1114,8 @@ class _DialState extends State<_Dial> with SingleTickerProviderStateMixin {
     final RenderBox box = context.findRenderObject() as RenderBox;
     _position = box.globalToLocal(details.globalPosition);
     _center = box.size.center(Offset.zero);
-    _updateThetaForPan(roundMinutes: widget.use2018Style);
-    final TimeOfDay newTime = _notifyOnChangedIfNeeded(roundMinutes: widget.use2018Style);
+    _updateThetaForPan(roundMinutes: true);
+    final TimeOfDay newTime = _notifyOnChangedIfNeeded(roundMinutes: true);
     if (widget.mode == _TimePickerMode.hour) {
       if (widget.use24HourDials) {
         _announceToAccessibility(context, localizations.formatDecimal(newTime.hour));
@@ -1918,7 +1128,7 @@ class _DialState extends State<_Dial> with SingleTickerProviderStateMixin {
     } else {
       _announceToAccessibility(context, localizations.formatDecimal(newTime.minute));
     }
-    _animateTo(_getThetaForTime(_getTimeForTheta(_theta.value, roundMinutes: widget.use2018Style)));
+    _animateTo(_getThetaForTime(_getTimeForTheta(_theta.value, roundMinutes: true)));
     _dragging = false;
     _position = null;
     _center = null;
@@ -2083,8 +1293,7 @@ class _DialState extends State<_Dial> with SingleTickerProviderStateMixin {
       }
     }
 
-    final Color accentColor = TimePickerTheme.of(context).dialHandColor ??
-        (widget.use2018Style ? themeData.colorScheme.primary : themeData.accentColor);
+    final Color accentColor = TimePickerTheme.of(context).dialHandColor ?? themeData.colorScheme.primary;
     final ThemeData theme = Theme.of(context);
     List<_TappableLabel> primaryOuterLabels;
     List<_TappableLabel> primaryInnerLabels;
@@ -2212,7 +1421,7 @@ class __TimePickerInputState extends State<_TimePickerInput> {
                   isHour: true,
                   onSavedSubmitted: _handleHourSavedSubmitted,
                 )),
-                _StringFragment2018(
+                _StringFragment(
                   textStyle: hourMinuteStyle.copyWith(color: theme.colorScheme.onBackground),
                   timeOfDayFormat: timeOfDayFormat,
                 ),
@@ -2224,7 +1433,7 @@ class __TimePickerInputState extends State<_TimePickerInput> {
                 if (!use24HourDials) ...<Widget>[
                   const SizedBox(width: 12.0),
                   // TODO: Why is the onChanged not being respected.
-                  _DayPeriodControl2018(
+                  _DayPeriodControl(
                     selectedTime: _selectedTime,
                     orientation: Orientation.portrait,
                     onChanged: (TimeOfDay value) {
@@ -2329,23 +1538,15 @@ class _TimePickerDialog extends StatefulWidget {
   const _TimePickerDialog({
     Key key,
     @required this.initialTime,
-    @required this.use2018Style,
     @required this.cancelText,
     @required this.confirmText,
     @required this.helperText,
     this.initialEntryMode = TimePickerEntryMode.dial,
   }) : assert(initialTime != null),
-       assert(
-         use2018Style || initialEntryMode == TimePickerEntryMode.dial,
-         'If use2018Style is false, than initialEntryMode must be dial.',
-       ),
        super(key: key);
 
   /// The time initially selected when the dialog is shown.
   final TimeOfDay initialTime;
-
-  /// Uses the updated 2018 Material Design time picker style.
-  final bool use2018Style;
 
   /// The entry mode for the picker. Whether it's text input or a dial.
   final TimePickerEntryMode initialEntryMode;
@@ -2360,7 +1561,7 @@ class _TimePickerDialog extends StatefulWidget {
   /// If null, the button uses [MaterialLocalizations.okButtonLabel].
   final String confirmText;
 
-  /// Optionally provide your own help text to the header of the 2018 time picker.
+  /// Optionally provide your own help text to the header of the time picker.
   final String helperText;
 
   @override
@@ -2495,47 +1696,42 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
     final TimeOfDayFormat timeOfDayFormat = localizations.timeOfDayFormat(alwaysUse24HourFormat: media.alwaysUse24HourFormat);
     final bool use24HourDials = hourFormat(of: timeOfDayFormat) != HourFormat.h;
     final ThemeData theme = Theme.of(context);
-    final ShapeBorder shape = TimePickerTheme.of(context).shape ??
-        (widget.use2018Style ? _kDefaultShape : null);
+    final ShapeBorder shape = TimePickerTheme.of(context).shape ?? _kDefaultShape;
 
-    Widget actions = ButtonBar(
-      layoutBehavior: widget.use2018Style
-          ? ButtonBarLayoutBehavior.constrained
-          : ButtonBarLayoutBehavior.padded,
+    Color toggleColor;
+    switch (theme.brightness) {
+      case Brightness.light:
+        toggleColor = Colors.grey[700];
+        break;
+      case Brightness.dark:
+        toggleColor = Colors.white;
+        break;
+    }
+    final Widget actions = Row(
       children: <Widget>[
-        FlatButton(
-          child: Text(widget.cancelText ?? localizations.cancelButtonLabel),
-          onPressed: _handleCancel,
+        const SizedBox(width: 10.0),
+        IconButton(
+          color: toggleColor,
+          onPressed: _handleEntryModeToggle,
+          icon: Icon(_entryMode == TimePickerEntryMode.dial ? Icons.keyboard : Icons.access_time),
         ),
-        FlatButton(
-          child: Text(widget.confirmText ?? localizations.okButtonLabel),
-          onPressed: _handleOk,
+        Expanded(
+          child: ButtonBar(
+            layoutBehavior: ButtonBarLayoutBehavior.constrained,
+            children: <Widget>[
+              FlatButton(
+                child: Text(widget.cancelText ?? localizations.cancelButtonLabel),
+                onPressed: _handleCancel,
+              ),
+              FlatButton(
+                child: Text(widget.confirmText ?? localizations.okButtonLabel),
+                onPressed: _handleOk,
+              ),
+            ],
+          ),
         ),
       ],
     );
-
-    if (widget.use2018Style) {
-      Color toggleColor;
-      switch (theme.brightness) {
-        case Brightness.light:
-          toggleColor = Colors.grey[700];
-          break;
-        case Brightness.dark:
-          toggleColor = Colors.white;
-          break;
-      }
-      actions = Row(
-        children: <Widget>[
-          const SizedBox(width: 10.0),
-          IconButton(
-            color: toggleColor,
-            onPressed: _handleEntryModeToggle,
-            icon: Icon(_entryMode == TimePickerEntryMode.dial ? Icons.keyboard : Icons.access_time),
-          ),
-          Expanded(child: actions),
-        ],
-      );
-    }
 
     Widget picker;
     switch (_entryMode) {
@@ -2549,7 +1745,6 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
                   child: _Dial(
                     mode: _mode,
                     use24HourDials: use24HourDials,
-                    use2018Style: widget.use2018Style,
                     selectedTime: _selectedTime,
                     onChanged: _handleTimeChanged,
                     onHourSelected: _handleHourSelected,
@@ -2557,7 +1752,7 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
                 ),
               );
 
-              final Widget header = widget.use2018Style ? _TimePickerHeader2018(
+              final Widget header = _TimePickerHeader(
                 selectedTime: _selectedTime,
                 mode: _mode,
                 orientation: orientation,
@@ -2565,13 +1760,6 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
                 onChanged: _handleTimeChanged,
                 use24HourDials: use24HourDials,
                 helperText: widget.helperText,
-              ) : _TimePickerHeader(
-                selectedTime: _selectedTime,
-                mode: _mode,
-                orientation: orientation,
-                onModeChanged: _handleModeChanged,
-                onChanged: _handleTimeChanged,
-                use24HourDials: use24HourDials,
               );
 
               final Widget pickerAndActions = Container(
@@ -2615,40 +1803,23 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
                     ),
                   );
                 case Orientation.landscape:
-                  if (widget.use2018Style) {
-                    return SizedBox(
-                      width: _kTimePickerWidthLandscape,
-                      height: timePickerHeightLandscape,
-                      child: Column(
-                        children: <Widget>[
-                          Expanded(
-                            child: Row(
-                              children: <Widget>[
-                                header,
-                                Expanded(child: dial),
-                              ],
-                            ),
+                  return SizedBox(
+                    width: _kTimePickerWidthLandscape,
+                    height: timePickerHeightLandscape,
+                    child: Column(
+                      children: <Widget>[
+                        Expanded(
+                          child: Row(
+                            children: <Widget>[
+                              header,
+                              Expanded(child: dial),
+                            ],
                           ),
-                          actions,
-                        ],
-                      ),
-                    );
-                  } else {
-                    return SizedBox(
-                      width: _kTimePickerWidthLandscape,
-                      height: timePickerHeightLandscape,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: <Widget>[
-                          header,
-                          Flexible(
-                            child: pickerAndActions,
-                          ),
-                        ],
-                      ),
-                    );
-                  }
+                        ),
+                        actions,
+                      ],
+                    ),
+                  );
               }
               return null;
             }
@@ -2719,12 +1890,10 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
 /// to add inherited widgets like [Localizations.override],
 /// [Directionality], or [MediaQuery].
 ///
-/// The [use2018Style] parameter uses the updated Material Design time picker.
-///
-/// When [use2018Style] is true, the [helperText] parameter can be used to
+/// The [helperText] parameter can be used to
 /// customize the help text in the header of the picker.
 ///
-/// When [use2018Style] is true, the [entryMode] parameter can be used to
+/// The [entryMode] parameter can be used to
 /// determine the initial time entry selection of the picker (either a clock
 /// dial or text input).
 ///
@@ -2774,7 +1943,6 @@ Future<TimeOfDay> showTimePicker({
   @required TimeOfDay initialTime,
   TransitionBuilder builder,
   bool useRootNavigator = true,
-  bool use2018Style,
   TimePickerEntryMode initialEntryMode = TimePickerEntryMode.dial,
   String cancelText,
   String confirmText,
@@ -2787,10 +1955,8 @@ Future<TimeOfDay> showTimePicker({
   assert(initialEntryMode != null);
   assert(debugCheckHasMaterialLocalizations(context));
 
-  final bool resolvedUse2018Style = TimePickerTheme.of(context).use2018Style ?? use2018Style ?? true;
   final Widget dialog = _TimePickerDialog(
     initialTime: initialTime,
-    use2018Style: resolvedUse2018Style,
     cancelText: cancelText,
     confirmText: confirmText,
     helperText: helperText,

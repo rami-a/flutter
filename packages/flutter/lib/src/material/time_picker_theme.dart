@@ -40,7 +40,6 @@ class TimePickerThemeData with Diagnosticable {
     this.shape,
     this.hourMinuteShape,
     this.dayPeriodShape,
-    this.use2018Style,
   });
 
   /// The background color of a time picker.
@@ -50,54 +49,31 @@ class TimePickerThemeData with Diagnosticable {
 
   /// The color used in the header of a time picker.
   ///
-  /// If [use2018Style] is true, this determines the active color of the header
-  /// segments that represent hours and minutes. If [use2018Style] is false,
-  /// this determines the background color of the header.
+  /// This determines the active color of the header segments that represent
+  /// hours and minutes.
   ///
-  /// If this is null and [use2018Style] is true, the time picker defaults to
-  /// [ColorScheme.primary].
-  ///
-  /// If this is null and [use2018Style] is false, the time picker defaults to
-  /// [ThemeData.primaryColor] in light theme and [ThemeData.backgroundColor] in
-  /// dark theme.
+  /// If this is null, the time picker defaults to [ColorScheme.primary].
   final Color headerColor;
 
   /// The color of the time picker dial's hand.
   ///
-  /// If this is null and [use2018Style] is true, the time picker defaults to
-  /// [ColorScheme.primary].
-  ///
-  /// If this is null and [use2018Style] is false, the time picker defaults to
-  /// [ThemeData.accentColor].
+  /// If this is null, the time picker defaults to [ColorScheme.primary].
   final Color dialHandColor;
 
   /// The background color of the time picker dial.
   ///
-  /// If this is null and [use2018Style] is true, the time picker defaults to
-  /// [ColorScheme.primary].
-  ///
-  /// If this is null and [use2018Style] is false, the time picker defaults to
-  /// `Colors.grey[200]` in light theme and [ThemeData.backgroundColor] in
-  /// dark theme.
+  /// If this is null, the time picker defaults to [ColorScheme.primary].
   final Color dialBackgroundColor;
 
   /// The background color of the active day period in the time picker.
-  ///
-  /// This is only used when [use2018Style] is true.
   ///
   /// If this is null, the time picker defaults to [ColorScheme.surface].
   final Color activeDayPeriodColor;
 
   /// Used to configure the [TextStyle]s for the hour/minute controls.
   ///
-  /// If this is null and [use2018Style] is true, the time picker defaults to
+  /// If this is null, the time picker defaults to
   /// `Theme.of(context).textTheme.headline3`.
-  ///
-  /// If this is null and [use2018Style] is false, the time picker defaults to:
-  /// * `Theme.of(context).primaryTextTheme.headline2.copyWith(fontSize: 60.0)`
-  ///    in portrait.
-  /// * `Theme.of(context).primaryTextTheme.headline3.copyWith(fontSize: 50.0)`
-  ///    in landscape.
   final TextStyle hourMinuteTextStyle;
 
   /// Used to configure the [TextStyle]s for the day period control.
@@ -108,35 +84,23 @@ class TimePickerThemeData with Diagnosticable {
 
   /// Used to configure the [TextStyle]s for the helper text in the header.
   ///
-  /// This is only used when [use2018Style] is true.
-  ///
   /// If this is null, the time picker defaults to
   /// `Theme.of(context).textTheme.overline`.
   final TextStyle helperTextStyle;
 
   /// The shape of the [Dialog] that the time picker is presented in.
   ///
-  /// If [use2018Style] is true, this also adjusts the shape of the header
-  /// segments that represent hours, minutes, and time of day.
-  ///
-  /// If this is null and [use2018Style] is true, the time picker defaults to
+  /// If this is null, the time picker defaults to
   /// `RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(4.0)))`.
-  ///
-  /// If this is null and [use2018Style] is false, the time picker defaults to
-  /// [Dialog]'s default shape.
   final ShapeBorder shape;
 
   /// The shape of the hour and minute controls that the time picker uses.
-  ///
-  /// This is only used when [use2018Style] is true.
   ///
   /// If this is null, the time picker defaults to
   /// `RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(4.0)))`.
   final ShapeBorder hourMinuteShape;
 
   /// The shape of the day period that the time picker uses.
-  ///
-  /// This is only used when [use2018Style] is true.
   ///
   /// If this is null, the time picker defaults to:
   /// ```
@@ -146,11 +110,6 @@ class TimePickerThemeData with Diagnosticable {
   /// )
   /// ```
   final ShapeBorder dayPeriodShape;
-
-  /// Whether the time picker uses the updated 2018 Material Design style.
-  ///
-  /// If this is null, the time picker defaults to false.
-  final bool use2018Style;
 
   /// Creates a copy of this object with the given fields replaced with the
   /// new values.
@@ -166,7 +125,6 @@ class TimePickerThemeData with Diagnosticable {
     ShapeBorder shape,
     ShapeBorder hourMinuteShape,
     ShapeBorder dayPeriodShape,
-    bool use2018Style,
   }) {
     return TimePickerThemeData(
       backgroundColor: backgroundColor ?? this.backgroundColor,
@@ -180,7 +138,6 @@ class TimePickerThemeData with Diagnosticable {
       shape: shape ?? this.shape,
       hourMinuteShape: hourMinuteShape ?? this.hourMinuteShape,
       dayPeriodShape: dayPeriodShape ?? this.dayPeriodShape,
-      use2018Style: use2018Style ?? this.use2018Style,
     );
   }
 
@@ -203,7 +160,6 @@ class TimePickerThemeData with Diagnosticable {
       shape: ShapeBorder.lerp(a?.shape, b?.shape, t),
       hourMinuteShape: ShapeBorder.lerp(a?.hourMinuteShape, b?.hourMinuteShape, t),
       dayPeriodShape: ShapeBorder.lerp(a?.dayPeriodShape, b?.dayPeriodShape, t),
-      use2018Style: t < 0.5 ? a.use2018Style : b.use2018Style,
     );
   }
 
@@ -221,7 +177,6 @@ class TimePickerThemeData with Diagnosticable {
       shape,
       hourMinuteShape,
       dayPeriodShape,
-      use2018Style,
     );
   }
 
@@ -242,8 +197,7 @@ class TimePickerThemeData with Diagnosticable {
         && other.helperTextStyle == helperTextStyle
         && other.shape == shape
         && other.hourMinuteShape == hourMinuteShape
-        && other.dayPeriodShape == dayPeriodShape
-        && other.use2018Style == use2018Style;
+        && other.dayPeriodShape == dayPeriodShape;
   }
 
   @override
@@ -260,7 +214,6 @@ class TimePickerThemeData with Diagnosticable {
     properties.add(DiagnosticsProperty<ShapeBorder>('shape', shape, defaultValue: null));
     properties.add(DiagnosticsProperty<ShapeBorder>('hourMinuteShape', hourMinuteShape, defaultValue: null));
     properties.add(DiagnosticsProperty<ShapeBorder>('dayPeriodShape', dayPeriodShape, defaultValue: null));
-    properties.add(DiagnosticsProperty<bool>('use2018Style', use2018Style, defaultValue: null));
   }
 }
 

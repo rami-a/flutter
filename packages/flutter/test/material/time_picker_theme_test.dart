@@ -28,7 +28,6 @@ void main() {
     expect(timePickerTheme.shape, null);
     expect(timePickerTheme.hourMinuteShape, null);
     expect(timePickerTheme.dayPeriodShape, null);
-    expect(timePickerTheme.use2018Style, null);
   });
 
   testWidgets('Default TimePickerThemeData debugFillProperties', (WidgetTester tester) async {
@@ -57,7 +56,6 @@ void main() {
       shape: RoundedRectangleBorder(),
       hourMinuteShape: RoundedRectangleBorder(),
       dayPeriodShape: RoundedRectangleBorder(),
-      use2018Style: true,
     ).debugFillProperties(builder);
 
     final List<String> description = builder.properties
@@ -77,51 +75,12 @@ void main() {
       'shape: RoundedRectangleBorder(BorderSide(Color(0xff000000), 0.0, BorderStyle.none), BorderRadius.zero)',
       'hourMinuteShape: RoundedRectangleBorder(BorderSide(Color(0xff000000), 0.0, BorderStyle.none), BorderRadius.zero)',
       'dayPeriodShape: RoundedRectangleBorder(BorderSide(Color(0xff000000), 0.0, BorderStyle.none), BorderRadius.zero)',
-      'use2018Style: true',
     ]);
   });
 
   testWidgets('Passing no TimePickerThemeData uses defaults', (WidgetTester tester) async {
     final ThemeData defaultTheme = ThemeData.fallback();
     await tester.pumpWidget(const _TimePickerLauncher());
-    await tester.tap(find.text('X'));
-    await tester.pumpAndSettle(const Duration(seconds: 1));
-
-    final Material dialogMaterial = _dialogMaterial(tester);
-    expect(dialogMaterial.color, Colors.white);
-    expect(dialogMaterial.shape, const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(2.0))));
-
-    final RenderBox dial = tester.firstRenderObject<RenderBox>(find.byType(CustomPaint));
-    expect(
-      dial,
-      paints
-        ..circle(color: Colors.grey[200]) // Dial background color.
-        ..circle(color: defaultTheme.accentColor), // Dial hand color.
-    );
-
-    final Container headerContainer = _headerContainer(tester);
-    expect(headerContainer.decoration, const BoxDecoration(color: Colors.blue));
-
-    final RenderParagraph hourText = _getTextRenderObjectFromDialog(tester, '7');
-    expect(
-      hourText.text.style,
-      Typography.material2014().englishLike.headline3
-          .merge(Typography.material2014().black.headline3)
-          .copyWith(fontSize: 50, color: Colors.white),
-    );
-
-    final RenderParagraph amText = _getTextRenderObjectFromDialog(tester, 'AM');
-    expect(
-      amText.text.style,
-      Typography.material2014().englishLike.subtitle1
-          .merge(Typography.material2014().black.subtitle1)
-          .copyWith(color: Colors.white),
-    );
-  });
-
-  testWidgets('Passing no TimePickerThemeData uses defaults - 2018', (WidgetTester tester) async {
-    final ThemeData defaultTheme = ThemeData.fallback();
-    await tester.pumpWidget(const _TimePickerLauncher(use2018Style: true));
     await tester.tap(find.text('X'));
     await tester.pumpAndSettle(const Duration(seconds: 1));
 
@@ -179,48 +138,8 @@ void main() {
 
   testWidgets('Time picker uses values from TimePickerThemeData', (WidgetTester tester) async {
     final TimePickerThemeData timePickerTheme = _timePickerTheme();
-    await tester.pumpWidget(_TimePickerLauncher(themeData: ThemeData(timePickerTheme: timePickerTheme)));
-    await tester.tap(find.text('X'));
-    await tester.pumpAndSettle(const Duration(seconds: 1));
-
-    final Material dialogMaterial = _dialogMaterial(tester);
-    expect(dialogMaterial.color, timePickerTheme.backgroundColor);
-    expect(dialogMaterial.shape, timePickerTheme.shape);
-
-    final RenderBox dial = tester.firstRenderObject<RenderBox>(find.byType(CustomPaint));
-    expect(
-      dial,
-      paints
-        ..circle(color: Color(timePickerTheme.dialBackgroundColor.value)) // Dial background color.
-        ..circle(color: Color(timePickerTheme.dialHandColor.value)), // Dial hand color.
-    );
-
-    final Container headerContainer = _headerContainer(tester);
-    expect(headerContainer.decoration, BoxDecoration(color: timePickerTheme.headerColor));
-
-    final RenderParagraph hourText = _getTextRenderObjectFromDialog(tester, '7');
-    expect(
-      hourText.text.style,
-      Typography.material2014().englishLike.bodyText2
-          .merge(Typography.material2014().black.bodyText2)
-          .merge(timePickerTheme.hourMinuteTextStyle)
-          .copyWith(color: Colors.white),
-    );
-
-    final RenderParagraph amText = _getTextRenderObjectFromDialog(tester, 'AM');
-    expect(
-      amText.text.style,
-      Typography.material2014().englishLike.subtitle1
-          .merge(Typography.material2014().black.subtitle1)
-          .merge(timePickerTheme.dayPeriodTextStyle)
-          .copyWith(color: Colors.white),
-    );
-  });
-
-  testWidgets('Time picker uses values from TimePickerThemeData - 2018', (WidgetTester tester) async {
-    final TimePickerThemeData timePickerTheme = _timePickerTheme(use2018Style: true);
     final ThemeData theme = ThemeData(timePickerTheme: timePickerTheme);
-    await tester.pumpWidget(_TimePickerLauncher(themeData: theme, use2018Style: true,));
+    await tester.pumpWidget(_TimePickerLauncher(themeData: theme,));
     await tester.tap(find.text('X'));
     await tester.pumpAndSettle(const Duration(seconds: 1));
 
@@ -274,7 +193,7 @@ void main() {
   });
 }
 
-TimePickerThemeData _timePickerTheme({bool use2018Style = false}) {
+TimePickerThemeData _timePickerTheme() {
   return TimePickerThemeData(
     backgroundColor: Colors.orange,
     headerColor: Colors.green,
@@ -287,15 +206,13 @@ TimePickerThemeData _timePickerTheme({bool use2018Style = false}) {
     shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16.0))),
     hourMinuteShape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16.0))),
     dayPeriodShape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16.0))),
-    use2018Style: use2018Style,
   );
 }
 
 class _TimePickerLauncher extends StatelessWidget {
-  const _TimePickerLauncher({ Key key, this.themeData, this.use2018Style = false }) : super(key: key);
+  const _TimePickerLauncher({ Key key, this.themeData, }) : super(key: key);
 
   final ThemeData themeData;
-  final bool use2018Style;
 
   @override
   Widget build(BuildContext context) {
@@ -311,7 +228,6 @@ class _TimePickerLauncher extends StatelessWidget {
                     await showTimePicker(
                       context: context,
                       initialTime: const TimeOfDay(hour: 7, minute: 0),
-                      use2018Style: use2018Style,
                     );
                   },
                 );
@@ -332,7 +248,7 @@ Material _textMaterial(WidgetTester tester, String text) {
 }
 
 Material _dayPeriodMaterial(WidgetTester tester) {
-  return tester.widget<Material>(find.descendant(of: find.byWidgetPredicate((Widget w) => '${w.runtimeType}' == '_DayPeriodControl2018'), matching: find.byType(Material)).first);
+  return tester.widget<Material>(find.descendant(of: find.byWidgetPredicate((Widget w) => '${w.runtimeType}' == '_DayPeriodControl'), matching: find.byType(Material)).first);
 }
 
 Container _headerContainer(WidgetTester tester) {
