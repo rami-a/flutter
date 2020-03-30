@@ -2787,7 +2787,7 @@ Future<TimeOfDay> showTimePicker({
   assert(initialEntryMode != null);
   assert(debugCheckHasMaterialLocalizations(context));
 
-  final bool resolvedUse2018Style = TimePickerTheme.of(context).use2018Style ?? use2018Style ?? false;
+  final bool resolvedUse2018Style = TimePickerTheme.of(context).use2018Style ?? use2018Style ?? true;
   final Widget dialog = _TimePickerDialog(
     initialTime: initialTime,
     use2018Style: resolvedUse2018Style,
