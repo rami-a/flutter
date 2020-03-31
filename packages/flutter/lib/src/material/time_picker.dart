@@ -1388,22 +1388,36 @@ class __TimePickerInputState extends State<_TimePickerInput> {
   }
 
   void _handleHourSavedSubmitted(String value) {
-    // TODO: Validate the input.
-    // TODO: Handle 24 hours.
-
     int newHour = int.parse(value);
-    if (_selectedTime.period == DayPeriod.pm) {
-      newHour = (newHour + TimeOfDay.hoursPerPeriod) % TimeOfDay.hoursPerDay;
+    if (MediaQuery.of(context).alwaysUse24HourFormat) {
+      if (newHour >= 0 && newHour < 24) {
+        _selectedTime = TimeOfDay(hour: newHour, minute: _selectedTime.minute);
+        widget.onChanged(_selectedTime);
+      } else {
+        // TODO: Set error state.
+      }
+    } else {
+      if (newHour > 0 && newHour < 13) {
+        if ((_selectedTime.period == DayPeriod.pm && newHour != 12)
+            || (_selectedTime.period == DayPeriod.am && newHour == 12)) {
+          newHour = (newHour + TimeOfDay.hoursPerPeriod) % TimeOfDay.hoursPerDay;
+        }
+        _selectedTime = TimeOfDay(hour: newHour, minute: _selectedTime.minute);
+        widget.onChanged(_selectedTime);
+      } else {
+        // TODO: Set error state.
+      }
     }
-
-    _selectedTime = TimeOfDay(hour: newHour, minute: _selectedTime.minute);
-    widget.onChanged(_selectedTime);
   }
 
   void _handleMinuteSavedSubmitted(String value) {
-    // TODO: Validate the input.
-    _selectedTime = TimeOfDay(hour: _selectedTime.hour, minute: int.parse(value));
-    widget.onChanged(_selectedTime);
+    final int newMinute = int.parse(value);
+    if (newMinute >= 0 && newMinute < 60) {
+      _selectedTime = TimeOfDay(hour: _selectedTime.hour, minute: int.parse(value));
+      widget.onChanged(_selectedTime);
+    } else {
+      // TODO: Set error state.
+    }
   }
 
   void _handleDayPeriodChanged(TimeOfDay value) {

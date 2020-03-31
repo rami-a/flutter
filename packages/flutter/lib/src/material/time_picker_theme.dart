@@ -94,6 +94,7 @@ class TimePickerThemeData with Diagnosticable {
   /// `RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(4.0)))`.
   final ShapeBorder shape;
 
+  // TODO: Corresponding shape of text input mode.
   /// The shape of the hour and minute controls that the time picker uses.
   ///
   /// If this is null, the time picker defaults to

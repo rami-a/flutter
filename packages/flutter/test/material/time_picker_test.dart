@@ -70,6 +70,8 @@ void main() {
   });
 }
 
+/// TODO: Input mode tests.
+
 void _tests() {
   testWidgets('tap-select an hour', (WidgetTester tester) async {
     TimeOfDay result;
