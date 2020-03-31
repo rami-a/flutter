@@ -51,9 +51,18 @@ const double _kTimePickerHeightLandscapeCollapsed = 304.0;
 const BorderRadius _kDefaultBorderRadius = BorderRadius.all(Radius.circular(4.0));
 const ShapeBorder _kDefaultShape = RoundedRectangleBorder(borderRadius: _kDefaultBorderRadius);
 
+/// Mode of the time picker dialog.
+///
+/// Either a dial or text input. In [dial] mode, a clock dial is displayed and
+/// the user taps or drags the time they wish to select. In [input] mode,
+/// [TextField]s are displayed and the user types in the time they wish to
+/// select.
 enum TimePickerEntryMode {
-  dial, // Clock dial.
-  input, // Text input.
+  /// Tapping/dragging on a clock dial.
+  dial,
+
+  /// Text input.
+  input,
 }
 
 /// Provides properties for rendering time picker header fragments.
@@ -1380,13 +1389,25 @@ class __TimePickerInputState extends State<_TimePickerInput> {
 
   void _handleHourSavedSubmitted(String value) {
     // TODO: Validate the input.
-    _selectedTime = TimeOfDay(hour: int.parse(value), minute: _selectedTime.minute);
+    // TODO: Handle 24 hours.
+
+    int newHour = int.parse(value);
+    if (_selectedTime.period == DayPeriod.pm) {
+      newHour = (newHour + TimeOfDay.hoursPerPeriod) % TimeOfDay.hoursPerDay;
+    }
+
+    _selectedTime = TimeOfDay(hour: newHour, minute: _selectedTime.minute);
     widget.onChanged(_selectedTime);
   }
 
   void _handleMinuteSavedSubmitted(String value) {
     // TODO: Validate the input.
     _selectedTime = TimeOfDay(hour: _selectedTime.hour, minute: int.parse(value));
+    widget.onChanged(_selectedTime);
+  }
+
+  void _handleDayPeriodChanged(TimeOfDay value) {
+    _selectedTime = value;
     widget.onChanged(_selectedTime);
   }
 
@@ -1432,14 +1453,10 @@ class __TimePickerInputState extends State<_TimePickerInput> {
                 )),
                 if (!use24HourDials) ...<Widget>[
                   const SizedBox(width: 12.0),
-                  // TODO: Why is the onChanged not being respected.
                   _DayPeriodControl(
                     selectedTime: _selectedTime,
                     orientation: Orientation.portrait,
-                    onChanged: (TimeOfDay value) {
-                      _selectedTime = value;
-                      widget.onChanged(value);
-                    },
+                    onChanged: _handleDayPeriodChanged,
                   ),
                 ]
               ],
@@ -1671,6 +1688,7 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
   void _handleTimeChanged(TimeOfDay value) {
     _vibrate();
     setState(() {
+      print('----------- time changed: $value');
       _selectedTime = value;
     });
   }
