@@ -455,7 +455,6 @@ class _DayPeriodControl extends StatelessWidget {
   void _togglePeriod() {
     final int newHour = (selectedTime.hour + TimeOfDay.hoursPerPeriod) % TimeOfDay.hoursPerDay;
     final TimeOfDay newTime = selectedTime.replacing(hour: newHour);
-    print('---------- old time: $selectedTime new time: $newTime');
     onChanged(newTime);
   }
 
@@ -1387,14 +1386,11 @@ class __TimePickerInputState extends State<_TimePickerInput> {
     _selectedTime = widget.initialSelectedTime;
   }
 
-  void _handleHourSavedSubmitted(String value) {
+  int _parseHour(String value) {
     int newHour = int.parse(value);
     if (MediaQuery.of(context).alwaysUse24HourFormat) {
       if (newHour >= 0 && newHour < 24) {
-        _selectedTime = TimeOfDay(hour: newHour, minute: _selectedTime.minute);
-        widget.onChanged(_selectedTime);
-      } else {
-        // TODO: Set error state.
+        return newHour;
       }
     } else {
       if (newHour > 0 && newHour < 13) {
@@ -1402,17 +1398,41 @@ class __TimePickerInputState extends State<_TimePickerInput> {
             || (_selectedTime.period == DayPeriod.am && newHour == 12)) {
           newHour = (newHour + TimeOfDay.hoursPerPeriod) % TimeOfDay.hoursPerDay;
         }
-        _selectedTime = TimeOfDay(hour: newHour, minute: _selectedTime.minute);
-        widget.onChanged(_selectedTime);
-      } else {
-        // TODO: Set error state.
+        return newHour;
       }
+    }
+    return null;
+  }
+
+  int _parseMinute(String value) {
+    final int newMinute = int.parse(value);
+    if (newMinute >= 0 && newMinute < 60) {
+      return newMinute;
+    }
+    return null;
+  }
+
+  void _handleHourSavedSubmitted(String value) {
+    final int newHour = _parseHour(value);
+    if (newHour != null) {
+      _selectedTime = TimeOfDay(hour: newHour, minute: _selectedTime.minute);
+      widget.onChanged(_selectedTime);
+    } else {
+      // TODO: Set error state.
+    }
+  }
+
+  void _handleHourChanged(String value) {
+    final int newHour = _parseHour(value);
+    if (newHour != null && value.length == 2) {
+      // If a valid hour is typed, move focus to the minute TextField.
+      FocusScope.of(context).nextFocus();
     }
   }
 
   void _handleMinuteSavedSubmitted(String value) {
-    final int newMinute = int.parse(value);
-    if (newMinute >= 0 && newMinute < 60) {
+    final int newMinute = _parseMinute(value);
+    if (newMinute != null) {
       _selectedTime = TimeOfDay(hour: _selectedTime.hour, minute: int.parse(value));
       widget.onChanged(_selectedTime);
     } else {
@@ -1434,8 +1454,6 @@ class __TimePickerInputState extends State<_TimePickerInput> {
     final ThemeData theme = Theme.of(context);
     final TextStyle hourMinuteStyle = TimePickerTheme.of(context).hourMinuteTextStyle ?? theme.textTheme.headline3;
 
-    // TODO: Auto advance to minutes after typing hours.
-
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
       child: Column(
@@ -1455,6 +1473,7 @@ class __TimePickerInputState extends State<_TimePickerInput> {
                   selectedTime: _selectedTime,
                   isHour: true,
                   onSavedSubmitted: _handleHourSavedSubmitted,
+                  onChanged: _handleHourChanged,
                 )),
                 _StringFragment(
                   textStyle: hourMinuteStyle.copyWith(color: theme.colorScheme.onBackground),
@@ -1488,11 +1507,13 @@ class _HourMinuteTextField extends StatefulWidget {
     @required this.selectedTime,
     @required this.isHour,
     @required this.onSavedSubmitted,
+    this.onChanged,
   }) : super(key: key);
 
   final TimeOfDay selectedTime;
   final bool isHour;
   final ValueChanged<String> onSavedSubmitted;
+  final ValueChanged<String> onChanged;
 
   @override
   __HourMinuteTextFieldState createState() => __HourMinuteTextFieldState();
@@ -1551,6 +1572,7 @@ class __HourMinuteTextFieldState extends State<_HourMinuteTextField> {
         onEditingComplete: () => widget.onSavedSubmitted(controller.text),
         onSaved: widget.onSavedSubmitted,
         onFieldSubmitted: widget.onSavedSubmitted,
+        onChanged: widget.onChanged,
       ),
     );
   }
@@ -1702,7 +1724,6 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
   void _handleTimeChanged(TimeOfDay value) {
     _vibrate();
     setState(() {
-      print('----------- time changed: $value');
       _selectedTime = value;
     });
   }
@@ -1718,6 +1739,13 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
   }
 
   void _handleOk() {
+    if (_entryMode == TimePickerEntryMode.input) {
+      final FormState form = _formKey.currentState;
+      if (!form.validate()) {
+        return;
+      }
+      form.save();
+    }
     Navigator.pop(context, _selectedTime);
   }
 
