@@ -44,7 +44,7 @@ class TimePickerThemeData with Diagnosticable {
 
   /// The background color of a time picker.
   ///
-  /// If this is null, the time picker defaults to [Dialog]'s default.
+  /// If this is null, the time picker defaults to [ColorScheme.background].
   final Color backgroundColor;
 
   /// The color used in the header of a time picker.

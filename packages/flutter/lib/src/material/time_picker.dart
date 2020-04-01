@@ -1538,6 +1538,15 @@ class _HourMinuteTextField extends StatefulWidget {
 
 class __HourMinuteTextFieldState extends State<_HourMinuteTextField> {
   TextEditingController controller;
+  FocusNode focusNode;
+
+  @override
+  void initState() {
+    super.initState();
+    focusNode = FocusNode()..addListener(() {
+      setState(() { }); // Rebuild.
+    });
+  }
 
   @override
   void didChangeDependencies() {
@@ -1568,6 +1577,7 @@ class __HourMinuteTextFieldState extends State<_HourMinuteTextField> {
         SizedBox(
           height: _kTimePickerHeaderControlHeight,
           child: TextFormField(
+            focusNode: focusNode,
             textAlign: TextAlign.center,
             keyboardType: TextInputType.number,
             style: style.copyWith(color: colorScheme.onBackground),
@@ -1575,8 +1585,7 @@ class __HourMinuteTextFieldState extends State<_HourMinuteTextField> {
             decoration: InputDecoration(
               contentPadding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 10.0),
               filled: true,
-              // TODO: fillColor should change depending on focused or not.
-              fillColor: colorScheme.onBackground.withOpacity(0.06),
+              fillColor: focusNode.hasFocus ? colorScheme.background : colorScheme.onBackground.withOpacity(0.06),
               enabledBorder: OutlineInputBorder(
                 borderSide: BorderSide(color: Colors.transparent),
               ),
@@ -1933,7 +1942,7 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
     // TODO: Animate entry mode change like date picker.
     return Dialog(
       shape: shape,
-      backgroundColor: TimePickerTheme.of(context).backgroundColor,
+      backgroundColor: TimePickerTheme.of(context).backgroundColor ?? theme.colorScheme.background,
       insetPadding: _entryMode == TimePickerEntryMode.input
           ? EdgeInsets.zero
           : const EdgeInsets.symmetric(horizontal: 40.0, vertical: 24.0),

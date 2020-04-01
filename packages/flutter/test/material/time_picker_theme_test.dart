@@ -85,7 +85,7 @@ void main() {
     await tester.pumpAndSettle(const Duration(seconds: 1));
 
     final Material dialogMaterial = _dialogMaterial(tester);
-    expect(dialogMaterial.color, Colors.white);
+    expect(dialogMaterial.color, defaultTheme.colorScheme.background);
     expect(dialogMaterial.shape, const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(4.0))));
 
     final RenderBox dial = tester.firstRenderObject<RenderBox>(find.byType(CustomPaint));
