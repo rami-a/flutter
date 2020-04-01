@@ -1464,36 +1464,53 @@ class __TimePickerInputState extends State<_TimePickerInput> {
             style: TimePickerTheme.of(context).helperTextStyle ?? theme.textTheme.overline,
           ),
           const SizedBox(height: 16.0),
-          Container(
-            height: kMinInteractiveDimension * 2,
-            child: Row(
-              children: <Widget>[
-                // TODO: Hour/minute/error labels.
-                Expanded(child: _HourMinuteTextField(
-                  selectedTime: _selectedTime,
-                  isHour: true,
-                  onSavedSubmitted: _handleHourSavedSubmitted,
-                  onChanged: _handleHourChanged,
-                )),
-                _StringFragment(
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              // TODO: Error label.
+              Expanded(child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  const SizedBox(height: 8.0),
+                  _HourMinuteTextField(
+                    selectedTime: _selectedTime,
+                    isHour: true,
+                    onSavedSubmitted: _handleHourSavedSubmitted,
+                    onChanged: _handleHourChanged,
+                  ),
+                  const SizedBox(height: 8.0),
+                  Text('Hour', style: theme.textTheme.caption), // TODO: Localize.
+                ],
+              )),
+              Padding(
+                padding: const EdgeInsets.only(top: 16.0),
+                child: _StringFragment(
                   textStyle: hourMinuteStyle.copyWith(color: theme.colorScheme.onBackground),
                   timeOfDayFormat: timeOfDayFormat,
                 ),
-                Expanded(child: _HourMinuteTextField(
-                  selectedTime: _selectedTime,
-                  isHour: false,
-                  onSavedSubmitted: _handleMinuteSavedSubmitted,
-                )),
-                if (!use24HourDials) ...<Widget>[
-                  const SizedBox(width: 12.0),
-                  _DayPeriodControl(
+              ),
+              Expanded(child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  const SizedBox(height: 8.0),
+                  _HourMinuteTextField(
                     selectedTime: _selectedTime,
-                    orientation: Orientation.portrait,
-                    onChanged: _handleDayPeriodChanged,
+                    isHour: false,
+                    onSavedSubmitted: _handleMinuteSavedSubmitted,
                   ),
-                ]
-              ],
-            ),
+                  const SizedBox(height: 8.0),
+                  Text('Minute', style: theme.textTheme.caption), // TODO: Localize.
+                ],
+              )),
+              if (!use24HourDials) ...<Widget>[
+                const SizedBox(width: 12.0),
+                _DayPeriodControl(
+                  selectedTime: _selectedTime,
+                  orientation: Orientation.portrait,
+                  onChanged: _handleDayPeriodChanged,
+                ),
+              ]
+            ],
           ),
         ],
       ),
@@ -1545,35 +1562,40 @@ class __HourMinuteTextFieldState extends State<_HourMinuteTextField> {
       ?? theme.textTheme.headline3;
     // TODO: Theme support for border shape.
     final String value = _formattedValue();
-    return SizedBox(
-      height: _kTimePickerHeaderControlHeight,
-      child: TextFormField(
-        textAlign: TextAlign.center,
-        keyboardType: TextInputType.number,
-        style: style.copyWith(color: colorScheme.onBackground),
-        controller: controller,
-        decoration: InputDecoration(
-          contentPadding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 10.0),
-          filled: true,
-          // TODO: fillColor should change depending on focused or not.
-          fillColor: colorScheme.onBackground.withOpacity(0.06),
-          enabledBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.transparent),
+
+    return Column(
+      children: <Widget>[
+        SizedBox(
+          height: _kTimePickerHeaderControlHeight,
+          child: TextFormField(
+            textAlign: TextAlign.center,
+            keyboardType: TextInputType.number,
+            style: style.copyWith(color: colorScheme.onBackground),
+            controller: controller,
+            decoration: InputDecoration(
+              contentPadding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 10.0),
+              filled: true,
+              // TODO: fillColor should change depending on focused or not.
+              fillColor: colorScheme.onBackground.withOpacity(0.06),
+              enabledBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: Colors.transparent),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: colorScheme.primary, width: 2),
+              ),
+              focusedErrorBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: colorScheme.error, width: 2),
+              ),
+              hintText: value,
+              hintStyle: style.copyWith(color: colorScheme.onBackground.withOpacity(0.36))
+            ),
+            onEditingComplete: () => widget.onSavedSubmitted(controller.text),
+            onSaved: widget.onSavedSubmitted,
+            onFieldSubmitted: widget.onSavedSubmitted,
+            onChanged: widget.onChanged,
           ),
-          focusedBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: colorScheme.primary, width: 2),
-          ),
-          focusedErrorBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: colorScheme.error, width: 2),
-          ),
-          hintText: value,
-          hintStyle: style.copyWith(color: colorScheme.onBackground.withOpacity(0.36))
         ),
-        onEditingComplete: () => widget.onSavedSubmitted(controller.text),
-        onSaved: widget.onSavedSubmitted,
-        onFieldSubmitted: widget.onSavedSubmitted,
-        onChanged: widget.onChanged,
-      ),
+      ],
     );
   }
 }
