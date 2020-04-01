@@ -1445,6 +1445,22 @@ class __TimePickerInputState extends State<_TimePickerInput> {
     widget.onChanged(_selectedTime);
   }
 
+  String _validateHour(String value) {
+    final int newHour = _parseHour(value);
+    if (newHour == null) {
+      return 'Hour error';
+    }
+    return null;
+  }
+
+  String _validateMinute(String value) {
+    final int newMinute = _parseMinute(value);
+    if (newMinute == null) {
+      return 'Minute error';
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     assert(debugCheckHasMediaQuery(context));
@@ -1475,6 +1491,7 @@ class __TimePickerInputState extends State<_TimePickerInput> {
                   _HourMinuteTextField(
                     selectedTime: _selectedTime,
                     isHour: true,
+                    validator: _validateHour,
                     onSavedSubmitted: _handleHourSavedSubmitted,
                     onChanged: _handleHourChanged,
                   ),
@@ -1496,6 +1513,7 @@ class __TimePickerInputState extends State<_TimePickerInput> {
                   _HourMinuteTextField(
                     selectedTime: _selectedTime,
                     isHour: false,
+                    validator: _validateMinute,
                     onSavedSubmitted: _handleMinuteSavedSubmitted,
                   ),
                   const SizedBox(height: 8.0),
@@ -1523,12 +1541,14 @@ class _HourMinuteTextField extends StatefulWidget {
     Key key,
     @required this.selectedTime,
     @required this.isHour,
+    @required this.validator,
     @required this.onSavedSubmitted,
     this.onChanged,
   }) : super(key: key);
 
   final TimeOfDay selectedTime;
   final bool isHour;
+  final FormFieldValidator<String> validator;
   final ValueChanged<String> onSavedSubmitted;
   final ValueChanged<String> onChanged;
 
@@ -1596,8 +1616,9 @@ class __HourMinuteTextFieldState extends State<_HourMinuteTextField> {
                 borderSide: BorderSide(color: colorScheme.error, width: 2),
               ),
               hintText: value,
-              hintStyle: style.copyWith(color: colorScheme.onBackground.withOpacity(0.36))
+              hintStyle: style.copyWith(color: colorScheme.onBackground.withOpacity(0.36)),
             ),
+            validator: widget.validator,
             onEditingComplete: () => widget.onSavedSubmitted(controller.text),
             onSaved: widget.onSavedSubmitted,
             onFieldSubmitted: widget.onSavedSubmitted,
