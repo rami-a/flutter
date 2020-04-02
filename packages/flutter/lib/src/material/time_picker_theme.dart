@@ -3,9 +3,9 @@
 // found in the LICENSE file.
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
-import 'text_theme.dart';
 import 'theme.dart';
 
 /// Defines the visual properties of the widget displayed with [showTimePicker].
@@ -40,6 +40,7 @@ class TimePickerThemeData with Diagnosticable {
     this.shape,
     this.hourMinuteShape,
     this.dayPeriodShape,
+    this.inputDecorationTheme,
   });
 
   /// The background color of a time picker.
@@ -94,7 +95,6 @@ class TimePickerThemeData with Diagnosticable {
   /// `RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(4.0)))`.
   final ShapeBorder shape;
 
-  // TODO: Corresponding shape of text input mode.
   /// The shape of the hour and minute controls that the time picker uses.
   ///
   /// If this is null, the time picker defaults to
@@ -112,6 +112,11 @@ class TimePickerThemeData with Diagnosticable {
   /// ```
   final ShapeBorder dayPeriodShape;
 
+  /// The input decoration theme for the [TextField]s in the time picker.
+  /// 
+  /// If this is null, the time picker provides its own defaults.
+  final InputDecorationTheme inputDecorationTheme;
+
   /// Creates a copy of this object with the given fields replaced with the
   /// new values.
   TimePickerThemeData copyWith({
@@ -126,6 +131,7 @@ class TimePickerThemeData with Diagnosticable {
     ShapeBorder shape,
     ShapeBorder hourMinuteShape,
     ShapeBorder dayPeriodShape,
+    InputDecorationTheme inputDecorationTheme,
   }) {
     return TimePickerThemeData(
       backgroundColor: backgroundColor ?? this.backgroundColor,
@@ -139,6 +145,7 @@ class TimePickerThemeData with Diagnosticable {
       shape: shape ?? this.shape,
       hourMinuteShape: hourMinuteShape ?? this.hourMinuteShape,
       dayPeriodShape: dayPeriodShape ?? this.dayPeriodShape,
+      inputDecorationTheme: inputDecorationTheme ?? this.inputDecorationTheme,
     );
   }
 
@@ -161,6 +168,7 @@ class TimePickerThemeData with Diagnosticable {
       shape: ShapeBorder.lerp(a?.shape, b?.shape, t),
       hourMinuteShape: ShapeBorder.lerp(a?.hourMinuteShape, b?.hourMinuteShape, t),
       dayPeriodShape: ShapeBorder.lerp(a?.dayPeriodShape, b?.dayPeriodShape, t),
+      inputDecorationTheme: t < 0.5 ? a.inputDecorationTheme : b.inputDecorationTheme,
     );
   }
 
@@ -178,6 +186,7 @@ class TimePickerThemeData with Diagnosticable {
       shape,
       hourMinuteShape,
       dayPeriodShape,
+      inputDecorationTheme,
     );
   }
 
@@ -198,7 +207,8 @@ class TimePickerThemeData with Diagnosticable {
         && other.helperTextStyle == helperTextStyle
         && other.shape == shape
         && other.hourMinuteShape == hourMinuteShape
-        && other.dayPeriodShape == dayPeriodShape;
+        && other.dayPeriodShape == dayPeriodShape
+        && other.inputDecorationTheme == inputDecorationTheme;
   }
 
   @override
@@ -215,6 +225,7 @@ class TimePickerThemeData with Diagnosticable {
     properties.add(DiagnosticsProperty<ShapeBorder>('shape', shape, defaultValue: null));
     properties.add(DiagnosticsProperty<ShapeBorder>('hourMinuteShape', hourMinuteShape, defaultValue: null));
     properties.add(DiagnosticsProperty<ShapeBorder>('dayPeriodShape', dayPeriodShape, defaultValue: null));
+    properties.add(DiagnosticsProperty<InputDecorationTheme>('inputDecorationTheme', inputDecorationTheme, defaultValue: null));
   }
 }
 

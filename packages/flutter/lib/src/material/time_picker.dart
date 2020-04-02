@@ -1592,6 +1592,31 @@ class __HourMinuteTextFieldState extends State<_HourMinuteTextField> {
     // TODO: Theme support for border shape.
     final String value = _formattedValue();
 
+    final InputDecorationTheme inputDecorationTheme = TimePickerTheme.of(context).inputDecorationTheme;
+    InputDecoration inputDecoration;
+    if (inputDecorationTheme == null) {
+      inputDecoration = InputDecoration(
+        contentPadding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 10.0),
+        filled: true,
+        fillColor: focusNode.hasFocus ? colorScheme.background : colorScheme.onBackground.withOpacity(0.06),
+        enabledBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: Colors.transparent),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: colorScheme.primary, width: 2),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: colorScheme.error, width: 2),
+        ),
+        hintStyle: style.copyWith(color: colorScheme.onBackground.withOpacity(0.36)),
+      );
+    } else {
+      inputDecoration = const InputDecoration().applyDefaults(inputDecorationTheme);
+    }
+    inputDecoration = inputDecoration.copyWith(
+      hintText: value,
+    );
+
     return Column(
       children: <Widget>[
         SizedBox(
@@ -1602,22 +1627,7 @@ class __HourMinuteTextFieldState extends State<_HourMinuteTextField> {
             keyboardType: TextInputType.number,
             style: style.copyWith(color: colorScheme.onBackground),
             controller: controller,
-            decoration: InputDecoration(
-              contentPadding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 10.0),
-              filled: true,
-              fillColor: focusNode.hasFocus ? colorScheme.background : colorScheme.onBackground.withOpacity(0.06),
-              enabledBorder: OutlineInputBorder(
-                borderSide: BorderSide(color: Colors.transparent),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderSide: BorderSide(color: colorScheme.primary, width: 2),
-              ),
-              focusedErrorBorder: OutlineInputBorder(
-                borderSide: BorderSide(color: colorScheme.error, width: 2),
-              ),
-              hintText: value,
-              hintStyle: style.copyWith(color: colorScheme.onBackground.withOpacity(0.36)),
-            ),
+            decoration: inputDecoration,
             validator: widget.validator,
             onEditingComplete: () => widget.onSavedSubmitted(controller.text),
             onSaved: widget.onSavedSubmitted,

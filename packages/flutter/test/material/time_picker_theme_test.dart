@@ -28,6 +28,7 @@ void main() {
     expect(timePickerTheme.shape, null);
     expect(timePickerTheme.hourMinuteShape, null);
     expect(timePickerTheme.dayPeriodShape, null);
+    expect(timePickerTheme.inputDecorationTheme, null);
   });
 
   testWidgets('Default TimePickerThemeData debugFillProperties', (WidgetTester tester) async {
@@ -136,6 +137,8 @@ void main() {
     );
   });
 
+  // TODO: Test for input picker.
+  
   testWidgets('Time picker uses values from TimePickerThemeData', (WidgetTester tester) async {
     final TimePickerThemeData timePickerTheme = _timePickerTheme();
     final ThemeData theme = ThemeData(timePickerTheme: timePickerTheme);
