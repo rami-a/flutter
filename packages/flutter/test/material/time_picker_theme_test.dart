@@ -138,7 +138,7 @@ void main() {
   });
 
   // TODO: Test for input picker.
-  
+
   testWidgets('Time picker uses values from TimePickerThemeData', (WidgetTester tester) async {
     final TimePickerThemeData timePickerTheme = _timePickerTheme();
     final ThemeData theme = ThemeData(timePickerTheme: timePickerTheme);

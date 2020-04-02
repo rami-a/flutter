@@ -1387,6 +1387,10 @@ class __TimePickerInputState extends State<_TimePickerInput> {
   }
 
   int _parseHour(String value) {
+    if (value == null || value.isEmpty) {
+      return null;
+    }
+
     int newHour = int.parse(value);
     if (MediaQuery.of(context).alwaysUse24HourFormat) {
       if (newHour >= 0 && newHour < 24) {
@@ -1405,6 +1409,10 @@ class __TimePickerInputState extends State<_TimePickerInput> {
   }
 
   int _parseMinute(String value) {
+    if (value == null || value.isEmpty) {
+      return null;
+    }
+
     final int newMinute = int.parse(value);
     if (newMinute >= 0 && newMinute < 60) {
       return newMinute;
@@ -1614,7 +1622,7 @@ class __HourMinuteTextFieldState extends State<_HourMinuteTextField> {
       inputDecoration = const InputDecoration().applyDefaults(inputDecorationTheme);
     }
     inputDecoration = inputDecoration.copyWith(
-      hintText: value,
+      hintText: focusNode.hasFocus ? null : value,
     );
 
     return Column(
