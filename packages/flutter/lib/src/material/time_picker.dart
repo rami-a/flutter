@@ -1379,6 +1379,8 @@ class _TimePickerInput extends StatefulWidget {
 
 class __TimePickerInputState extends State<_TimePickerInput> {
   TimeOfDay _selectedTime;
+  bool hourHasError = false;
+  bool minuteHasError = false;
 
   @override
   void initState() {
@@ -1455,6 +1457,9 @@ class __TimePickerInputState extends State<_TimePickerInput> {
 
   String _validateHour(String value) {
     final int newHour = _parseHour(value);
+    setState(() {
+      hourHasError = newHour == null;
+    });
     if (newHour == null) {
       return 'Hour error';
     }
@@ -1463,6 +1468,9 @@ class __TimePickerInputState extends State<_TimePickerInput> {
 
   String _validateMinute(String value) {
     final int newMinute = _parseMinute(value);
+    setState(() {
+      minuteHasError = newMinute == null;
+    });
     if (newMinute == null) {
       return 'Minute error';
     }
@@ -1491,7 +1499,6 @@ class __TimePickerInputState extends State<_TimePickerInput> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              // TODO: Error label.
               Expanded(child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
@@ -1504,7 +1511,8 @@ class __TimePickerInputState extends State<_TimePickerInput> {
                     onChanged: _handleHourChanged,
                   ),
                   const SizedBox(height: 8.0),
-                  Text('Hour', style: theme.textTheme.caption), // TODO: Localize.
+                  if (!hourHasError && !minuteHasError)
+                    Text('Hour', style: theme.textTheme.caption), // TODO: Localize.
                 ],
               )),
               Padding(
@@ -1525,7 +1533,8 @@ class __TimePickerInputState extends State<_TimePickerInput> {
                     onSavedSubmitted: _handleMinuteSavedSubmitted,
                   ),
                   const SizedBox(height: 8.0),
-                  Text('Minute', style: theme.textTheme.caption), // TODO: Localize.
+                  if (!hourHasError && !minuteHasError)
+                    Text('Minute', style: theme.textTheme.caption), // TODO: Localize.
                 ],
               )),
               if (!use24HourDials) ...<Widget>[
@@ -1538,6 +1547,11 @@ class __TimePickerInputState extends State<_TimePickerInput> {
               ]
             ],
           ),
+          if (hourHasError || minuteHasError)
+            Text(
+              'Enter a valid time', // TODO: Localize.
+              style: theme.textTheme.bodyText2.copyWith(color: theme.colorScheme.error),
+            ),
         ],
       ),
     );
@@ -1597,7 +1611,6 @@ class __HourMinuteTextFieldState extends State<_HourMinuteTextField> {
     final ColorScheme colorScheme = theme.colorScheme;
     final TextStyle style = TimePickerTheme.of(context).hourMinuteTextStyle
       ?? theme.textTheme.headline3;
-    // TODO: Theme support for border shape.
     final String value = _formattedValue();
 
     final InputDecorationTheme inputDecorationTheme = TimePickerTheme.of(context).inputDecorationTheme;
@@ -1609,6 +1622,9 @@ class __HourMinuteTextFieldState extends State<_HourMinuteTextField> {
         fillColor: focusNode.hasFocus ? colorScheme.background : colorScheme.onBackground.withOpacity(0.06),
         enabledBorder: OutlineInputBorder(
           borderSide: BorderSide(color: Colors.transparent),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: colorScheme.error, width: 2),
         ),
         focusedBorder: OutlineInputBorder(
           borderSide: BorderSide(color: colorScheme.primary, width: 2),
@@ -1622,6 +1638,8 @@ class __HourMinuteTextFieldState extends State<_HourMinuteTextField> {
       inputDecoration = const InputDecoration().applyDefaults(inputDecorationTheme);
     }
     inputDecoration = inputDecoration.copyWith(
+      // Remove the hint text when focused because the centered cursor appears
+      // odd above the hint text.
       hintText: focusNode.hasFocus ? null : value,
     );
 
@@ -1629,7 +1647,7 @@ class __HourMinuteTextFieldState extends State<_HourMinuteTextField> {
       children: <Widget>[
         SizedBox(
           height: _kTimePickerHeaderControlHeight,
-          child: TextFormField(
+          child: TextFormField( // TODO: Create new form field to avoid error label.
             focusNode: focusNode,
             textAlign: TextAlign.center,
             keyboardType: TextInputType.number,
