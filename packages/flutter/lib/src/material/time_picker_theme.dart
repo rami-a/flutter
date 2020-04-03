@@ -36,7 +36,7 @@ class TimePickerThemeData with Diagnosticable {
     this.activeDayPeriodColor,
     this.hourMinuteTextStyle,
     this.dayPeriodTextStyle,
-    this.helperTextStyle,
+    this.helpTextStyle,
     this.shape,
     this.hourMinuteShape,
     this.dayPeriodShape,
@@ -87,7 +87,7 @@ class TimePickerThemeData with Diagnosticable {
   ///
   /// If this is null, the time picker defaults to
   /// `Theme.of(context).textTheme.overline`.
-  final TextStyle helperTextStyle;
+  final TextStyle helpTextStyle;
 
   /// The shape of the [Dialog] that the time picker is presented in.
   ///
@@ -127,7 +127,7 @@ class TimePickerThemeData with Diagnosticable {
     Color activeDayPeriodColor,
     TextStyle hourMinuteTextStyle,
     TextStyle dayPeriodTextStyle,
-    TextStyle helperTextStyle,
+    TextStyle helpTextStyle,
     ShapeBorder shape,
     ShapeBorder hourMinuteShape,
     ShapeBorder dayPeriodShape,
@@ -141,7 +141,7 @@ class TimePickerThemeData with Diagnosticable {
       activeDayPeriodColor: activeDayPeriodColor ?? this.activeDayPeriodColor,
       hourMinuteTextStyle: hourMinuteTextStyle ?? this.hourMinuteTextStyle,
       dayPeriodTextStyle: dayPeriodTextStyle ?? this.dayPeriodTextStyle,
-      helperTextStyle: helperTextStyle ?? this.helperTextStyle,
+      helpTextStyle: helpTextStyle ?? this.helpTextStyle,
       shape: shape ?? this.shape,
       hourMinuteShape: hourMinuteShape ?? this.hourMinuteShape,
       dayPeriodShape: dayPeriodShape ?? this.dayPeriodShape,
@@ -164,7 +164,7 @@ class TimePickerThemeData with Diagnosticable {
       activeDayPeriodColor: Color.lerp(a?.activeDayPeriodColor, b?.activeDayPeriodColor, t),
       hourMinuteTextStyle: TextStyle.lerp(a?.hourMinuteTextStyle, b?.hourMinuteTextStyle, t),
       dayPeriodTextStyle: TextStyle.lerp(a?.dayPeriodTextStyle, b?.dayPeriodTextStyle, t),
-      helperTextStyle: TextStyle.lerp(a?.helperTextStyle, b?.helperTextStyle, t),
+      helpTextStyle: TextStyle.lerp(a?.helpTextStyle, b?.helpTextStyle, t),
       shape: ShapeBorder.lerp(a?.shape, b?.shape, t),
       hourMinuteShape: ShapeBorder.lerp(a?.hourMinuteShape, b?.hourMinuteShape, t),
       dayPeriodShape: ShapeBorder.lerp(a?.dayPeriodShape, b?.dayPeriodShape, t),
@@ -182,7 +182,7 @@ class TimePickerThemeData with Diagnosticable {
       activeDayPeriodColor,
       hourMinuteTextStyle,
       dayPeriodTextStyle,
-      helperTextStyle,
+      helpTextStyle,
       shape,
       hourMinuteShape,
       dayPeriodShape,
@@ -204,7 +204,7 @@ class TimePickerThemeData with Diagnosticable {
         && other.activeDayPeriodColor == activeDayPeriodColor
         && other.hourMinuteTextStyle == hourMinuteTextStyle
         && other.dayPeriodTextStyle == dayPeriodTextStyle
-        && other.helperTextStyle == helperTextStyle
+        && other.helpTextStyle == helpTextStyle
         && other.shape == shape
         && other.hourMinuteShape == hourMinuteShape
         && other.dayPeriodShape == dayPeriodShape
@@ -221,7 +221,7 @@ class TimePickerThemeData with Diagnosticable {
     properties.add(ColorProperty('activeDayPeriodColor', activeDayPeriodColor, defaultValue: null));
     properties.add(DiagnosticsProperty<TextStyle>('hourMinuteTextStyle', hourMinuteTextStyle, defaultValue: null));
     properties.add(DiagnosticsProperty<TextStyle>('dayPeriodTextStyle', dayPeriodTextStyle, defaultValue: null));
-    properties.add(DiagnosticsProperty<TextStyle>('helperTextStyle', helperTextStyle, defaultValue: null));
+    properties.add(DiagnosticsProperty<TextStyle>('helpTextStyle', helpTextStyle, defaultValue: null));
     properties.add(DiagnosticsProperty<ShapeBorder>('shape', shape, defaultValue: null));
     properties.add(DiagnosticsProperty<ShapeBorder>('hourMinuteShape', hourMinuteShape, defaultValue: null));
     properties.add(DiagnosticsProperty<ShapeBorder>('dayPeriodShape', dayPeriodShape, defaultValue: null));

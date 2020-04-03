@@ -116,7 +116,7 @@ class _TimePickerHeader extends StatelessWidget {
     @required this.onModeChanged,
     @required this.onChanged,
     @required this.use24HourDials,
-    @required this.helperText,
+    @required this.helpText,
   }) : assert(selectedTime != null),
         assert(mode != null),
         assert(orientation != null),
@@ -128,7 +128,7 @@ class _TimePickerHeader extends StatelessWidget {
   final ValueChanged<_TimePickerMode> onModeChanged;
   final ValueChanged<TimeOfDay> onChanged;
   final bool use24HourDials;
-  final String helperText;
+  final String helpText;
 
   void _handleChangeMode(_TimePickerMode value) {
     if (value != mode)
@@ -230,8 +230,8 @@ class _TimePickerHeader extends StatelessWidget {
         children: <Widget>[
           const SizedBox(height: 16.0),
           Text(
-            helperText ?? 'SELECT TIME', // TODO: Localize.
-            style: TimePickerTheme.of(context).helperTextStyle ?? themeData.textTheme.overline,
+            helpText ?? 'SELECT TIME', // TODO: Localize.
+            style: TimePickerTheme.of(context).helpTextStyle ?? themeData.textTheme.overline,
           ),
           controls,
         ],
@@ -1360,7 +1360,7 @@ class _TimePickerInput extends StatefulWidget {
   const _TimePickerInput({
     Key key,
     @required this.initialSelectedTime,
-    @required this.helperText,
+    @required this.helpText,
     @required this.onChanged,
   }) : assert(initialSelectedTime != null),
         super(key: key);
@@ -1369,7 +1369,7 @@ class _TimePickerInput extends StatefulWidget {
   final TimeOfDay initialSelectedTime;
 
   /// Optionally provide your own help text to the time picker.
-  final String helperText;
+  final String helpText;
 
   final ValueChanged<TimeOfDay> onChanged;
 
@@ -1492,8 +1492,8 @@ class __TimePickerInputState extends State<_TimePickerInput> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Text(
-            widget.helperText ?? 'ENTER TIME', // TODO: Localize.
-            style: TimePickerTheme.of(context).helperTextStyle ?? theme.textTheme.overline,
+            widget.helpText ?? 'ENTER TIME', // TODO: Localize.
+            style: TimePickerTheme.of(context).helpTextStyle ?? theme.textTheme.overline,
           ),
           const SizedBox(height: 16.0),
           Row(
@@ -1681,7 +1681,7 @@ class _TimePickerDialog extends StatefulWidget {
     @required this.initialTime,
     @required this.cancelText,
     @required this.confirmText,
-    @required this.helperText,
+    @required this.helpText,
     this.initialEntryMode = TimePickerEntryMode.dial,
   }) : assert(initialTime != null),
        super(key: key);
@@ -1703,7 +1703,7 @@ class _TimePickerDialog extends StatefulWidget {
   final String confirmText;
 
   /// Optionally provide your own help text to the header of the time picker.
-  final String helperText;
+  final String helpText;
 
   @override
   _TimePickerDialogState createState() => _TimePickerDialogState();
@@ -1911,7 +1911,7 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
                 onModeChanged: _handleModeChanged,
                 onChanged: _handleTimeChanged,
                 use24HourDials: use24HourDials,
-                helperText: widget.helperText,
+                helpText: widget.helpText,
               );
 
               final Widget pickerAndActions = Container(
@@ -1989,7 +1989,7 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
                 children: <Widget>[
                   _TimePickerInput(
                     initialSelectedTime: _selectedTime,
-                    helperText: widget.helperText,
+                    helpText: widget.helpText,
                     onChanged: _handleTimeChanged,
                   ),
                   actions,
@@ -2043,7 +2043,7 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
 /// to add inherited widgets like [Localizations.override],
 /// [Directionality], or [MediaQuery].
 ///
-/// The [helperText] parameter can be used to
+/// The [helpText] parameter can be used to
 /// customize the help text in the header of the picker.
 ///
 /// The [entryMode] parameter can be used to
@@ -2099,7 +2099,7 @@ Future<TimeOfDay> showTimePicker({
   TimePickerEntryMode initialEntryMode = TimePickerEntryMode.dial,
   String cancelText,
   String confirmText,
-  String helperText,
+  String helpText,
   RouteSettings routeSettings,
 }) async {
   assert(context != null);
@@ -2113,7 +2113,7 @@ Future<TimeOfDay> showTimePicker({
     initialEntryMode: initialEntryMode,
     cancelText: cancelText,
     confirmText: confirmText,
-    helperText: helperText,
+    helpText: helpText,
   );
   return await showDialog<TimeOfDay>(
     context: context,

@@ -65,12 +65,14 @@ Future<void> finishPicker(WidgetTester tester) async {
 }
 
 void main() {
-  group('Time picker', () {
+  group('Time picker - Dial', () {
     _tests();
   });
-}
 
-/// TODO: Input mode tests.
+  group('Time picker - Input', () {
+    _testsInput();
+  });
+}
 
 void _tests() {
   testWidgets('tap-select an hour', (WidgetTester tester) async {
@@ -286,49 +288,6 @@ void _tests() {
   const List<String> labels12To11 = <String>['12', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11'];
   const List<String> labels12To11TwoDigit = <String>['12', '01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11'];
   const List<String> labels00To23 = <String>['00', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23'];
-
-  Future<void> mediaQueryBoilerplate(
-    WidgetTester tester,
-    bool alwaysUse24HourFormat, {
-    TimeOfDay initialTime = const TimeOfDay(hour: 7, minute: 0),
-    double textScaleFactor = 1.0,
-  }) async {
-    await tester.pumpWidget(
-      Localizations(
-        locale: const Locale('en', 'US'),
-        delegates: const <LocalizationsDelegate<dynamic>>[
-          DefaultMaterialLocalizations.delegate,
-          DefaultWidgetsLocalizations.delegate,
-        ],
-        child: MediaQuery(
-          data: MediaQueryData(
-            alwaysUse24HourFormat: alwaysUse24HourFormat,
-            textScaleFactor: textScaleFactor,
-          ),
-          child: Material(
-            child: Directionality(
-              textDirection: TextDirection.ltr,
-              child: Navigator(
-                onGenerateRoute: (RouteSettings settings) {
-                  return MaterialPageRoute<void>(builder: (BuildContext context) {
-                    return FlatButton(
-                      onPressed: () {
-                        showTimePicker(context: context, initialTime: initialTime,);
-                      },
-                      child: const Text('X'),
-                    );
-                  });
-                },
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-
-    await tester.tap(find.text('X'));
-    await tester.pumpAndSettle();
-  }
 
   testWidgets('respects MediaQueryData.alwaysUse24HourFormat == false', (WidgetTester tester) async {
     await mediaQueryBoilerplate(tester, false);
@@ -739,7 +698,7 @@ void _tests() {
                       initialTime: const TimeOfDay(hour: 7, minute: 0),
                       cancelText: cancelText,
                       confirmText: confirmText,
-                      helperText: helperText,
+                      helpText: helperText,
                     );
                   },
                 );
@@ -803,6 +762,39 @@ void _tests() {
 
     expect(tester.getSize(find.text('41')).height, equals(minutesDisplayHeight));
     expect(tester.getSize(find.text('AM')).height, equals(amHeight * 2));
+  });
+}
+
+void _testsInput() {
+  testWidgets('Initial entry mode is used', (WidgetTester tester) async {
+    await mediaQueryBoilerplate(tester, true, entryMode: TimePickerEntryMode.input);
+    expect(find.byType(TextField), findsNWidgets(2));
+  });
+
+  // TODO: Fill in these remaining test.
+  testWidgets('Initial time is the default', (WidgetTester tester) async {
+  });
+
+  testWidgets('Help text is used - Input', (WidgetTester tester) async {
+    const String helpText = 'help';
+    await mediaQueryBoilerplate(tester, true, entryMode: TimePickerEntryMode.input, helpText: helpText);
+    expect(find.text(helpText), findsOneWidget);
+  });
+
+  testWidgets('Can toggle to dial entry mode', (WidgetTester tester) async {
+    await mediaQueryBoilerplate(tester, true, entryMode: TimePickerEntryMode.input);
+    await tester.tap(find.byIcon(Icons.access_time));
+    await tester.pumpAndSettle();
+    expect(find.byType(TextField), findsNothing);
+  });
+
+  testWidgets('Toggle to dial mode keeps selected time', (WidgetTester tester) async {
+  });
+
+  testWidgets('Entered text returns time', (WidgetTester tester) async {
+  });
+
+  testWidgets('Invalid text shows error', (WidgetTester tester) async {
   });
 }
 
@@ -888,4 +880,54 @@ class PickerObserver extends NavigatorObserver {
     }
     super.didPush(route, previousRoute);
   }
+}
+
+Future<void> mediaQueryBoilerplate(
+    WidgetTester tester,
+    bool alwaysUse24HourFormat, {
+      TimeOfDay initialTime = const TimeOfDay(hour: 7, minute: 0),
+      double textScaleFactor = 1.0,
+      TimePickerEntryMode entryMode = TimePickerEntryMode.dial,
+      String helpText,
+    }) async {
+  await tester.pumpWidget(
+    Localizations(
+      locale: const Locale('en', 'US'),
+      delegates: const <LocalizationsDelegate<dynamic>>[
+        DefaultMaterialLocalizations.delegate,
+        DefaultWidgetsLocalizations.delegate,
+      ],
+      child: MediaQuery(
+        data: MediaQueryData(
+          alwaysUse24HourFormat: alwaysUse24HourFormat,
+          textScaleFactor: textScaleFactor,
+        ),
+        child: Material(
+          child: Directionality(
+            textDirection: TextDirection.ltr,
+            child: Navigator(
+              onGenerateRoute: (RouteSettings settings) {
+                return MaterialPageRoute<void>(builder: (BuildContext context) {
+                  return FlatButton(
+                    onPressed: () {
+                      showTimePicker(
+                        context: context,
+                        initialTime: initialTime,
+                        initialEntryMode: entryMode,
+                        helpText: helpText,
+                      );
+                    },
+                    child: const Text('X'),
+                  );
+                });
+              },
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+
+  await tester.tap(find.text('X'));
+  await tester.pumpAndSettle();
 }
