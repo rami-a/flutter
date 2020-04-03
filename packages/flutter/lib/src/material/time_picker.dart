@@ -1717,6 +1717,7 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
     super.initState();
     _selectedTime = widget.initialTime;
     _entryMode = widget.initialEntryMode;
+    _autoValidate = false;
   }
 
   @override
@@ -1730,6 +1731,7 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
   TimePickerEntryMode _entryMode;
   _TimePickerMode _mode = _TimePickerMode.hour;
   _TimePickerMode _lastModeAnnounced;
+  bool _autoValidate;
 
   TimeOfDay get selectedTime => _selectedTime;
   TimeOfDay _selectedTime;
@@ -1767,6 +1769,7 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
     setState(() {
       switch (_entryMode) {
         case TimePickerEntryMode.dial:
+          _autoValidate = false;
           _entryMode = TimePickerEntryMode.input;
           break;
         case TimePickerEntryMode.input:
@@ -1830,6 +1833,7 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
     if (_entryMode == TimePickerEntryMode.input) {
       final FormState form = _formKey.currentState;
       if (!form.validate()) {
+        setState(() => _autoValidate = true);
         return;
       }
       form.save();
@@ -1976,6 +1980,7 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
       case TimePickerEntryMode.input:
         picker = Form(
           key: _formKey,
+          autovalidate: _autoValidate,
           child: Container(
             constraints: const BoxConstraints(maxWidth: _kTimePickerWidthPortrait),
             child: SingleChildScrollView(
