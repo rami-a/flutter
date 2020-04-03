@@ -1647,7 +1647,7 @@ class __HourMinuteTextFieldState extends State<_HourMinuteTextField> {
       children: <Widget>[
         SizedBox(
           height: _kTimePickerHeaderControlHeight,
-          child: TextFormField( // TODO: Create new form field to avoid error label.
+          child: TextFormField( // TODO: Prevent the error label from appearing.
             focusNode: focusNode,
             textAlign: TextAlign.center,
             keyboardType: TextInputType.number,
@@ -2110,6 +2110,7 @@ Future<TimeOfDay> showTimePicker({
 
   final Widget dialog = _TimePickerDialog(
     initialTime: initialTime,
+    initialEntryMode: initialEntryMode,
     cancelText: cancelText,
     confirmText: confirmText,
     helperText: helperText,
