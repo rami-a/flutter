@@ -58,7 +58,11 @@ class _TimePickerLauncher extends StatelessWidget {
   }
 }
 
-Future<Offset> startPicker(WidgetTester tester, ValueChanged<TimeOfDay> onChanged, {TimePickerEntryMode entryMode}) async {
+Future<Offset> startPicker(
+    WidgetTester tester,
+    ValueChanged<TimeOfDay> onChanged, {
+    TimePickerEntryMode entryMode = TimePickerEntryMode.dial,
+    }) async {
   await tester.pumpWidget(_TimePickerLauncher(onChanged: onChanged, locale: const Locale('en', 'US'), entryMode: entryMode));
   await tester.tap(find.text('X'));
   await tester.pumpAndSettle(const Duration(seconds: 1));
@@ -355,70 +359,69 @@ void _tests() {
     semantics.dispose();
   });
   
-  // TODO: Re-enable these tests.
-//  testWidgets('provides semantics information for hours', (WidgetTester tester) async {
-//    final SemanticsTester semantics = SemanticsTester(tester);
-//    await mediaQueryBoilerplate(tester, true);
-//
-//    final CustomPaint dialPaint = tester.widget(find.byKey(const ValueKey<String>('time-picker-dial')));
-//    final CustomPainter dialPainter = dialPaint.painter;
-//    final _CustomPainterSemanticsTester painterTester = _CustomPainterSemanticsTester(tester, dialPainter, semantics);
-//
-//    painterTester.addLabel('00', 86.0, 0.0, 134.0, 48.0);
-//    painterTester.addLabel('13', 129.0, 11.5, 177.0, 59.5);
-//    painterTester.addLabel('14', 160.5, 43.0, 208.5, 91.0);
-//    painterTester.addLabel('15', 172.0, 86.0, 220.0, 134.0);
-//    painterTester.addLabel('16', 160.5, 129.0, 208.5, 177.0);
-//    painterTester.addLabel('17', 129.0, 160.5, 177.0, 208.5);
-//    painterTester.addLabel('18', 86.0, 172.0, 134.0, 220.0);
-//    painterTester.addLabel('19', 43.0, 160.5, 91.0, 208.5);
-//    painterTester.addLabel('20', 11.5, 129.0, 59.5, 177.0);
-//    painterTester.addLabel('21', 0.0, 86.0, 48.0, 134.0);
-//    painterTester.addLabel('22', 11.5, 43.0, 59.5, 91.0);
-//    painterTester.addLabel('23', 43.0, 11.5, 91.0, 59.5);
-//    painterTester.addLabel('12', 86.0, 36.0, 134.0, 84.0);
-//    painterTester.addLabel('01', 111.0, 42.7, 159.0, 90.7);
-//    painterTester.addLabel('02', 129.3, 61.0, 177.3, 109.0);
-//    painterTester.addLabel('03', 136.0, 86.0, 184.0, 134.0);
-//    painterTester.addLabel('04', 129.3, 111.0, 177.3, 159.0);
-//    painterTester.addLabel('05', 111.0, 129.3, 159.0, 177.3);
-//    painterTester.addLabel('06', 86.0, 136.0, 134.0, 184.0);
-//    painterTester.addLabel('07', 61.0, 129.3, 109.0, 177.3);
-//    painterTester.addLabel('08', 42.7, 111.0, 90.7, 159.0);
-//    painterTester.addLabel('09', 36.0, 86.0, 84.0, 134.0);
-//    painterTester.addLabel('10', 42.7, 61.0, 90.7, 109.0);
-//    painterTester.addLabel('11', 61.0, 42.7, 109.0, 90.7);
-//
-//    painterTester.assertExpectations();
-//    semantics.dispose();
-//  });
-//
-//  testWidgets('provides semantics information for minutes', (WidgetTester tester) async {
-//    final SemanticsTester semantics = SemanticsTester(tester);
-//    await mediaQueryBoilerplate(tester, true);
-//    await tester.tap(_minuteControl);
-//    await tester.pumpAndSettle();
-//
-//    final CustomPaint dialPaint = tester.widget(find.byKey(const ValueKey<String>('time-picker-dial')));
-//    final CustomPainter dialPainter = dialPaint.painter;
-//    final _CustomPainterSemanticsTester painterTester = _CustomPainterSemanticsTester(tester, dialPainter, semantics);
-//
-//    painterTester.addLabel('00', 86.0, 0.0, 134.0, 48.0);
-//    painterTester.addLabel('05', 129.0, 11.5, 177.0, 59.5);
-//    painterTester.addLabel('10', 160.5, 43.0, 208.5, 91.0);
-//    painterTester.addLabel('15', 172.0, 86.0, 220.0, 134.0);
-//    painterTester.addLabel('20', 160.5, 129.0, 208.5, 177.0);
-//    painterTester.addLabel('25', 129.0, 160.5, 177.0, 208.5);
-//    painterTester.addLabel('30', 86.0, 172.0, 134.0, 220.0);
-//    painterTester.addLabel('35', 43.0, 160.5, 91.0, 208.5);
-//    painterTester.addLabel('40', 11.5, 129.0, 59.5, 177.0);
-//    painterTester.addLabel('45', 0.0, 86.0, 48.0, 134.0);
-//    painterTester.addLabel('50', 11.5, 43.0, 59.5, 91.0);
-//    painterTester.addLabel('55', 43.0, 11.5, 91.0, 59.5);
-//
-//    painterTester.assertExpectations();
-//    semantics.dispose();
-//  });
+  testWidgets('provides semantics information for hours', (WidgetTester tester) async {
+    final SemanticsTester semantics = SemanticsTester(tester);
+    await mediaQueryBoilerplate(tester, true);
+
+    final CustomPaint dialPaint = tester.widget(find.byKey(const ValueKey<String>('time-picker-dial')));
+    final CustomPainter dialPainter = dialPaint.painter;
+    final _CustomPainterSemanticsTester painterTester = _CustomPainterSemanticsTester(tester, dialPainter, semantics);
+
+    painterTester.addLabel('00', 84.0, 0.0, 132.0, 48.0);
+    painterTester.addLabel('13', 126.0, 11.3, 174.0, 59.3);
+    painterTester.addLabel('14', 156.7, 42.0, 204.7, 90.0);
+    painterTester.addLabel('15', 168.0, 84.0, 216.0, 132.0);
+    painterTester.addLabel('16', 156.7, 126.0, 204.7, 174.0);
+    painterTester.addLabel('17', 126.0, 156.7, 174.0, 204.7);
+    painterTester.addLabel('18', 84.0, 168.0, 132.0, 216.0);
+    painterTester.addLabel('19', 42.0, 156.7, 90.0, 204.7);
+    painterTester.addLabel('20', 11.3, 126.0, 59.3, 174.0);
+    painterTester.addLabel('21', 0.0, 84.0, 48.0, 132.0);
+    painterTester.addLabel('22', 11.3, 43.0, 59.3, 91.0);
+    painterTester.addLabel('23', 42.0, 11.3, 90.0, 59.3);
+    painterTester.addLabel('12', 84.0, 36.0, 132.0, 84.0);
+    painterTester.addLabel('01', 108.0, 42.4, 156.0, 90.4);
+    painterTester.addLabel('02', 125.6, 60.0, 173.6, 108.0);
+    painterTester.addLabel('03', 132.0, 84.0, 180.0, 132.0);
+    painterTester.addLabel('04', 125.6, 108.0, 173.6, 156.0);
+    painterTester.addLabel('05', 108.0, 125.6, 156.0, 173.6);
+    painterTester.addLabel('06', 84.0, 132.0, 132.0, 180.0);
+    painterTester.addLabel('07', 60.0, 125.6, 108.0, 173.6);
+    painterTester.addLabel('08', 42.4, 108.0, 90.4, 156.0);
+    painterTester.addLabel('09', 36.0, 84.0, 84.0, 132.0);
+    painterTester.addLabel('10', 42.4, 61.0, 90.4, 109.0);
+    painterTester.addLabel('11', 60.0, 42.4, 108.0, 90.4);
+
+    painterTester.assertExpectations();
+    semantics.dispose();
+  });
+
+  testWidgets('provides semantics information for minutes', (WidgetTester tester) async {
+    final SemanticsTester semantics = SemanticsTester(tester);
+    await mediaQueryBoilerplate(tester, true);
+    await tester.tap(_minuteControl);
+    await tester.pumpAndSettle();
+
+    final CustomPaint dialPaint = tester.widget(find.byKey(const ValueKey<String>('time-picker-dial')));
+    final CustomPainter dialPainter = dialPaint.painter;
+    final _CustomPainterSemanticsTester painterTester = _CustomPainterSemanticsTester(tester, dialPainter, semantics);
+
+    painterTester.addLabel('00', 84.0, 0.0, 132.0, 48.0);
+    painterTester.addLabel('05', 126.0, 11.3, 174.0, 59.3);
+    painterTester.addLabel('10', 156.7, 42.0, 204.7, 90.0);
+    painterTester.addLabel('15', 168.0, 84.0, 216.0, 132.0);
+    painterTester.addLabel('20', 156.7, 126.0, 204.7, 174.0);
+    painterTester.addLabel('25', 126.0, 156.7, 174.0, 204.7);
+    painterTester.addLabel('30', 84.0, 168.0, 132.0, 216.0);
+    painterTester.addLabel('35', 42.0, 156.7, 90.0, 204.7);
+    painterTester.addLabel('40', 11.3, 126.0, 59.3, 174.0);
+    painterTester.addLabel('45', 0.0, 84.0, 48.0, 132.0);
+    painterTester.addLabel('50', 11.3, 43.0, 59.3, 91.0);
+    painterTester.addLabel('55', 42.0, 11.3, 90.0, 59.3);
+
+    painterTester.assertExpectations();
+    semantics.dispose();
+  });
 
   testWidgets('picks the right dial ring from widget configuration', (WidgetTester tester) async {
     await mediaQueryBoilerplate(tester, true, initialTime: const TimeOfDay(hour: 12, minute: 0));
