@@ -24,7 +24,7 @@ void main() {
     expect(timePickerTheme.activeDayPeriodColor, null);
     expect(timePickerTheme.hourMinuteTextStyle, null);
     expect(timePickerTheme.dayPeriodTextStyle, null);
-    expect(timePickerTheme.helperTextStyle, null);
+    expect(timePickerTheme.helpTextStyle, null);
     expect(timePickerTheme.shape, null);
     expect(timePickerTheme.hourMinuteShape, null);
     expect(timePickerTheme.dayPeriodShape, null);
@@ -53,7 +53,7 @@ void main() {
       activeDayPeriodColor: Color(0xFFFFFFFF),
       hourMinuteTextStyle: TextStyle(),
       dayPeriodTextStyle: TextStyle(),
-      helperTextStyle: TextStyle(),
+      helpTextStyle: TextStyle(),
       shape: RoundedRectangleBorder(),
       hourMinuteShape: RoundedRectangleBorder(),
       dayPeriodShape: RoundedRectangleBorder(),
@@ -72,7 +72,7 @@ void main() {
       'activeDayPeriodColor: Color(0xffffffff)',
       'hourMinuteTextStyle: TextStyle(<all styles inherited>)',
       'dayPeriodTextStyle: TextStyle(<all styles inherited>)',
-      'helperTextStyle: TextStyle(<all styles inherited>)',
+      'helpTextStyle: TextStyle(<all styles inherited>)',
       'shape: RoundedRectangleBorder(BorderSide(Color(0xff000000), 0.0, BorderStyle.none), BorderRadius.zero)',
       'hourMinuteShape: RoundedRectangleBorder(BorderSide(Color(0xff000000), 0.0, BorderStyle.none), BorderRadius.zero)',
       'dayPeriodShape: RoundedRectangleBorder(BorderSide(Color(0xff000000), 0.0, BorderStyle.none), BorderRadius.zero)',
@@ -200,7 +200,7 @@ void main() {
       helperText.text.style,
       Typography.material2014().englishLike.bodyText2
           .merge(Typography.material2014().black.bodyText2)
-          .merge(timePickerTheme.helperTextStyle),
+          .merge(timePickerTheme.helpTextStyle),
     );
 
     final Material hourMaterial = _textMaterial(tester, '7');
@@ -241,7 +241,7 @@ TimePickerThemeData _timePickerTheme() {
     activeDayPeriodColor: Colors.teal,
     hourMinuteTextStyle: const TextStyle(fontSize: 8),
     dayPeriodTextStyle: const TextStyle(fontSize: 8),
-    helperTextStyle: const TextStyle(fontSize: 8),
+    helpTextStyle: const TextStyle(fontSize: 8),
     shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16.0))),
     hourMinuteShape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16.0))),
     dayPeriodShape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16.0))),
