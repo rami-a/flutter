@@ -318,7 +318,7 @@ class _HourControl extends StatelessWidget {
               child: Text(
                 formattedHour,
                 style: hourStyle,
-                textScaleFactor: 1.0, // TODO: Is this correct?
+                textScaleFactor: 1.0,
               ),
             ),
           ),
@@ -428,7 +428,7 @@ class _MinuteControl extends StatelessWidget {
               child: Text(
                 formattedMinute,
                 style: minuteStyle,
-                textScaleFactor: 1.0, // TODO: Is this correct?
+                textScaleFactor: 1.0,
               ),
             ),
           ),
@@ -1393,7 +1393,11 @@ class __TimePickerInputState extends State<_TimePickerInput> {
       return null;
     }
 
-    int newHour = int.parse(value);
+    int newHour = int.tryParse(value);
+    if (newHour == null) {
+      return null;
+    }
+
     if (MediaQuery.of(context).alwaysUse24HourFormat) {
       if (newHour >= 0 && newHour < 24) {
         return newHour;
@@ -1415,7 +1419,11 @@ class __TimePickerInputState extends State<_TimePickerInput> {
       return null;
     }
 
-    final int newMinute = int.parse(value);
+    final int newMinute = int.tryParse(value);
+    if (newMinute == null) {
+      return null;
+    }
+
     if (newMinute >= 0 && newMinute < 60) {
       return newMinute;
     }
@@ -1427,8 +1435,6 @@ class __TimePickerInputState extends State<_TimePickerInput> {
     if (newHour != null) {
       _selectedTime = TimeOfDay(hour: newHour, minute: _selectedTime.minute);
       widget.onChanged(_selectedTime);
-    } else {
-      // TODO: Set error state.
     }
   }
 
@@ -1445,8 +1451,6 @@ class __TimePickerInputState extends State<_TimePickerInput> {
     if (newMinute != null) {
       _selectedTime = TimeOfDay(hour: _selectedTime.hour, minute: int.parse(value));
       widget.onChanged(_selectedTime);
-    } else {
-      // TODO: Set error state.
     }
   }
 
@@ -1551,7 +1555,9 @@ class __TimePickerInputState extends State<_TimePickerInput> {
             Text(
               'Enter a valid time', // TODO: Localize.
               style: theme.textTheme.bodyText2.copyWith(color: theme.colorScheme.error),
-            ),
+            )
+          else
+            const SizedBox(height: 2.0),
         ],
       ),
     );
@@ -1633,6 +1639,8 @@ class __HourMinuteTextFieldState extends State<_HourMinuteTextField> {
           borderSide: BorderSide(color: colorScheme.error, width: 2),
         ),
         hintStyle: style.copyWith(color: colorScheme.onBackground.withOpacity(0.36)),
+        // TODO(rami-a): Remove this logic once https://github.com/flutter/flutter/issues/54104 is fixed.
+        errorStyle: const TextStyle(fontSize: 0, height: 0), // Prevent the error text from appearing.
       );
     } else {
       inputDecoration = const InputDecoration().applyDefaults(inputDecorationTheme);
@@ -1647,18 +1655,21 @@ class __HourMinuteTextFieldState extends State<_HourMinuteTextField> {
       children: <Widget>[
         SizedBox(
           height: _kTimePickerHeaderControlHeight,
-          child: TextFormField( // TODO: Prevent the error label from appearing.
-            focusNode: focusNode,
-            textAlign: TextAlign.center,
-            keyboardType: TextInputType.number,
-            style: style.copyWith(color: colorScheme.onBackground),
-            controller: controller,
-            decoration: inputDecoration,
-            validator: widget.validator,
-            onEditingComplete: () => widget.onSavedSubmitted(controller.text),
-            onSaved: widget.onSavedSubmitted,
-            onFieldSubmitted: widget.onSavedSubmitted,
-            onChanged: widget.onChanged,
+          child: MediaQuery(
+            data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
+            child: TextFormField(
+              focusNode: focusNode,
+              textAlign: TextAlign.center,
+              keyboardType: TextInputType.number,
+              style: style.copyWith(color: colorScheme.onBackground),
+              controller: controller,
+              decoration: inputDecoration,
+              validator: widget.validator,
+              onEditingComplete: () => widget.onSavedSubmitted(controller.text),
+              onSaved: widget.onSavedSubmitted,
+              onFieldSubmitted: widget.onSavedSubmitted,
+              onChanged: widget.onChanged,
+            ),
           ),
         ),
       ],
