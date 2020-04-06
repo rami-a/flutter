@@ -230,7 +230,8 @@ class _TimePickerHeader extends StatelessWidget {
         children: <Widget>[
           const SizedBox(height: 16.0),
           Text(
-            helpText ?? 'SELECT TIME', // TODO: Localize.
+            // TODO(rami-a): localize 'SELECT TIME.'
+            helpText ?? 'SELECT TIME',
             style: TimePickerTheme.of(context).helpTextStyle ?? themeData.textTheme.overline,
           ),
           controls,
@@ -1496,7 +1497,8 @@ class __TimePickerInputState extends State<_TimePickerInput> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Text(
-            widget.helpText ?? 'ENTER TIME', // TODO: Localize.
+            // TODO(rami-a): localize 'ENTER TIME'
+            widget.helpText ?? 'ENTER TIME',
             style: TimePickerTheme.of(context).helpTextStyle ?? theme.textTheme.overline,
           ),
           const SizedBox(height: 16.0),
@@ -1516,7 +1518,8 @@ class __TimePickerInputState extends State<_TimePickerInput> {
                   ),
                   const SizedBox(height: 8.0),
                   if (!hourHasError && !minuteHasError)
-                    Text('Hour', style: theme.textTheme.caption), // TODO: Localize.
+                    // TODO(rami-a): localize 'Hour'
+                    Text('Hour', style: theme.textTheme.caption),
                 ],
               )),
               Padding(
@@ -1538,7 +1541,8 @@ class __TimePickerInputState extends State<_TimePickerInput> {
                   ),
                   const SizedBox(height: 8.0),
                   if (!hourHasError && !minuteHasError)
-                    Text('Minute', style: theme.textTheme.caption), // TODO: Localize.
+                    // TODO(rami-a): localize 'Minute'
+                    Text('Minute', style: theme.textTheme.caption),
                 ],
               )),
               if (!use24HourDials) ...<Widget>[
@@ -1553,7 +1557,8 @@ class __TimePickerInputState extends State<_TimePickerInput> {
           ),
           if (hourHasError || minuteHasError)
             Text(
-              'Enter a valid time', // TODO: Localize.
+              // TODO(rami-a): localize 'Enter a valid time'
+              'Enter a valid time',
               style: theme.textTheme.bodyText2.copyWith(color: theme.colorScheme.error),
             )
           else
@@ -2012,7 +2017,6 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
         break;
     }
 
-    // TODO: Animate entry mode change like date picker.
     return Dialog(
       shape: shape,
       backgroundColor: TimePickerTheme.of(context).backgroundColor ?? theme.colorScheme.background,
