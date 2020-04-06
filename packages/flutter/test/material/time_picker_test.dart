@@ -21,10 +21,16 @@ final Finder _minuteControl = find.byWidgetPredicate((Widget widget) => '${widge
 final Finder _timePickerDialog = find.byWidgetPredicate((Widget widget) => '${widget.runtimeType}' == '_TimePickerDialog');
 
 class _TimePickerLauncher extends StatelessWidget {
-  const _TimePickerLauncher({ Key key, this.onChanged, this.locale }) : super(key: key);
+  const _TimePickerLauncher({
+    Key key,
+    this.onChanged,
+    this.locale,
+    this.entryMode = TimePickerEntryMode.dial,
+  }) : super(key: key);
 
   final ValueChanged<TimeOfDay> onChanged;
   final Locale locale;
+  final TimePickerEntryMode entryMode;
 
   @override
   Widget build(BuildContext context) {
@@ -40,6 +46,7 @@ class _TimePickerLauncher extends StatelessWidget {
                   onChanged(await showTimePicker(
                     context: context,
                     initialTime: const TimeOfDay(hour: 7, minute: 0),
+                    initialEntryMode: entryMode,
                   ));
                 },
               );
@@ -51,11 +58,11 @@ class _TimePickerLauncher extends StatelessWidget {
   }
 }
 
-Future<Offset> startPicker(WidgetTester tester, ValueChanged<TimeOfDay> onChanged) async {
-  await tester.pumpWidget(_TimePickerLauncher(onChanged: onChanged, locale: const Locale('en', 'US')));
+Future<Offset> startPicker(WidgetTester tester, ValueChanged<TimeOfDay> onChanged, {TimePickerEntryMode entryMode}) async {
+  await tester.pumpWidget(_TimePickerLauncher(onChanged: onChanged, locale: const Locale('en', 'US'), entryMode: entryMode));
   await tester.tap(find.text('X'));
   await tester.pumpAndSettle(const Duration(seconds: 1));
-  return tester.getCenter(find.byKey(const ValueKey<String>('time-picker-dial')));
+  return entryMode == TimePickerEntryMode.dial ? tester.getCenter(find.byKey(const ValueKey<String>('time-picker-dial'))) : null;
 }
 
 Future<void> finishPicker(WidgetTester tester) async {
@@ -771,8 +778,11 @@ void _testsInput() {
     expect(find.byType(TextField), findsNWidgets(2));
   });
 
-  // TODO: Fill in these remaining test.
   testWidgets('Initial time is the default', (WidgetTester tester) async {
+    TimeOfDay result;
+    await startPicker(tester, (TimeOfDay time) { result = time; }, entryMode: TimePickerEntryMode.input);
+    await finishPicker(tester);
+    expect(result, equals(const TimeOfDay(hour: 7, minute: 0)));
   });
 
   testWidgets('Help text is used - Input', (WidgetTester tester) async {
@@ -788,13 +798,46 @@ void _testsInput() {
     expect(find.byType(TextField), findsNothing);
   });
 
-  testWidgets('Toggle to dial mode keeps selected time', (WidgetTester tester) async {
-  });
 
   testWidgets('Entered text returns time', (WidgetTester tester) async {
+    TimeOfDay result;
+    await startPicker(tester, (TimeOfDay time) { result = time; }, entryMode: TimePickerEntryMode.input);
+    await tester.enterText(find.byType(TextField).first, '9');
+    await tester.enterText(find.byType(TextField).last, '12');
+    await finishPicker(tester);
+    expect(result, equals(const TimeOfDay(hour: 9, minute: 12)));
   });
 
-  testWidgets('Invalid text shows error', (WidgetTester tester) async {
+  testWidgets('Toggle to dial mode keeps selected time', (WidgetTester tester) async {
+    TimeOfDay result;
+    await startPicker(tester, (TimeOfDay time) { result = time; }, entryMode: TimePickerEntryMode.input);
+    await tester.enterText(find.byType(TextField).first, '8');
+    await tester.enterText(find.byType(TextField).last, '15');
+    await tester.tap(find.byIcon(Icons.access_time));
+    await finishPicker(tester);
+    expect(result, equals(const TimeOfDay(hour: 8, minute: 15)));
+  });
+
+  testWidgets('Invalid text prevents dismissing', (WidgetTester tester) async {
+    TimeOfDay result;
+    await startPicker(tester, (TimeOfDay time) { result = time; }, entryMode: TimePickerEntryMode.input);
+
+    // Invalid hour.
+    await tester.enterText(find.byType(TextField).first, '88');
+    await tester.enterText(find.byType(TextField).last, '15');
+    await finishPicker(tester);
+    expect(result, null);
+
+    // Invalid hour.
+    await tester.enterText(find.byType(TextField).first, '8');
+    await tester.enterText(find.byType(TextField).last, '150');
+    await finishPicker(tester);
+    expect(result, null);
+
+    await tester.enterText(find.byType(TextField).first, '8');
+    await tester.enterText(find.byType(TextField).last, '15');
+    await finishPicker(tester);
+    expect(result, equals(const TimeOfDay(hour: 8, minute: 15)));
   });
 }
 
