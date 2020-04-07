@@ -297,21 +297,18 @@ void _tests() {
   });
 
   const List<String> labels12To11 = <String>['12', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11'];
-  const List<String> labels12To11TwoDigit = <String>['12', '01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11'];
-  const List<String> labels00To23 = <String>['00', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23'];
+  const List<String> labels00To22 = <String>['00', '02', '04', '06', '08', '10', '12', '14', '16', '18', '20', '22'];
 
   testWidgets('respects MediaQueryData.alwaysUse24HourFormat == false', (WidgetTester tester) async {
     await mediaQueryBoilerplate(tester, false);
 
     final CustomPaint dialPaint = tester.widget(findDialPaint);
     final dynamic dialPainter = dialPaint.painter;
-    final List<dynamic> primaryOuterLabels = dialPainter.primaryLabels as List<dynamic>;
-    expect(primaryOuterLabels.map<String>((dynamic tp) => tp.painter.text.text as String), labels12To11);
-    expect(dialPainter.primaryInnerLabels, null);
+    final List<dynamic> primaryLabels = dialPainter.primaryLabels as List<dynamic>;
+    expect(primaryLabels.map<String>((dynamic tp) => tp.painter.text.text as String), labels12To11);
 
-    final List<dynamic> secondaryOuterLabels = dialPainter.secondaryLabels as List<dynamic>;
-    expect(secondaryOuterLabels.map<String>((dynamic tp) => tp.painter.text.text as String), labels12To11);
-    expect(dialPainter.secondaryInnerLabels, null);
+    final List<dynamic> secondaryLabels = dialPainter.secondaryLabels as List<dynamic>;
+    expect(secondaryLabels.map<String>((dynamic tp) => tp.painter.text.text as String), labels12To11);
   });
 
   testWidgets('respects MediaQueryData.alwaysUse24HourFormat == true', (WidgetTester tester) async {
@@ -319,15 +316,11 @@ void _tests() {
 
     final CustomPaint dialPaint = tester.widget(findDialPaint);
     final dynamic dialPainter = dialPaint.painter;
-    final List<dynamic> primaryOuterLabels = dialPainter.primaryLabels as List<dynamic>;
-    expect(primaryOuterLabels.map<String>((dynamic tp) => tp.painter.text.text as String), labels00To23);
-    final List<dynamic> primaryInnerLabels = dialPainter.primaryInnerLabels as List<dynamic>;
-    expect(primaryInnerLabels.map<String>((dynamic tp) => tp.painter.text.text as String), labels12To11TwoDigit);
+    final List<dynamic> primaryLabels = dialPainter.primaryLabels as List<dynamic>;
+    expect(primaryLabels.map<String>((dynamic tp) => tp.painter.text.text as String), labels00To22);
 
-    final List<dynamic> secondaryOuterLabels = dialPainter.secondaryLabels as List<dynamic>;
-    expect(secondaryOuterLabels.map<String>((dynamic tp) => tp.painter.text.text as String), labels00To23);
-    final List<dynamic> secondaryInnerLabels = dialPainter.secondaryInnerLabels as List<dynamic>;
-    expect(secondaryInnerLabels.map<String>((dynamic tp) => tp.painter.text.text as String), labels12To11TwoDigit);
+    final List<dynamic> secondaryLabels = dialPainter.secondaryLabels as List<dynamic>;
+    expect(secondaryLabels.map<String>((dynamic tp) => tp.painter.text.text as String), labels00To22);
   });
 
   testWidgets('provides semantics information for AM/PM indicator', (WidgetTester tester) async {
@@ -347,8 +340,8 @@ void _tests() {
     expect(semantics, isNot(includesNodeWith(label: ':')));
     expect(semantics.nodesWith(value: '00'), hasLength(2),
         reason: '00 appears once in the header, then again in the dial');
-    expect(semantics.nodesWith(value: '07'), hasLength(2),
-        reason: '07 appears once in the header, then again in the dial');
+    expect(semantics.nodesWith(value: '07'), hasLength(1),
+        reason: '07 appears once in the header, but not in the dial');
     expect(semantics, includesNodeWith(label: 'CANCEL'));
     expect(semantics, includesNodeWith(label: 'OK'));
 
@@ -368,29 +361,17 @@ void _tests() {
     final _CustomPainterSemanticsTester painterTester = _CustomPainterSemanticsTester(tester, dialPainter, semantics);
 
     painterTester.addLabel('00', 84.0, 0.0, 132.0, 48.0);
-    painterTester.addLabel('13', 126.0, 11.3, 174.0, 59.3);
-    painterTester.addLabel('14', 156.7, 42.0, 204.7, 90.0);
-    painterTester.addLabel('15', 168.0, 84.0, 216.0, 132.0);
-    painterTester.addLabel('16', 156.7, 126.0, 204.7, 174.0);
-    painterTester.addLabel('17', 126.0, 156.7, 174.0, 204.7);
-    painterTester.addLabel('18', 84.0, 168.0, 132.0, 216.0);
-    painterTester.addLabel('19', 42.0, 156.7, 90.0, 204.7);
-    painterTester.addLabel('20', 11.3, 126.0, 59.3, 174.0);
-    painterTester.addLabel('21', 0.0, 84.0, 48.0, 132.0);
-    painterTester.addLabel('22', 11.3, 43.0, 59.3, 91.0);
-    painterTester.addLabel('23', 42.0, 11.3, 90.0, 59.3);
-    painterTester.addLabel('12', 84.0, 36.0, 132.0, 84.0);
-    painterTester.addLabel('01', 108.0, 42.4, 156.0, 90.4);
-    painterTester.addLabel('02', 125.6, 60.0, 173.6, 108.0);
-    painterTester.addLabel('03', 132.0, 84.0, 180.0, 132.0);
-    painterTester.addLabel('04', 125.6, 108.0, 173.6, 156.0);
-    painterTester.addLabel('05', 108.0, 125.6, 156.0, 173.6);
-    painterTester.addLabel('06', 84.0, 132.0, 132.0, 180.0);
-    painterTester.addLabel('07', 60.0, 125.6, 108.0, 173.6);
-    painterTester.addLabel('08', 42.4, 108.0, 90.4, 156.0);
-    painterTester.addLabel('09', 36.0, 84.0, 84.0, 132.0);
-    painterTester.addLabel('10', 42.4, 61.0, 90.4, 109.0);
-    painterTester.addLabel('11', 60.0, 42.4, 108.0, 90.4);
+    painterTester.addLabel('02', 126.0, 11.3, 174.0, 59.3);
+    painterTester.addLabel('04', 156.7, 42.0, 204.7, 90.0);
+    painterTester.addLabel('06', 168.0, 84.0, 216.0, 132.0);
+    painterTester.addLabel('08', 156.7, 126.0, 204.7, 174.0);
+    painterTester.addLabel('10', 126.0, 156.7, 174.0, 204.7);
+    painterTester.addLabel('12', 84.0, 168.0, 132.0, 216.0);
+    painterTester.addLabel('14', 42.0, 156.7, 90.0, 204.7);
+    painterTester.addLabel('16', 11.3, 126.0, 59.3, 174.0);
+    painterTester.addLabel('18', 0.0, 84.0, 48.0, 132.0);
+    painterTester.addLabel('20', 11.3, 43.0, 59.3, 91.0);
+    painterTester.addLabel('22', 42.0, 11.3, 90.0, 59.3);
 
     painterTester.assertExpectations();
     semantics.dispose();
@@ -421,18 +402,6 @@ void _tests() {
 
     painterTester.assertExpectations();
     semantics.dispose();
-  });
-
-  testWidgets('picks the right dial ring from widget configuration', (WidgetTester tester) async {
-    await mediaQueryBoilerplate(tester, true, initialTime: const TimeOfDay(hour: 12, minute: 0));
-    dynamic dialPaint = tester.widget(findDialPaint);
-    expect('${dialPaint.painter.activeRing}', '_DialRing.inner');
-
-    await tester.pumpWidget(Container()); // make sure previous state isn't reused
-
-    await mediaQueryBoilerplate(tester, true, initialTime: const TimeOfDay(hour: 0, minute: 0));
-    dialPaint = tester.widget(findDialPaint);
-    expect('${dialPaint.painter.activeRing}', '_DialRing.outer');
   });
 
   testWidgets('can increment and decrement hours', (WidgetTester tester) async {
