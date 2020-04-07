@@ -32,6 +32,7 @@ import 'slider_theme.dart';
 import 'snack_bar_theme.dart';
 import 'tab_bar_theme.dart';
 import 'text_theme.dart';
+import 'time_picker_theme.dart';
 import 'toggle_buttons_theme.dart';
 import 'tooltip_theme.dart';
 import 'typography.dart';
@@ -266,6 +267,7 @@ class ThemeData with Diagnosticable {
     MaterialBannerThemeData bannerTheme,
     DividerThemeData dividerTheme,
     ButtonBarThemeData buttonBarTheme,
+    TimePickerThemeData timePickerTheme,
   }) {
     brightness ??= Brightness.light;
     final bool isDark = brightness == Brightness.dark;
@@ -374,6 +376,7 @@ class ThemeData with Diagnosticable {
     bannerTheme ??= const MaterialBannerThemeData();
     dividerTheme ??= const DividerThemeData();
     buttonBarTheme ??= const ButtonBarThemeData();
+    timePickerTheme ??= const TimePickerThemeData();
 
     return ThemeData.raw(
       brightness: brightness,
@@ -440,6 +443,7 @@ class ThemeData with Diagnosticable {
       bannerTheme: bannerTheme,
       dividerTheme: dividerTheme,
       buttonBarTheme: buttonBarTheme,
+      timePickerTheme: timePickerTheme,
     );
   }
 
@@ -518,6 +522,7 @@ class ThemeData with Diagnosticable {
     @required this.bannerTheme,
     @required this.dividerTheme,
     @required this.buttonBarTheme,
+    @required this.timePickerTheme,
   }) : assert(brightness != null),
        assert(visualDensity != null),
        assert(primaryColor != null),
@@ -578,7 +583,8 @@ class ThemeData with Diagnosticable {
        assert(popupMenuTheme != null),
        assert(bannerTheme != null),
        assert(dividerTheme != null),
-       assert(buttonBarTheme != null);
+       assert(buttonBarTheme != null),
+       assert(timePickerTheme != null);
 
   /// Create a [ThemeData] based on the colors in the given [colorScheme] and
   /// text styles of the optional [textTheme].
@@ -1025,6 +1031,9 @@ class ThemeData with Diagnosticable {
   /// A theme for customizing the appearance and layout of [ButtonBar] widgets.
   final ButtonBarThemeData buttonBarTheme;
 
+  /// A theme for customizing the appearance and layout of time picker widgets.
+  final TimePickerThemeData timePickerTheme;
+
   /// Creates a copy of this theme but with the given fields replaced with the new values.
   ThemeData copyWith({
     Brightness brightness,
@@ -1091,6 +1100,7 @@ class ThemeData with Diagnosticable {
     MaterialBannerThemeData bannerTheme,
     DividerThemeData dividerTheme,
     ButtonBarThemeData buttonBarTheme,
+    TimePickerThemeData timePickerTheme,
   }) {
     cupertinoOverrideTheme = cupertinoOverrideTheme?.noDefault();
     return ThemeData.raw(
@@ -1158,6 +1168,7 @@ class ThemeData with Diagnosticable {
       bannerTheme: bannerTheme ?? this.bannerTheme,
       dividerTheme: dividerTheme ?? this.dividerTheme,
       buttonBarTheme: buttonBarTheme ?? this.buttonBarTheme,
+      timePickerTheme: timePickerTheme ?? this.timePickerTheme,
     );
   }
 
@@ -1303,6 +1314,7 @@ class ThemeData with Diagnosticable {
       bannerTheme: MaterialBannerThemeData.lerp(a.bannerTheme, b.bannerTheme, t),
       dividerTheme: DividerThemeData.lerp(a.dividerTheme, b.dividerTheme, t),
       buttonBarTheme: ButtonBarThemeData.lerp(a.buttonBarTheme, b.buttonBarTheme, t),
+      timePickerTheme: TimePickerThemeData.lerp(a.timePickerTheme, b.timePickerTheme, t),
     );
   }
 
@@ -1375,7 +1387,8 @@ class ThemeData with Diagnosticable {
         && other.popupMenuTheme == popupMenuTheme
         && other.bannerTheme == bannerTheme
         && other.dividerTheme == dividerTheme
-        && other.buttonBarTheme == buttonBarTheme;
+        && other.buttonBarTheme == buttonBarTheme
+        && other.timePickerTheme == timePickerTheme;
   }
 
   @override
@@ -1448,6 +1461,7 @@ class ThemeData with Diagnosticable {
       bannerTheme,
       dividerTheme,
       buttonBarTheme,
+      timePickerTheme,
     ];
     return hashList(values);
   }
@@ -1516,6 +1530,7 @@ class ThemeData with Diagnosticable {
     properties.add(DiagnosticsProperty<MaterialBannerThemeData>('bannerTheme', bannerTheme, defaultValue: defaultData.bannerTheme, level: DiagnosticLevel.debug));
     properties.add(DiagnosticsProperty<DividerThemeData>('dividerTheme', dividerTheme, defaultValue: defaultData.dividerTheme, level: DiagnosticLevel.debug));
     properties.add(DiagnosticsProperty<ButtonBarThemeData>('buttonBarTheme', buttonBarTheme, defaultValue: defaultData.buttonBarTheme, level: DiagnosticLevel.debug));
+    properties.add(DiagnosticsProperty<TimePickerThemeData>('timePickerTheme', timePickerTheme, defaultValue: defaultData.timePickerTheme));
   }
 }
 
