@@ -483,8 +483,7 @@ class _DayPeriodControl extends StatelessWidget {
     final Color activeColor = colorScheme.onBackground;
     final Color inactiveColor = colorScheme.onBackground.withOpacity(0.38);
     final bool amSelected = selectedTime.period == DayPeriod.am;
-    final TextStyle textStyle = TimePickerTheme.of(context).dayPeriodTextStyle
-        ?? Theme.of(context).textTheme.subtitle1;
+    final TextStyle textStyle = TimePickerTheme.of(context).dayPeriodTextStyle ?? Theme.of(context).textTheme.subtitle1;
     final TextStyle amStyle = textStyle.copyWith(
       color: amSelected ? activeColor: inactiveColor,
     );
