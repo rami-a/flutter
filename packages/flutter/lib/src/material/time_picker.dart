@@ -69,8 +69,6 @@ enum TimePickerEntryMode {
 @immutable
 class _TimePickerFragmentContext {
   const _TimePickerFragmentContext({
-    @required this.headerTextTheme,
-    @required this.textDirection,
     @required this.selectedTime,
     @required this.mode,
     @required this.activeColor,
@@ -79,11 +77,8 @@ class _TimePickerFragmentContext {
     @required this.inactiveStyle,
     @required this.onTimeChange,
     @required this.onModeChange,
-    @required this.targetPlatform,
     @required this.use24HourDials,
-  }) : assert(headerTextTheme != null),
-       assert(textDirection != null),
-       assert(selectedTime != null),
+  }) : assert(selectedTime != null),
        assert(mode != null),
        assert(activeColor != null),
        assert(activeStyle != null),
@@ -91,11 +86,8 @@ class _TimePickerFragmentContext {
        assert(inactiveStyle != null),
        assert(onTimeChange != null),
        assert(onModeChange != null),
-       assert(targetPlatform != null),
        assert(use24HourDials != null);
 
-  final TextTheme headerTextTheme;
-  final TextDirection textDirection;
   final TimeOfDay selectedTime;
   final _TimePickerMode mode;
   final Color activeColor;
@@ -104,7 +96,6 @@ class _TimePickerFragmentContext {
   final TextStyle inactiveStyle;
   final ValueChanged<TimeOfDay> onTimeChange;
   final ValueChanged<_TimePickerMode> onModeChange;
-  final TargetPlatform targetPlatform;
   final bool use24HourDials;
 }
 
@@ -147,8 +138,6 @@ class _TimePickerHeader extends StatelessWidget {
 
     final TextStyle hourMinuteStyle = TimePickerTheme.of(context).hourMinuteTextStyle ?? themeData.textTheme.headline3;
     final _TimePickerFragmentContext fragmentContext = _TimePickerFragmentContext(
-      headerTextTheme: themeData.textTheme,
-      textDirection: Directionality.of(context),
       selectedTime: selectedTime,
       mode: mode,
       activeColor: activeColor,
@@ -157,7 +146,6 @@ class _TimePickerHeader extends StatelessWidget {
       inactiveStyle: hourMinuteStyle.copyWith(color: inactiveColor),
       onTimeChange: onChanged,
       onModeChange: _handleChangeMode,
-      targetPlatform: themeData.platform,
       use24HourDials: use24HourDials,
     );
 
