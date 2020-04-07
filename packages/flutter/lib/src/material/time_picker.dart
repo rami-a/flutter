@@ -328,29 +328,24 @@ class _StringFragment extends StatelessWidget {
   final TimeOfDayFormat timeOfDayFormat;
 
   String _stringFragmentValue(TimeOfDayFormat timeOfDayFormat) {
-    String stringFragmentValue;
     switch (timeOfDayFormat) {
       case TimeOfDayFormat.h_colon_mm_space_a:
       case TimeOfDayFormat.a_space_h_colon_mm:
       case TimeOfDayFormat.H_colon_mm:
       case TimeOfDayFormat.HH_colon_mm:
-        stringFragmentValue = ':';
-        break;
+        return ':';
       case TimeOfDayFormat.HH_dot_mm:
-        stringFragmentValue = '.';
-        break;
+        return '.';
       case TimeOfDayFormat.frenchCanadian:
-        stringFragmentValue = 'h';
-        break;
+        return 'h';
     }
-    return stringFragmentValue;
   }
 
   @override
   Widget build(BuildContext context) {
     return ExcludeSemantics(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 6.0),
         child: Center(
           child: Text(
             _stringFragmentValue(timeOfDayFormat),
@@ -571,10 +566,10 @@ class _DayPeriodControl extends StatelessWidget {
         break;
       case Orientation.landscape:
         return _DayPeriodInputPadding(
-          minSize: const Size(0, kMinInteractiveDimension),
+          minSize: const Size(0.0, kMinInteractiveDimension),
           orientation: orientation,
           child: Container(
-            height: 40,
+            height: 40.0,
             child: Material(
               clipBehavior: Clip.antiAlias,
               color: Colors.transparent,
@@ -678,9 +673,9 @@ class _RenderInputPadding extends RenderShiftedBox {
       return true;
     }
 
-    if (position.dx < 0 ||
+    if (position.dx < 0.0 ||
         position.dx > math.max(child.size.width, minSize.width) ||
-        position.dy < 0 ||
+        position.dy < 0.0 ||
         position.dy > math.max(child.size.height, minSize.height)) {
       return false;
     }
@@ -689,16 +684,16 @@ class _RenderInputPadding extends RenderShiftedBox {
     switch (orientation) {
       case Orientation.portrait:
         if (position.dy > newPosition.dy) {
-          newPosition = newPosition + const Offset(0, 1);
+          newPosition = newPosition + const Offset(0.0, 1.0);
         } else {
-          newPosition = newPosition + const Offset(0, -1);
+          newPosition = newPosition + const Offset(0.0, -1.0);
         }
         break;
       case Orientation.landscape:
         if (position.dx > newPosition.dx) {
-          newPosition = newPosition + const Offset(1, 0);
+          newPosition = newPosition + const Offset(1.0, 0.0);
         } else {
-          newPosition = newPosition + const Offset(-1, 0);
+          newPosition = newPosition + const Offset(-1.0, 0.0);
         }
         break;
     }
@@ -1454,7 +1449,7 @@ class __TimePickerInputState extends State<_TimePickerInput> {
       hourHasError = newHour == null;
     });
     if (newHour == null) {
-      return 'Hour error';
+      return ''; // Return empty string to indicate an error.
     }
     return null;
   }
@@ -1465,7 +1460,7 @@ class __TimePickerInputState extends State<_TimePickerInput> {
       minuteHasError = newMinute == null;
     });
     if (newMinute == null) {
-      return 'Minute error';
+      return ''; // Return empty string to indicate an error.
     }
     return null;
   }
@@ -1623,17 +1618,17 @@ class __HourMinuteTextFieldState extends State<_HourMinuteTextField> {
           borderSide: BorderSide(color: Colors.transparent),
         ),
         errorBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: colorScheme.error, width: 2),
+          borderSide: BorderSide(color: colorScheme.error, width: 2.0),
         ),
         focusedBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: colorScheme.primary, width: 2),
+          borderSide: BorderSide(color: colorScheme.primary, width: 2.0),
         ),
         focusedErrorBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: colorScheme.error, width: 2),
+          borderSide: BorderSide(color: colorScheme.error, width: 2.0),
         ),
         hintStyle: style.copyWith(color: colorScheme.onBackground.withOpacity(0.36)),
         // TODO(rami-a): Remove this logic once https://github.com/flutter/flutter/issues/54104 is fixed.
-        errorStyle: const TextStyle(fontSize: 0, height: 0), // Prevent the error text from appearing.
+        errorStyle: const TextStyle(fontSize: 0.0, height: 0.0), // Prevent the error text from appearing.
       );
     } else {
       inputDecoration = const InputDecoration().applyDefaults(inputDecorationTheme);
