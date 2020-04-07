@@ -486,10 +486,10 @@ class _DayPeriodControl extends StatelessWidget {
     final TextStyle textStyle = TimePickerTheme.of(context).dayPeriodTextStyle
         ?? Theme.of(context).textTheme.subtitle1;
     final TextStyle amStyle = textStyle.copyWith(
-        color: amSelected ? activeColor: inactiveColor
+      color: amSelected ? activeColor: inactiveColor,
     );
     final TextStyle pmStyle = textStyle.copyWith(
-        color: !amSelected ? activeColor: inactiveColor
+      color: !amSelected ? activeColor: inactiveColor,
     );
     final ShapeBorder shape = TimePickerTheme.of(context).dayPeriodShape ??
         RoundedRectangleBorder(
@@ -1358,10 +1358,10 @@ class _TimePickerInput extends StatefulWidget {
   final ValueChanged<TimeOfDay> onChanged;
 
   @override
-  __TimePickerInputState createState() => __TimePickerInputState();
+  _TimePickerInputState createState() => _TimePickerInputState();
 }
 
-class __TimePickerInputState extends State<_TimePickerInput> {
+class _TimePickerInputState extends State<_TimePickerInput> {
   TimeOfDay _selectedTime;
   bool hourHasError = false;
   bool minuteHasError = false;
@@ -1587,10 +1587,10 @@ class __HourMinuteTextFieldState extends State<_HourMinuteTextField> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    controller ??= TextEditingController(text: _formattedValue());
+    controller ??= TextEditingController(text: _formattedValue);
   }
 
-  String _formattedValue() {
+  String get _formattedValue {
     final bool alwaysUse24HourFormat = MediaQuery.of(context).alwaysUse24HourFormat;
     final MaterialLocalizations localizations = MaterialLocalizations.of(context);
     return widget.isHour ? localizations.formatHour(
@@ -1605,7 +1605,6 @@ class __HourMinuteTextFieldState extends State<_HourMinuteTextField> {
     final ColorScheme colorScheme = theme.colorScheme;
     final TextStyle style = TimePickerTheme.of(context).hourMinuteTextStyle
       ?? theme.textTheme.headline3;
-    final String value = _formattedValue();
 
     final InputDecorationTheme inputDecorationTheme = TimePickerTheme.of(context).inputDecorationTheme;
     InputDecoration inputDecoration;
@@ -1636,7 +1635,7 @@ class __HourMinuteTextFieldState extends State<_HourMinuteTextField> {
     inputDecoration = inputDecoration.copyWith(
       // Remove the hint text when focused because the centered cursor appears
       // odd above the hint text.
-      hintText: focusNode.hasFocus ? null : value,
+      hintText: focusNode.hasFocus ? null : _formattedValue,
     );
 
     return Column(
@@ -1917,7 +1916,8 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
-                    Expanded(child: dial), // picker grows and shrinks with the available space
+                    // Dial grows and shrinks with the available space.
+                    Expanded(child: dial),
                     actions,
                   ],
                 ),
