@@ -33,7 +33,12 @@ abstract class ButtonAttributes {
   final Widget child;
 }
 
-/// A basic and un-styled button.
+/// A basic button that does not follow any specific platform styling.
+///
+/// See also:
+///
+///  * [CupertinoButton]
+///  * [MaterialButton]
 class Button extends StatefulWidget implements ButtonAttributes {
   /// Creates a basic button.
   const Button({
