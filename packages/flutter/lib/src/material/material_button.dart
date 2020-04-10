@@ -37,7 +37,7 @@ import 'theme_data.dart';
 /// See also:
 ///
 ///  * [IconButton], to create buttons that contain icons rather than text.
-class MaterialButton extends StatelessWidget {
+class MaterialButton extends StatelessWidget implements ButtonAttributes {
   /// Creates a material button.
   ///
   /// Rather than creating a material button directly, consider using
@@ -96,6 +96,7 @@ class MaterialButton extends StatelessWidget {
   /// See also:
   ///
   ///  * [enabled], which is true if the button is enabled.
+  @override
   final VoidCallback onPressed;
 
   /// The callback that is called when the button is long-pressed.
@@ -298,6 +299,7 @@ class MaterialButton extends StatelessWidget {
   /// The button's label.
   ///
   /// Often a [Text] widget in all caps.
+  @override
   final Widget child;
 
   /// Whether the button is enabled or disabled.
