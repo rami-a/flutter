@@ -45,6 +45,7 @@ class Button extends StatefulWidget implements ButtonAttributes {
     Key key,
     this.padding,
     this.color,
+    this.disabledColor,
     this.textStyle,
     this.borderRadius,
     this.onPressed,
@@ -58,6 +59,11 @@ class Button extends StatefulWidget implements ButtonAttributes {
 
   /// The background color of the button.
   final Color color;
+
+  /// The color of the button's background when the button is disabled.
+  ///
+  /// Defaults to `Color(0x33666666)`.
+  final Color disabledColor;
 
   /// The text style of the button.
   final TextStyle textStyle;
@@ -109,7 +115,7 @@ class _ButtonState extends State<Button> {
   Widget build(BuildContext context) {
     final Color resolvedColor = widget.color ?? const Color(0xFF666666);
     final Color pressedColor = resolvedColor.withOpacity(0.6);
-    const Color disabledColor = Color(0x66666666);
+    final Color disabledColor = widget.disabledColor ?? Color(0x33666666);
     final TextStyle resolvedTextStyle = widget.textStyle ?? const TextStyle(fontSize: 18, color: Color(0xFFFFFFFF));
     return GestureDetector(
       onTapDown: _enabled ? _handleTapDown : null,
