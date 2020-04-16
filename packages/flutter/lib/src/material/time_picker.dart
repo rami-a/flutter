@@ -31,6 +31,8 @@ import 'time_picker_theme.dart';
 // BuildContext context;
 
 const Duration _kDialAnimateDuration = Duration(milliseconds: 200);
+const Duration _kDigitAnimateDuration = Duration(milliseconds: 400);
+const Curve _kDigitAnimateCurve = Curves.fastOutSlowIn;
 const double _kTwoPi = 2 * math.pi;
 const Duration _kVibrateCommitDelay = Duration(milliseconds: 100);
 
@@ -232,7 +234,7 @@ class _TimePickerHeader extends StatelessWidget {
 /// Displays the hour fragment.
 ///
 /// When tapped changes time picker dial mode to [_TimePickerMode.hour].
-class _HourControl extends StatelessWidget {
+class _HourControl extends StatefulWidget {
   const _HourControl({
     @required this.fragmentContext,
   });
@@ -240,33 +242,62 @@ class _HourControl extends StatelessWidget {
   final _TimePickerFragmentContext fragmentContext;
 
   @override
+  _HourControlState createState() => _HourControlState();
+}
+
+class _HourControlState extends State<_HourControl> {
+  FixedExtentScrollController _scrollController;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = FixedExtentScrollController(initialItem: _itemForSelectedTime);
+  }
+
+  @override
+  void didUpdateWidget(_HourControl oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.fragmentContext != oldWidget.fragmentContext) {
+      _scrollController.animateToItem(
+        _itemForSelectedTime,
+        duration: _kDigitAnimateDuration,
+        curve: _kDigitAnimateCurve,
+      );
+    }
+  }
+
+  int get _itemForSelectedTime {
+    final int hour = widget.fragmentContext.selectedTime.hour;
+    return widget.fragmentContext.use24HourDials ? hour : hour % TimeOfDay.hoursPerPeriod;
+  }
+
+  @override
   Widget build(BuildContext context) {
     assert(debugCheckHasMediaQuery(context));
-    final bool alwaysUse24HourFormat = MediaQuery.of(context).alwaysUse24HourFormat;
     final MaterialLocalizations localizations = MaterialLocalizations.of(context);
-    final TextStyle hourStyle = fragmentContext.mode == _TimePickerMode.hour
-        ? fragmentContext.activeStyle
-        : fragmentContext.inactiveStyle;
+    final TextStyle hourStyle = widget.fragmentContext.mode == _TimePickerMode.hour
+        ? widget.fragmentContext.activeStyle
+        : widget.fragmentContext.inactiveStyle;
     final String formattedHour = localizations.formatHour(
-      fragmentContext.selectedTime,
-      alwaysUse24HourFormat: alwaysUse24HourFormat,
+      widget.fragmentContext.selectedTime,
+      alwaysUse24HourFormat: widget.fragmentContext.use24HourDials,
     );
-    final Color backgroundColor = fragmentContext.mode == _TimePickerMode.hour
-        ? fragmentContext.activeColor.withOpacity(0.12)
-        : fragmentContext.inactiveColor.withOpacity(0.06);
+    final Color backgroundColor = widget.fragmentContext.mode == _TimePickerMode.hour
+        ? widget.fragmentContext.activeColor.withOpacity(0.12)
+        : widget.fragmentContext.inactiveColor.withOpacity(0.06);
     final ShapeBorder shape = TimePickerTheme.of(context).hourMinuteShape ?? _kDefaultShape;
 
     TimeOfDay hoursFromSelected(int hoursToAdd) {
-      if (fragmentContext.use24HourDials) {
-        final int selectedHour = fragmentContext.selectedTime.hour;
-        return fragmentContext.selectedTime.replacing(
+      if (widget.fragmentContext.use24HourDials) {
+        final int selectedHour = widget.fragmentContext.selectedTime.hour;
+        return widget.fragmentContext.selectedTime.replacing(
           hour: (selectedHour + hoursToAdd) % TimeOfDay.hoursPerDay,
         );
       } else {
         // Cycle 1 through 12 without changing day period.
-        final int periodOffset = fragmentContext.selectedTime.periodOffset;
-        final int hours = fragmentContext.selectedTime.hourOfPeriod;
-        return fragmentContext.selectedTime.replacing(
+        final int periodOffset = widget.fragmentContext.selectedTime.periodOffset;
+        final int hours = widget.fragmentContext.selectedTime.hourOfPeriod;
+        return widget.fragmentContext.selectedTime.replacing(
           hour: periodOffset + (hours + hoursToAdd) % TimeOfDay.hoursPerPeriod,
         );
       }
@@ -275,13 +306,14 @@ class _HourControl extends StatelessWidget {
     final TimeOfDay nextHour = hoursFromSelected(1);
     final String formattedNextHour = localizations.formatHour(
       nextHour,
-      alwaysUse24HourFormat: alwaysUse24HourFormat,
+      alwaysUse24HourFormat: widget.fragmentContext.use24HourDials,
     );
     final TimeOfDay previousHour = hoursFromSelected(-1);
     final String formattedPreviousHour = localizations.formatHour(
       previousHour,
-      alwaysUse24HourFormat: alwaysUse24HourFormat,
+      alwaysUse24HourFormat: widget.fragmentContext.use24HourDials,
     );
+    final int totalHours = widget.fragmentContext.use24HourDials ? TimeOfDay.hoursPerDay : TimeOfDay.hoursPerPeriod;
 
     return Semantics(
       hint: localizations.timePickerHourModeAnnouncement,
@@ -289,11 +321,11 @@ class _HourControl extends StatelessWidget {
       excludeSemantics: true,
       increasedValue: formattedNextHour,
       onIncrease: () {
-        fragmentContext.onTimeChange(nextHour);
+        widget.fragmentContext.onTimeChange(nextHour);
       },
       decreasedValue: formattedPreviousHour,
       onDecrease: () {
-        fragmentContext.onTimeChange(previousHour);
+        widget.fragmentContext.onTimeChange(previousHour);
       },
       child: Container(
         height: _kTimePickerHeaderControlHeight,
@@ -302,12 +334,26 @@ class _HourControl extends StatelessWidget {
           clipBehavior: Clip.antiAlias,
           shape: shape,
           child: InkWell(
-            onTap: Feedback.wrapForTap(() => fragmentContext.onModeChange(_TimePickerMode.hour), context),
-            child: Center(
-              child: Text(
-                formattedHour,
-                style: hourStyle,
-                textScaleFactor: 1.0,
+            onTap: Feedback.wrapForTap(() => widget.fragmentContext.onModeChange(_TimePickerMode.hour), context),
+            child: IgnorePointer(
+              child: ListWheelScrollView.useDelegate(
+                controller: _scrollController,
+                itemExtent: _kTimePickerHeaderControlHeight,
+                childDelegate: ListWheelChildLoopingListDelegate(
+                  children: <Widget>[
+                    for (int i = 0; i < totalHours; i++)
+                      Center(
+                        child: Text(
+                          localizations.formatHour(
+                            TimeOfDay(hour: i, minute: 0),
+                            alwaysUse24HourFormat: widget.fragmentContext.use24HourDials,
+                          ),
+                          style: hourStyle,
+                          textScaleFactor: 1.0,
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -361,7 +407,7 @@ class _StringFragment extends StatelessWidget {
 /// Displays the minute fragment.
 ///
 /// When tapped changes time picker dial mode to [_TimePickerMode.minute].
-class _MinuteControl extends StatelessWidget {
+class _MinuteControl extends StatefulWidget {
   const _MinuteControl({
     @required this.fragmentContext,
   });
@@ -369,23 +415,48 @@ class _MinuteControl extends StatelessWidget {
   final _TimePickerFragmentContext fragmentContext;
 
   @override
+  _MinuteControlState createState() => _MinuteControlState();
+}
+
+class _MinuteControlState extends State<_MinuteControl> {
+  FixedExtentScrollController _scrollController;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = FixedExtentScrollController(initialItem: widget.fragmentContext.selectedTime.minute);
+  }
+
+  @override
+  void didUpdateWidget(_MinuteControl oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.fragmentContext != oldWidget.fragmentContext) {
+      _scrollController.animateToItem(
+        widget.fragmentContext.selectedTime.minute,
+        duration: _kDigitAnimateDuration,
+        curve: _kDigitAnimateCurve,
+      );
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final MaterialLocalizations localizations = MaterialLocalizations.of(context);
-    final TextStyle minuteStyle = fragmentContext.mode == _TimePickerMode.minute
-        ? fragmentContext.activeStyle
-        : fragmentContext.inactiveStyle;
-    final String formattedMinute = localizations.formatMinute(fragmentContext.selectedTime);
-    final TimeOfDay nextMinute = fragmentContext.selectedTime.replacing(
-      minute: (fragmentContext.selectedTime.minute + 1) % TimeOfDay.minutesPerHour,
+    final TextStyle minuteStyle = widget.fragmentContext.mode == _TimePickerMode.minute
+        ? widget.fragmentContext.activeStyle
+        : widget.fragmentContext.inactiveStyle;
+    final String formattedMinute = localizations.formatMinute(widget.fragmentContext.selectedTime);
+    final TimeOfDay nextMinute = widget.fragmentContext.selectedTime.replacing(
+      minute: (widget.fragmentContext.selectedTime.minute + 1) % TimeOfDay.minutesPerHour,
     );
     final String formattedNextMinute = localizations.formatMinute(nextMinute);
-    final TimeOfDay previousMinute = fragmentContext.selectedTime.replacing(
-      minute: (fragmentContext.selectedTime.minute - 1) % TimeOfDay.minutesPerHour,
+    final TimeOfDay previousMinute = widget.fragmentContext.selectedTime.replacing(
+      minute: (widget.fragmentContext.selectedTime.minute - 1) % TimeOfDay.minutesPerHour,
     );
     final String formattedPreviousMinute = localizations.formatMinute(previousMinute);
-    final Color backgroundColor = fragmentContext.mode == _TimePickerMode.minute
-        ? fragmentContext.activeColor.withOpacity(0.12)
-        : fragmentContext.inactiveColor.withOpacity(0.06);
+    final Color backgroundColor = widget.fragmentContext.mode == _TimePickerMode.minute
+        ? widget.fragmentContext.activeColor.withOpacity(0.12)
+        : widget.fragmentContext.inactiveColor.withOpacity(0.06);
     final ShapeBorder shape = TimePickerTheme.of(context).hourMinuteShape ?? _kDefaultShape;
 
     return Semantics(
@@ -394,11 +465,11 @@ class _MinuteControl extends StatelessWidget {
       value: formattedMinute,
       increasedValue: formattedNextMinute,
       onIncrease: () {
-        fragmentContext.onTimeChange(nextMinute);
+        widget.fragmentContext.onTimeChange(nextMinute);
       },
       decreasedValue: formattedPreviousMinute,
       onDecrease: () {
-        fragmentContext.onTimeChange(previousMinute);
+        widget.fragmentContext.onTimeChange(previousMinute);
       },
       child: Container(
         height: _kTimePickerHeaderControlHeight,
@@ -407,12 +478,23 @@ class _MinuteControl extends StatelessWidget {
           clipBehavior: Clip.antiAlias,
           shape: shape,
           child: InkWell(
-            onTap: Feedback.wrapForTap(() => fragmentContext.onModeChange(_TimePickerMode.minute), context),
-            child: Center(
-              child: Text(
-                formattedMinute,
-                style: minuteStyle,
-                textScaleFactor: 1.0,
+            onTap: Feedback.wrapForTap(() => widget.fragmentContext.onModeChange(_TimePickerMode.minute), context),
+            child: IgnorePointer(
+              child: ListWheelScrollView.useDelegate(
+                controller: _scrollController,
+                itemExtent: _kTimePickerHeaderControlHeight,
+                childDelegate: ListWheelChildLoopingListDelegate(
+                  children: <Widget>[
+                    for (int i = 0; i < TimeOfDay.minutesPerHour; i++)
+                      Center(
+                        child: Text(
+                          localizations.formatMinute(TimeOfDay(hour: 0, minute: i)),
+                          style: minuteStyle,
+                          textScaleFactor: 1.0,
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ),
           ),
