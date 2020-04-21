@@ -8,6 +8,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/src/material/curves.dart';
 import 'package:flutter/widgets.dart';
 
 import 'button_bar.dart';
@@ -30,7 +31,7 @@ import 'time_picker_theme.dart';
 // Examples can assume:
 // BuildContext context;
 
-const Duration _kDialAnimateDuration = Duration(milliseconds: 200);
+const Duration _kDialAnimateDuration = Duration(milliseconds: 75);
 const double _kTwoPi = 2 * math.pi;
 const Duration _kVibrateCommitDelay = Duration(milliseconds: 100);
 
@@ -900,7 +901,7 @@ class _DialState extends State<_Dial> with SingleTickerProviderStateMixin {
     );
     _thetaTween = Tween<double>(begin: _getThetaForTime(widget.selectedTime));
     _theta = _thetaController
-      .drive(CurveTween(curve: Curves.fastOutSlowIn))
+      .drive(CurveTween(curve: standardEasing))
       .drive(_thetaTween)
       ..addListener(() => setState(() { /* _theta.value has changed */ }));
   }
