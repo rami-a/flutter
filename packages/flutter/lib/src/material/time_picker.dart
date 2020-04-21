@@ -709,11 +709,6 @@ class _RenderInputPadding extends RenderShiftedBox {
   }
 }
 
-enum _DialRing {
-  outer,
-  inner,
-}
-
 class _TappableLabel {
   _TappableLabel({
     @required this.value,
@@ -733,26 +728,20 @@ class _TappableLabel {
 
 class _DialPainter extends CustomPainter {
   _DialPainter({
-    @required this.primaryOuterLabels,
-    @required this.primaryInnerLabels,
-    @required this.secondaryOuterLabels,
-    @required this.secondaryInnerLabels,
+    @required this.primaryLabels,
+    @required this.secondaryLabels,
     @required this.backgroundColor,
     @required this.accentColor,
     @required this.theta,
-    @required this.activeRing,
     @required this.textDirection,
     @required this.selectedValue,
   }) : super(repaint: PaintingBinding.instance.systemFonts);
 
-  final List<_TappableLabel> primaryOuterLabels;
-  final List<_TappableLabel> primaryInnerLabels;
-  final List<_TappableLabel> secondaryOuterLabels;
-  final List<_TappableLabel> secondaryInnerLabels;
+  final List<_TappableLabel> primaryLabels;
+  final List<_TappableLabel> secondaryLabels;
   final Color backgroundColor;
   final Color accentColor;
   final double theta;
-  final _DialRing activeRing;
   final TextDirection textDirection;
   final int selectedValue;
 
@@ -764,23 +753,13 @@ class _DialPainter extends CustomPainter {
     canvas.drawCircle(centerPoint, radius, Paint()..color = backgroundColor);
 
     const double labelPadding = 24.0;
-    final double outerLabelRadius = radius - labelPadding;
-    final double innerLabelRadius = radius - labelPadding * 2.5;
-    Offset getOffsetForTheta(double theta, _DialRing ring) {
-      double labelRadius;
-      switch (ring) {
-        case _DialRing.outer:
-          labelRadius = outerLabelRadius;
-          break;
-        case _DialRing.inner:
-          labelRadius = innerLabelRadius;
-          break;
-      }
+    final double labelRadius = radius - labelPadding;
+    Offset getOffsetForTheta(double theta) {
       return center + Offset(labelRadius * math.cos(theta),
                                  -labelRadius * math.sin(theta));
     }
 
-    void paintLabels(List<_TappableLabel> labels, _DialRing ring) {
+    void paintLabels(List<_TappableLabel> labels) {
       if (labels == null)
         return;
       final double labelThetaIncrement = -_kTwoPi / labels.length;
@@ -789,17 +768,16 @@ class _DialPainter extends CustomPainter {
       for (final _TappableLabel label in labels) {
         final TextPainter labelPainter = label.painter;
         final Offset labelOffset = Offset(-labelPainter.width / 2.0, -labelPainter.height / 2.0);
-        labelPainter.paint(canvas, getOffsetForTheta(labelTheta, ring) + labelOffset);
+        labelPainter.paint(canvas, getOffsetForTheta(labelTheta) + labelOffset);
         labelTheta += labelThetaIncrement;
       }
     }
 
-    paintLabels(primaryOuterLabels, _DialRing.outer);
-    paintLabels(primaryInnerLabels, _DialRing.inner);
+    paintLabels(primaryLabels);
 
     final Paint selectorPaint = Paint()
       ..color = accentColor;
-    final Offset focusedPoint = getOffsetForTheta(theta, activeRing);
+    final Offset focusedPoint = getOffsetForTheta(theta);
     const double focusedRadius = labelPadding - 4.0;
     canvas.drawCircle(centerPoint, 4.0, selectorPaint);
     canvas.drawCircle(focusedPoint, focusedRadius, selectorPaint);
@@ -812,8 +790,7 @@ class _DialPainter extends CustomPainter {
     canvas
       ..save()
       ..clipPath(Path()..addOval(focusedRect));
-    paintLabels(secondaryOuterLabels, _DialRing.outer);
-    paintLabels(secondaryInnerLabels, _DialRing.inner);
+    paintLabels(secondaryLabels);
     canvas.restore();
   }
 
@@ -831,30 +808,19 @@ class _DialPainter extends CustomPainter {
     final double radius = size.shortestSide / 2.0;
     final Offset center = Offset(size.width / 2.0, size.height / 2.0);
     const double labelPadding = 24.0;
-    final double outerLabelRadius = radius - labelPadding;
-    final double innerLabelRadius = radius - labelPadding * 2.5;
+    final double labelRadius = radius - labelPadding;
 
-    Offset getOffsetForTheta(double theta, _DialRing ring) {
-      double labelRadius;
-      switch (ring) {
-        case _DialRing.outer:
-          labelRadius = outerLabelRadius;
-          break;
-        case _DialRing.inner:
-          labelRadius = innerLabelRadius;
-          break;
-      }
+    Offset getOffsetForTheta(double theta) {
       return center + Offset(labelRadius * math.cos(theta),
           -labelRadius * math.sin(theta));
     }
 
     final List<CustomPainterSemantics> nodes = <CustomPainterSemantics>[];
 
-    void paintLabels(List<_TappableLabel> labels, _DialRing ring) {
+    void paintLabels(List<_TappableLabel> labels) {
       if (labels == null)
         return;
       final double labelThetaIncrement = -_kTwoPi / labels.length;
-      final double ordinalOffset = ring == _DialRing.inner ? 12.0 : 0.0;
       double labelTheta = math.pi / 2.0;
 
       for (int i = 0; i < labels.length; i++) {
@@ -862,7 +828,7 @@ class _DialPainter extends CustomPainter {
         final TextPainter labelPainter = label.painter;
         final double width = labelPainter.width * _semanticNodeSizeScale;
         final double height = labelPainter.height * _semanticNodeSizeScale;
-        final Offset nodeOffset = getOffsetForTheta(labelTheta, ring) + Offset(-width / 2.0, -height / 2.0);
+        final Offset nodeOffset = getOffsetForTheta(labelTheta) + Offset(-width / 2.0, -height / 2.0);
         final TextSpan textSpan = labelPainter.text as TextSpan;
         final CustomPainterSemantics node = CustomPainterSemantics(
           rect: Rect.fromLTRB(
@@ -872,7 +838,7 @@ class _DialPainter extends CustomPainter {
             nodeOffset.dy + 24.0 + height / 2,
           ),
           properties: SemanticsProperties(
-            sortKey: OrdinalSortKey(i.toDouble() + ordinalOffset),
+            sortKey: OrdinalSortKey(i.toDouble()),
             selected: label.value == selectedValue,
             value: textSpan?.text,
             textDirection: textDirection,
@@ -888,22 +854,18 @@ class _DialPainter extends CustomPainter {
       }
     }
 
-    paintLabels(primaryOuterLabels, _DialRing.outer);
-    paintLabels(primaryInnerLabels, _DialRing.inner);
+    paintLabels(primaryLabels);
 
     return nodes;
   }
 
   @override
   bool shouldRepaint(_DialPainter oldPainter) {
-    return oldPainter.primaryOuterLabels != primaryOuterLabels
-        || oldPainter.primaryInnerLabels != primaryInnerLabels
-        || oldPainter.secondaryOuterLabels != secondaryOuterLabels
-        || oldPainter.secondaryInnerLabels != secondaryInnerLabels
+    return oldPainter.primaryLabels != primaryLabels
+        || oldPainter.secondaryLabels != secondaryLabels
         || oldPainter.backgroundColor != backgroundColor
         || oldPainter.accentColor != accentColor
-        || oldPainter.theta != theta
-        || oldPainter.activeRing != activeRing;
+        || oldPainter.theta != theta;
   }
 }
 
@@ -932,7 +894,6 @@ class _DialState extends State<_Dial> with SingleTickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    _updateDialRingFromWidget();
     _thetaController = AnimationController(
       duration: _kDialAnimateDuration,
       vsync: this,
@@ -960,20 +921,9 @@ class _DialState extends State<_Dial> with SingleTickerProviderStateMixin {
   @override
   void didUpdateWidget(_Dial oldWidget) {
     super.didUpdateWidget(oldWidget);
-    _updateDialRingFromWidget();
     if (widget.mode != oldWidget.mode || widget.selectedTime != oldWidget.selectedTime) {
       if (!_dragging)
         _animateTo(_getThetaForTime(widget.selectedTime));
-    }
-  }
-
-  void _updateDialRingFromWidget() {
-    if (widget.mode == _TimePickerMode.hour && widget.use24HourDials) {
-      _activeRing = widget.selectedTime.hour >= 1 && widget.selectedTime.hour <= 12
-          ? _DialRing.inner
-          : _DialRing.outer;
-    } else {
-      _activeRing = _DialRing.outer;
     }
   }
 
@@ -1005,8 +955,9 @@ class _DialState extends State<_Dial> with SingleTickerProviderStateMixin {
   }
 
   double _getThetaForTime(TimeOfDay time) {
+    final int hoursFactor = widget.use24HourDials ? TimeOfDay.hoursPerDay : TimeOfDay.hoursPerPeriod;
     final double fraction = widget.mode == _TimePickerMode.hour
-      ? (time.hour / TimeOfDay.hoursPerPeriod) % TimeOfDay.hoursPerPeriod
+      ? (time.hour / hoursFactor) % hoursFactor
       : (time.minute / TimeOfDay.minutesPerHour) % TimeOfDay.minutesPerHour;
     return (math.pi / 2.0 - fraction * _kTwoPi) % _kTwoPi;
   }
@@ -1014,15 +965,11 @@ class _DialState extends State<_Dial> with SingleTickerProviderStateMixin {
   TimeOfDay _getTimeForTheta(double theta, {bool roundMinutes = false}) {
     final double fraction = (0.25 - (theta % _kTwoPi) / _kTwoPi) % 1.0;
     if (widget.mode == _TimePickerMode.hour) {
-      int newHour = (fraction * TimeOfDay.hoursPerPeriod).round() % TimeOfDay.hoursPerPeriod;
+      int newHour;
       if (widget.use24HourDials) {
-        if (_activeRing == _DialRing.outer) {
-          if (newHour != 0)
-            newHour = (newHour + TimeOfDay.hoursPerPeriod) % TimeOfDay.hoursPerDay;
-        } else if (newHour == 0) {
-          newHour = TimeOfDay.hoursPerPeriod;
-        }
+        newHour = (fraction * TimeOfDay.hoursPerDay).round() % TimeOfDay.hoursPerDay;
       } else {
+        newHour = (fraction * TimeOfDay.hoursPerPeriod).round() % TimeOfDay.hoursPerPeriod;
         newHour = newHour + widget.selectedTime.periodOffset;
       }
       return widget.selectedTime.replacing(hour: newHour);
@@ -1057,20 +1004,11 @@ class _DialState extends State<_Dial> with SingleTickerProviderStateMixin {
       _thetaTween
         ..begin = angle
         ..end = angle; // The controller doesn't animate during the pan gesture.
-      final RenderBox box = context.findRenderObject() as RenderBox;
-      final double radius = box.size.shortestSide / 2.0;
-      if (widget.mode == _TimePickerMode.hour && widget.use24HourDials) {
-        if (offset.distance * 1.5 < radius)
-          _activeRing = _DialRing.inner;
-        else
-          _activeRing = _DialRing.outer;
-      }
     });
   }
 
   Offset _position;
   Offset _center;
-  _DialRing _activeRing = _DialRing.outer;
 
   void _handlePanStart(DragStartDetails details) {
     assert(!_dragging);
@@ -1129,12 +1067,8 @@ class _DialState extends State<_Dial> with SingleTickerProviderStateMixin {
     _announceToAccessibility(context, localizations.formatDecimal(hour));
     TimeOfDay time;
     if (widget.mode == _TimePickerMode.hour && widget.use24HourDials) {
-      _activeRing = hour >= 1 && hour <= 12
-          ? _DialRing.inner
-          : _DialRing.outer;
       time = TimeOfDay(hour: hour, minute: widget.selectedTime.minute);
     } else {
-      _activeRing = _DialRing.outer;
       if (widget.selectedTime.period == DayPeriod.am) {
         time = TimeOfDay(hour: hour, minute: widget.selectedTime.minute);
       } else {
@@ -1176,19 +1110,19 @@ class _DialState extends State<_Dial> with SingleTickerProviderStateMixin {
     TimeOfDay(hour: 11, minute: 0),
   ];
 
-  static const List<TimeOfDay> _pmHours = <TimeOfDay>[
+  static const List<TimeOfDay> _twentyFourHours = <TimeOfDay>[
     TimeOfDay(hour: 0, minute: 0),
-    TimeOfDay(hour: 13, minute: 0),
+    TimeOfDay(hour: 2, minute: 0),
+    TimeOfDay(hour: 4, minute: 0),
+    TimeOfDay(hour: 6, minute: 0),
+    TimeOfDay(hour: 8, minute: 0),
+    TimeOfDay(hour: 10, minute: 0),
+    TimeOfDay(hour: 12, minute: 0),
     TimeOfDay(hour: 14, minute: 0),
-    TimeOfDay(hour: 15, minute: 0),
     TimeOfDay(hour: 16, minute: 0),
-    TimeOfDay(hour: 17, minute: 0),
     TimeOfDay(hour: 18, minute: 0),
-    TimeOfDay(hour: 19, minute: 0),
     TimeOfDay(hour: 20, minute: 0),
-    TimeOfDay(hour: 21, minute: 0),
     TimeOfDay(hour: 22, minute: 0),
-    TimeOfDay(hour: 23, minute: 0),
   ];
 
   _TappableLabel _buildTappableLabel(TextTheme textTheme, int value, String label, VoidCallback onTap) {
@@ -1205,8 +1139,8 @@ class _DialState extends State<_Dial> with SingleTickerProviderStateMixin {
     );
   }
 
-  List<_TappableLabel> _build24HourInnerRing(TextTheme textTheme) => <_TappableLabel>[
-    for (final TimeOfDay timeOfDay in _amHours)
+  List<_TappableLabel> _build24HourRing(TextTheme textTheme) => <_TappableLabel>[
+    for (final TimeOfDay timeOfDay in _twentyFourHours)
       _buildTappableLabel(
         textTheme,
         timeOfDay.hour,
@@ -1217,19 +1151,7 @@ class _DialState extends State<_Dial> with SingleTickerProviderStateMixin {
       ),
   ];
 
-  List<_TappableLabel> _build24HourOuterRing(TextTheme textTheme) => <_TappableLabel>[
-    for (final TimeOfDay timeOfDay in _pmHours)
-      _buildTappableLabel(
-        textTheme,
-        timeOfDay.hour,
-        localizations.formatHour(timeOfDay, alwaysUse24HourFormat: media.alwaysUse24HourFormat),
-        () {
-          _selectHour(timeOfDay.hour);
-        },
-      ),
-  ];
-
-  List<_TappableLabel> _build12HourOuterRing(TextTheme textTheme) => <_TappableLabel>[
+  List<_TappableLabel> _build12HourRing(TextTheme textTheme) => <_TappableLabel>[
     for (final TimeOfDay timeOfDay in _amHours)
       _buildTappableLabel(
         textTheme,
@@ -1286,31 +1208,25 @@ class _DialState extends State<_Dial> with SingleTickerProviderStateMixin {
 
     final Color accentColor = TimePickerTheme.of(context).dialHandColor ?? themeData.colorScheme.primary;
     final ThemeData theme = Theme.of(context);
-    List<_TappableLabel> primaryOuterLabels;
-    List<_TappableLabel> primaryInnerLabels;
-    List<_TappableLabel> secondaryOuterLabels;
-    List<_TappableLabel> secondaryInnerLabels;
+    List<_TappableLabel> primaryLabels;
+    List<_TappableLabel> secondaryLabels;
     int selectedDialValue;
     switch (widget.mode) {
       case _TimePickerMode.hour:
         if (widget.use24HourDials) {
           selectedDialValue = widget.selectedTime.hour;
-          primaryOuterLabels = _build24HourOuterRing(theme.textTheme);
-          secondaryOuterLabels = _build24HourOuterRing(theme.accentTextTheme);
-          primaryInnerLabels = _build24HourInnerRing(theme.textTheme);
-          secondaryInnerLabels = _build24HourInnerRing(theme.accentTextTheme);
+          primaryLabels = _build24HourRing(theme.textTheme);
+          secondaryLabels = _build24HourRing(theme.accentTextTheme);
         } else {
           selectedDialValue = widget.selectedTime.hourOfPeriod;
-          primaryOuterLabels = _build12HourOuterRing(theme.textTheme);
-          secondaryOuterLabels = _build12HourOuterRing(theme.accentTextTheme);
+          primaryLabels = _build12HourRing(theme.textTheme);
+          secondaryLabels = _build12HourRing(theme.accentTextTheme);
         }
         break;
       case _TimePickerMode.minute:
         selectedDialValue = widget.selectedTime.minute;
-        primaryOuterLabels = _buildMinutes(theme.textTheme);
-        primaryInnerLabels = null;
-        secondaryOuterLabels = _buildMinutes(theme.accentTextTheme);
-        secondaryInnerLabels = null;
+        primaryLabels = _buildMinutes(theme.textTheme);
+        secondaryLabels = _buildMinutes(theme.accentTextTheme);
         break;
     }
 
@@ -1324,14 +1240,11 @@ class _DialState extends State<_Dial> with SingleTickerProviderStateMixin {
         key: const ValueKey<String>('time-picker-dial'),
         painter: _DialPainter(
           selectedValue: selectedDialValue,
-          primaryOuterLabels: primaryOuterLabels,
-          primaryInnerLabels: primaryInnerLabels,
-          secondaryOuterLabels: secondaryOuterLabels,
-          secondaryInnerLabels: secondaryInnerLabels,
+          primaryLabels: primaryLabels,
+          secondaryLabels: secondaryLabels,
           backgroundColor: backgroundColor,
           accentColor: accentColor,
           theta: _theta.value,
-          activeRing: _activeRing,
           textDirection: Directionality.of(context),
         ),
       ),
