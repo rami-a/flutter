@@ -5,7 +5,6 @@
 import 'dart:async';
 import 'dart:math' as math;
 
-import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -14,13 +13,20 @@ import 'button_bar.dart';
 import 'button_theme.dart';
 import 'color_scheme.dart';
 import 'colors.dart';
+import 'constants.dart';
+import 'curves.dart';
 import 'debug.dart';
 import 'dialog.dart';
 import 'feedback.dart';
 import 'flat_button.dart';
+import 'icon_button.dart';
+import 'icons.dart';
 import 'ink_well.dart';
+import 'input_border.dart';
+import 'input_decorator.dart';
 import 'material.dart';
 import 'material_localizations.dart';
+import 'text_form_field.dart';
 import 'text_theme.dart';
 import 'theme.dart';
 import 'theme_data.dart';
@@ -30,7 +36,7 @@ import 'time_picker_theme.dart';
 // Examples can assume:
 // BuildContext context;
 
-const Duration _kDialAnimateDuration = Duration(milliseconds: 200);
+const Duration _kDialAnimateDuration = Duration(milliseconds: 75);
 const double _kTwoPi = 2 * math.pi;
 const Duration _kVibrateCommitDelay = Duration(milliseconds: 100);
 
@@ -900,7 +906,7 @@ class _DialState extends State<_Dial> with SingleTickerProviderStateMixin {
     );
     _thetaTween = Tween<double>(begin: _getThetaForTime(widget.selectedTime));
     _theta = _thetaController
-      .drive(CurveTween(curve: Curves.fastOutSlowIn))
+      .drive(CurveTween(curve: standardEasing))
       .drive(_thetaTween)
       ..addListener(() => setState(() { /* _theta.value has changed */ }));
   }
