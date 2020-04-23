@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:meta/meta.dart';
+import 'package:vm_service/vm_service.dart' as vm_service;
 
 import 'android/android_device_discovery.dart';
 import 'android/android_workflow.dart';
@@ -25,7 +26,6 @@ import 'linux/linux_device.dart';
 import 'macos/macos_device.dart';
 import 'project.dart';
 import 'tester/flutter_tester.dart';
-import 'vmservice.dart';
 import 'web/web_device.dart';
 import 'windows/windows_device.dart';
 
@@ -90,7 +90,13 @@ class DeviceManager {
       featureFlags: featureFlags,
     ),
     WindowsDevices(),
-    WebDevices(),
+    WebDevices(
+      featureFlags: featureFlags,
+      fileSystem: globals.fs,
+      logger: globals.logger,
+      platform: globals.platform,
+      processManager: globals.processManager,
+    ),
   ]);
 
   String _specifiedDeviceId;
@@ -538,6 +544,28 @@ abstract class Device {
     await descriptions(devices).forEach(globals.printStatus);
   }
 
+  /// Convert the Device object to a JSON representation suitable for serialization.
+  Future<Map<String, Object>> toJson() async {
+    final bool isLocalEmu = await isLocalEmulator;
+    return <String, Object>{
+      'name': name,
+      'id': id,
+      'isSupported': isSupported(),
+      'targetPlatform': getNameForTargetPlatform(await targetPlatform),
+      'emulator': isLocalEmu,
+      'sdk': await sdkNameAndVersion,
+      'capabilities': <String, Object>{
+        'hotReload': supportsHotReload,
+        'hotRestart': supportsHotRestart,
+        'screenshot': supportsScreenshot,
+        'fastStart': supportsFastStart,
+        'flutterExit': supportsFlutterExit,
+        'hardwareRendering': isLocalEmu && await supportsHardwareRendering,
+        'startPaused': supportsStartPaused,
+      }
+    };
+  }
+
   /// Clean up resources allocated by device
   ///
   /// For example log readers or port forwarders.
@@ -585,8 +613,10 @@ class DebuggingOptions {
     this.hostname,
     this.port,
     this.webEnableExposeUrl,
+    this.webUseSseForDebugProxy = true,
     this.webRunHeadless = false,
     this.webBrowserDebugPort,
+    this.webEnableExpressionEvaluation = false,
     this.vmserviceOutFile,
     this.fastStart = false,
    }) : debuggingEnabled = true;
@@ -596,6 +626,7 @@ class DebuggingOptions {
       this.port,
       this.hostname,
       this.webEnableExposeUrl,
+      this.webUseSseForDebugProxy = true,
       this.webRunHeadless = false,
       this.webBrowserDebugPort,
       this.cacheSkSL = false,
@@ -615,7 +646,8 @@ class DebuggingOptions {
       hostVmServicePort = null,
       deviceVmServicePort = null,
       vmserviceOutFile = null,
-      fastStart = false;
+      fastStart = false,
+      webEnableExpressionEvaluation = false;
 
   final bool debuggingEnabled;
 
@@ -640,6 +672,7 @@ class DebuggingOptions {
   final String port;
   final String hostname;
   final bool webEnableExposeUrl;
+  final bool webUseSseForDebugProxy;
 
   /// Whether to run the browser in headless mode.
   ///
@@ -650,6 +683,9 @@ class DebuggingOptions {
 
   /// The port the browser should use for its debugging protocol.
   final int webBrowserDebugPort;
+
+  /// Enable expression evaluation for web target
+  final bool webEnableExpressionEvaluation;
 
   /// A file where the vmservice URL should be written after the application is started.
   final String vmserviceOutFile;
@@ -725,7 +761,7 @@ abstract class DeviceLogReader {
 
   /// Some logs can be obtained from a VM service stream.
   /// Set this after the VM services are connected.
-  VMService connectedVMService;
+  vm_service.VmService connectedVMService;
 
   @override
   String toString() => name;
@@ -755,7 +791,7 @@ class NoOpDeviceLogReader implements DeviceLogReader {
   int appPid;
 
   @override
-  VMService connectedVMService;
+  vm_service.VmService connectedVMService;
 
   @override
   Stream<String> get logLines => const Stream<String>.empty();

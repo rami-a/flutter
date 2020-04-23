@@ -78,7 +78,7 @@ export 'package:flutter/services.dart' show SmartQuotesType, SmartDashesType;
 ///         shortcuts: <LogicalKeySet, Intent>{
 ///           // Pressing enter on the field will now move to the next field.
 ///           LogicalKeySet(LogicalKeyboardKey.enter):
-///               Intent(NextFocusAction.key),
+///               NextFocusIntent(),
 ///         },
 ///         child: FocusTraversalGroup(
 ///           child: Form(
@@ -307,6 +307,14 @@ class _TextFormFieldState extends FormFieldState<String> {
   void dispose() {
     widget.controller?.removeListener(_handleControllerChanged);
     super.dispose();
+  }
+
+  @override
+  void didChange(String value) {
+    super.didChange(value);
+
+    if (_effectiveController.text != value)
+      _effectiveController.text = value;
   }
 
   @override

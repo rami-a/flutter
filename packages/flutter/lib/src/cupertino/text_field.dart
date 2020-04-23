@@ -268,6 +268,7 @@ class CupertinoTextField extends StatefulWidget {
     this.onTap,
     this.scrollController,
     this.scrollPhysics,
+    this.autofillHints,
   }) : assert(textAlign != null),
        assert(readOnly != null),
        assert(autofocus != null),
@@ -578,6 +579,9 @@ class CupertinoTextField extends StatefulWidget {
 
   /// {@macro flutter.material.textfield.onTap}
   final GestureTapCallback onTap;
+
+  /// {@macro flutter.widgets.editableText.autofillHints}
+  final Iterable<String> autofillHints;
 
   @override
   _CupertinoTextFieldState createState() => _CupertinoTextFieldState();
@@ -897,6 +901,8 @@ class _CupertinoTextFieldState extends State<CupertinoTextField> with AutomaticK
       color: enabled ? decorationColor : (decorationColor ?? disabledColor),
     );
 
+    final Color selectionColor = CupertinoTheme.of(context).primaryColor.withOpacity(0.2);
+
     final Widget paddedEditable = Padding(
       padding: widget.padding,
       child: RepaintBoundary(
@@ -923,7 +929,7 @@ class _CupertinoTextFieldState extends State<CupertinoTextField> with AutomaticK
           maxLines: widget.maxLines,
           minLines: widget.minLines,
           expands: widget.expands,
-          selectionColor: CupertinoTheme.of(context).primaryColor.withOpacity(0.2),
+          selectionColor: selectionColor,
           selectionControls: widget.selectionEnabled
             ? cupertinoTextSelectionControls : null,
           onChanged: widget.onChanged,
@@ -938,6 +944,7 @@ class _CupertinoTextFieldState extends State<CupertinoTextField> with AutomaticK
           cursorOpacityAnimates: true,
           cursorOffset: cursorOffset,
           paintCursorAboveText: true,
+          autocorrectionTextRectColor: selectionColor,
           backgroundCursorColor: CupertinoDynamicColor.resolve(CupertinoColors.inactiveGray, context),
           selectionHeightStyle: widget.selectionHeightStyle,
           selectionWidthStyle: widget.selectionWidthStyle,
@@ -947,6 +954,7 @@ class _CupertinoTextFieldState extends State<CupertinoTextField> with AutomaticK
           scrollController: widget.scrollController,
           scrollPhysics: widget.scrollPhysics,
           enableInteractiveSelection: widget.enableInteractiveSelection,
+          autofillHints: widget.autofillHints,
         ),
       ),
     );

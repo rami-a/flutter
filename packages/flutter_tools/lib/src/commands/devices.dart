@@ -6,13 +6,18 @@ import 'dart:async';
 
 import '../base/common.dart';
 import '../base/utils.dart';
+import '../convert.dart';
 import '../device.dart';
-import '../doctor.dart';
 import '../globals.dart' as globals;
 import '../runner/flutter_command.dart';
 
 class DevicesCommand extends FlutterCommand {
+
   DevicesCommand() {
+    argParser.addFlag('machine',
+      negatable: false,
+      help: 'Output device information in machine readable structured JSON format',
+    );
     argParser.addOption(
       'timeout',
       abbr: 't',
@@ -44,7 +49,7 @@ class DevicesCommand extends FlutterCommand {
 
   @override
   Future<FlutterCommandResult> runCommand() async {
-    if (!doctor.canListAnything) {
+    if (!globals.doctor.canListAnything) {
       throwToolExit(
         "Unable to locate a development device; please run 'flutter doctor' for "
         'information about installing additional components.',
@@ -53,7 +58,9 @@ class DevicesCommand extends FlutterCommand {
 
     final List<Device> devices = await deviceManager.refreshAllConnectedDevices(timeout: timeout);
 
-    if (devices.isEmpty) {
+    if (boolArg('machine')) {
+      await printDevicesAsJson(devices);
+    } else if (devices.isEmpty) {
       final StringBuffer status = StringBuffer('No devices detected.');
       status.writeln();
       status.writeln();
@@ -79,5 +86,13 @@ class DevicesCommand extends FlutterCommand {
     }
 
     return FlutterCommandResult.success();
+  }
+
+  Future<void> printDevicesAsJson(List<Device> devices) async {
+    globals.printStatus(
+      const JsonEncoder.withIndent('  ').convert(
+        await Future.wait(devices.map((Device d) => d.toJson()))
+      )
+    );
   }
 }

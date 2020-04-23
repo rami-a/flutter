@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
@@ -527,6 +528,7 @@ void main() {
     final ImageListener listener = (ImageInfo info, bool synchronous) {
       capturedImage = info;
     };
+    final FlutterExceptionHandler oldHandler = FlutterError.onError;
     FlutterError.onError = (FlutterErrorDetails flutterError) {
       reportedException = flutterError.exception;
       reportedStackTrace = flutterError.stack;
@@ -563,6 +565,7 @@ void main() {
     // The image stream error handler should have the original exception.
     expect(capturedException, testException);
     expect(capturedStackTrace, testStack);
+    FlutterError.onError = oldHandler;
   });
 
   testWidgets('Duplicate listener registration does not affect error listeners', (WidgetTester tester) async {
@@ -1620,6 +1623,63 @@ void main() {
 
     expect(tester.takeException(), 'threw');
   });
+
+  Future<void> _testRotatedImage(WidgetTester tester, bool isAntiAlias) async {
+    final Key key = UniqueKey();
+    await tester.pumpWidget(RepaintBoundary(
+      key: key,
+      child: Transform.rotate(
+        angle: math.pi / 180,
+        child: Image.memory(Uint8List.fromList(kBlueRectPng), isAntiAlias: isAntiAlias),
+      ),
+    ));
+
+    // precacheImage is needed, or the image in the golden file will be empty.
+    if (!kIsWeb) {
+      final Finder allImages = find.byType(Image);
+      for (final Element e in allImages.evaluate()) {
+        await tester.runAsync(() async {
+          final Image image = e.widget as Image;
+          await precacheImage(image.image, e);
+        });
+      }
+      await tester.pumpAndSettle();
+    }
+
+    await expectLater(
+      find.byKey(key),
+      matchesGoldenFile('rotated_image_${isAntiAlias ? 'aa' : 'noaa'}.png'),
+    );
+  }
+
+  testWidgets(
+    'Rotated images',
+    (WidgetTester tester) async {
+      await _testRotatedImage(tester, true);
+      await _testRotatedImage(tester, false);
+    },
+    // TODO(hterkelson): figure out why web timed out with `await precacheImage`
+    // so we can enable this test on web.
+    //
+    // See https://github.com/flutter/flutter/issues/54292.
+    skip: kIsWeb,
+  );
+}
+
+class ImagePainter extends CustomPainter {
+  ImagePainter(this.image);
+
+  @override
+  void paint(ui.Canvas canvas, ui.Size size) {
+    canvas.drawImage(image, Offset.zero, Paint());
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) {
+    return false;
+  }
+
+  final ui.Image image;
 }
 
 @immutable

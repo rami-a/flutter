@@ -12,6 +12,7 @@ import 'package:flutter/widgets.dart';
 import 'app_bar_theme.dart';
 import 'banner_theme.dart';
 import 'bottom_app_bar_theme.dart';
+import 'bottom_navigation_bar_theme.dart';
 import 'bottom_sheet_theme.dart';
 import 'button_bar_theme.dart';
 import 'button_theme.dart';
@@ -267,7 +268,9 @@ class ThemeData with Diagnosticable {
     MaterialBannerThemeData bannerTheme,
     DividerThemeData dividerTheme,
     ButtonBarThemeData buttonBarTheme,
+    BottomNavigationBarThemeData bottomNavigationBarTheme,
     TimePickerThemeData timePickerTheme,
+    bool fixTextFieldOutlineLabel,
   }) {
     brightness ??= Brightness.light;
     final bool isDark = brightness == Brightness.dark;
@@ -376,7 +379,10 @@ class ThemeData with Diagnosticable {
     bannerTheme ??= const MaterialBannerThemeData();
     dividerTheme ??= const DividerThemeData();
     buttonBarTheme ??= const ButtonBarThemeData();
+    bottomNavigationBarTheme ??= const BottomNavigationBarThemeData();
     timePickerTheme ??= const TimePickerThemeData();
+
+    fixTextFieldOutlineLabel ??= false;
 
     return ThemeData.raw(
       brightness: brightness,
@@ -443,7 +449,9 @@ class ThemeData with Diagnosticable {
       bannerTheme: bannerTheme,
       dividerTheme: dividerTheme,
       buttonBarTheme: buttonBarTheme,
+      bottomNavigationBarTheme: bottomNavigationBarTheme,
       timePickerTheme: timePickerTheme,
+      fixTextFieldOutlineLabel: fixTextFieldOutlineLabel,
     );
   }
 
@@ -522,7 +530,9 @@ class ThemeData with Diagnosticable {
     @required this.bannerTheme,
     @required this.dividerTheme,
     @required this.buttonBarTheme,
+    @required this.bottomNavigationBarTheme,
     @required this.timePickerTheme,
+    @required this.fixTextFieldOutlineLabel,
   }) : assert(brightness != null),
        assert(visualDensity != null),
        assert(primaryColor != null),
@@ -584,7 +594,9 @@ class ThemeData with Diagnosticable {
        assert(bannerTheme != null),
        assert(dividerTheme != null),
        assert(buttonBarTheme != null),
-       assert(timePickerTheme != null);
+       assert(bottomNavigationBarTheme != null),
+       assert(timePickerTheme != null),
+       assert(fixTextFieldOutlineLabel != null);
 
   /// Create a [ThemeData] based on the colors in the given [colorScheme] and
   /// text styles of the optional [textTheme].
@@ -1031,8 +1043,24 @@ class ThemeData with Diagnosticable {
   /// A theme for customizing the appearance and layout of [ButtonBar] widgets.
   final ButtonBarThemeData buttonBarTheme;
 
+  /// A theme for customizing the appearance and layout of [BottomNavigationBar]
+  /// widgets.
+  final BottomNavigationBarThemeData bottomNavigationBarTheme;
+
   /// A theme for customizing the appearance and layout of time picker widgets.
   final TimePickerThemeData timePickerTheme;
+
+  /// A temporary flag to allow apps to opt-in to a
+  /// [small fix](https://github.com/flutter/flutter/issues/54028) for the Y
+  /// coordinate of the floating label in a [TextField] [OutlineInputBorder].
+  ///
+  /// Setting this flag to true causes the floating label to be more precisely
+  /// vertically centered relative to the border's outline.
+  ///
+  /// The flag is currently false by default. It will be default true and
+  /// deprecated before the next beta release (1.18), and removed before the next
+  /// stable release (1.19).
+  final bool fixTextFieldOutlineLabel;
 
   /// Creates a copy of this theme but with the given fields replaced with the new values.
   ThemeData copyWith({
@@ -1100,7 +1128,9 @@ class ThemeData with Diagnosticable {
     MaterialBannerThemeData bannerTheme,
     DividerThemeData dividerTheme,
     ButtonBarThemeData buttonBarTheme,
+    BottomNavigationBarThemeData bottomNavigationBarTheme,
     TimePickerThemeData timePickerTheme,
+    bool fixTextFieldOutlineLabel,
   }) {
     cupertinoOverrideTheme = cupertinoOverrideTheme?.noDefault();
     return ThemeData.raw(
@@ -1168,7 +1198,9 @@ class ThemeData with Diagnosticable {
       bannerTheme: bannerTheme ?? this.bannerTheme,
       dividerTheme: dividerTheme ?? this.dividerTheme,
       buttonBarTheme: buttonBarTheme ?? this.buttonBarTheme,
+      bottomNavigationBarTheme: bottomNavigationBarTheme ?? this.bottomNavigationBarTheme,
       timePickerTheme: timePickerTheme ?? this.timePickerTheme,
+      fixTextFieldOutlineLabel: fixTextFieldOutlineLabel ?? this.fixTextFieldOutlineLabel,
     );
   }
 
@@ -1314,7 +1346,9 @@ class ThemeData with Diagnosticable {
       bannerTheme: MaterialBannerThemeData.lerp(a.bannerTheme, b.bannerTheme, t),
       dividerTheme: DividerThemeData.lerp(a.dividerTheme, b.dividerTheme, t),
       buttonBarTheme: ButtonBarThemeData.lerp(a.buttonBarTheme, b.buttonBarTheme, t),
+      bottomNavigationBarTheme: BottomNavigationBarThemeData.lerp(a.bottomNavigationBarTheme, b.bottomNavigationBarTheme, t),
       timePickerTheme: TimePickerThemeData.lerp(a.timePickerTheme, b.timePickerTheme, t),
+      fixTextFieldOutlineLabel: t < 0.5 ? a.fixTextFieldOutlineLabel : b.fixTextFieldOutlineLabel,
     );
   }
 
@@ -1388,7 +1422,9 @@ class ThemeData with Diagnosticable {
         && other.bannerTheme == bannerTheme
         && other.dividerTheme == dividerTheme
         && other.buttonBarTheme == buttonBarTheme
-        && other.timePickerTheme == timePickerTheme;
+        && other.bottomNavigationBarTheme == bottomNavigationBarTheme
+        && other.timePickerTheme == timePickerTheme
+        && other.fixTextFieldOutlineLabel == fixTextFieldOutlineLabel;
   }
 
   @override
@@ -1461,7 +1497,9 @@ class ThemeData with Diagnosticable {
       bannerTheme,
       dividerTheme,
       buttonBarTheme,
+      bottomNavigationBarTheme,
       timePickerTheme,
+      fixTextFieldOutlineLabel,
     ];
     return hashList(values);
   }
@@ -1530,7 +1568,8 @@ class ThemeData with Diagnosticable {
     properties.add(DiagnosticsProperty<MaterialBannerThemeData>('bannerTheme', bannerTheme, defaultValue: defaultData.bannerTheme, level: DiagnosticLevel.debug));
     properties.add(DiagnosticsProperty<DividerThemeData>('dividerTheme', dividerTheme, defaultValue: defaultData.dividerTheme, level: DiagnosticLevel.debug));
     properties.add(DiagnosticsProperty<ButtonBarThemeData>('buttonBarTheme', buttonBarTheme, defaultValue: defaultData.buttonBarTheme, level: DiagnosticLevel.debug));
-    properties.add(DiagnosticsProperty<TimePickerThemeData>('timePickerTheme', timePickerTheme, defaultValue: defaultData.timePickerTheme));
+    properties.add(DiagnosticsProperty<TimePickerThemeData>('timePickerTheme', timePickerTheme, defaultValue: defaultData.timePickerTheme, level: DiagnosticLevel.debug));
+    properties.add(DiagnosticsProperty<BottomNavigationBarThemeData>('bottomNavigationBarTheme', bottomNavigationBarTheme, defaultValue: defaultData.bottomNavigationBarTheme, level: DiagnosticLevel.debug));
   }
 }
 

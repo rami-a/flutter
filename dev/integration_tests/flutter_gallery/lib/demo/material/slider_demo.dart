@@ -69,6 +69,7 @@ class _CustomRangeThumbShape extends RangeSliderThumbShape {
     @required SliderThemeData sliderTheme,
     TextDirection textDirection,
     Thumb thumb,
+    bool isPressed,
   }) {
     final Canvas canvas = context.canvas;
     final ColorTween colorTween = ColorTween(
@@ -130,6 +131,8 @@ class _CustomThumbShape extends SliderComponentShape {
     SliderThemeData sliderTheme,
     TextDirection textDirection,
     double value,
+    double textScaleFactor,
+    Size sizeWithOverflow,
   }) {
     final Canvas canvas = context.canvas;
     final ColorTween colorTween = ColorTween(
@@ -169,6 +172,8 @@ class _CustomValueIndicatorShape extends SliderComponentShape {
     SliderThemeData sliderTheme,
     TextDirection textDirection,
     double value,
+    double textScaleFactor,
+    Size sizeWithOverflow,
   }) {
     final Canvas canvas = context.canvas;
     final ColorTween enableColor = ColorTween(
@@ -269,6 +274,8 @@ class _SlidersState extends State<_Sliders> {
                 ),
               ),
               Slider.adaptive(
+                useV2Slider: true,
+                label: _continuousValue.toStringAsFixed(6).toString(),
                 value: _continuousValue,
                 min: 0.0,
                 max: 100.0,
@@ -284,7 +291,7 @@ class _SlidersState extends State<_Sliders> {
           Column(
             mainAxisSize: MainAxisSize.min,
             children: const <Widget>[
-              Slider.adaptive(value: 0.25, onChanged: null),
+              Slider.adaptive(useV2Slider: true, value: 0.25, onChanged: null),
               Text('Disabled'),
             ],
           ),
@@ -292,6 +299,7 @@ class _SlidersState extends State<_Sliders> {
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
               Slider.adaptive(
+                useV2Slider: true,
                 value: _discreteValue,
                 min: 0.0,
                 max: 200.0,
@@ -314,7 +322,7 @@ class _SlidersState extends State<_Sliders> {
                   activeTrackColor: Colors.deepPurple,
                   inactiveTrackColor: theme.colorScheme.onSurface.withOpacity(0.5),
                   activeTickMarkColor: theme.colorScheme.onSurface.withOpacity(0.7),
-                  inactiveTickMarkColor:  theme.colorScheme.surface.withOpacity(0.7),
+                  inactiveTickMarkColor: theme.colorScheme.surface.withOpacity(0.7),
                   overlayColor: theme.colorScheme.onSurface.withOpacity(0.12),
                   thumbColor: Colors.deepPurple,
                   valueIndicatorColor: Colors.deepPurpleAccent,
@@ -323,6 +331,7 @@ class _SlidersState extends State<_Sliders> {
                   valueIndicatorTextStyle: theme.accentTextTheme.bodyText1.copyWith(color: theme.colorScheme.onSurface),
                 ),
                 child: Slider(
+                  useV2Slider: true,
                   value: _discreteCustomValue,
                   min: 0.0,
                   max: 200.0,
@@ -366,6 +375,7 @@ class _RangeSlidersState extends State<_RangeSliders> {
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
               RangeSlider(
+                useV2Slider: true,
                 values: _continuousValues,
                 min: 0.0,
                 max: 100.0,
@@ -381,7 +391,7 @@ class _RangeSlidersState extends State<_RangeSliders> {
           Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              RangeSlider(values: const RangeValues(0.25, 0.75), onChanged: null),
+              RangeSlider(useV2Slider: true, values: const RangeValues(0.25, 0.75), onChanged: null),
               const Text('Disabled'),
             ],
           ),
@@ -389,6 +399,7 @@ class _RangeSlidersState extends State<_RangeSliders> {
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
               RangeSlider(
+                useV2Slider: true,
                 values: _discreteValues,
                 min: 0.0,
                 max: 200.0,
@@ -418,6 +429,7 @@ class _RangeSlidersState extends State<_RangeSliders> {
                   showValueIndicator: ShowValueIndicator.never,
                 ),
                 child: RangeSlider(
+                  useV2Slider: true,
                   values: _discreteCustomValues,
                   min: 0.0,
                   max: 200.0,

@@ -68,7 +68,6 @@ flutter:
     final DepfileService depfileService = DepfileService(
       logger: null,
       fileSystem: fileSystem,
-      platform: platform,
     );
     final Depfile dependencies = depfileService.parse(depfile);
 
@@ -92,6 +91,26 @@ flutter:
     expect(fileSystem.file('${environment.buildDir.path}/flutter_assets/assets/foo/bar.png'), exists);
     // See https://github.com/flutter/flutter/issues/46163
     expect(fileSystem.file('${environment.buildDir.path}/flutter_assets/assets/wildcard/%23bar.png'), exists);
+  }, overrides: <Type, Generator>{
+    FileSystem: () => fileSystem,
+    ProcessManager: () => FakeProcessManager.any(),
+    Platform: () => platform,
+  });
+
+  testUsingContext('Throws exception if pubspec contains missing files', () async {
+    fileSystem.file('pubspec.yaml')
+      ..createSync()
+      ..writeAsStringSync('''
+name: example
+
+flutter:
+  assets:
+    - assets/foo/bar2.png
+
+''');
+
+    expect(() async => await const CopyAssets().build(environment),
+      throwsA(isA<Exception>()));
   }, overrides: <Type, Generator>{
     FileSystem: () => fileSystem,
     ProcessManager: () => FakeProcessManager.any(),

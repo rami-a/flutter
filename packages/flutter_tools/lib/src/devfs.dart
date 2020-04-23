@@ -4,19 +4,20 @@
 
 import 'dart:async';
 
-import 'package:json_rpc_2/json_rpc_2.dart' as rpc;
 import 'package:meta/meta.dart';
+import 'package:package_config/package_config.dart';
+import 'package:vm_service/vm_service.dart' as vmservice;
 
 import 'asset.dart';
 import 'base/context.dart';
 import 'base/file_system.dart';
 import 'base/io.dart';
 import 'base/net.dart';
+import 'base/os.dart';
 import 'build_info.dart';
 import 'bundle.dart';
 import 'compile.dart';
 import 'convert.dart' show base64, utf8;
-import 'dart/package_map.dart';
 import 'globals.dart' as globals;
 import 'vmservice.dart';
 
@@ -46,8 +47,10 @@ abstract class DevFSContent {
 
   Stream<List<int>> contentsAsStream();
 
-  Stream<List<int>> contentsAsCompressedStream() {
-    return contentsAsStream().cast<List<int>>().transform<List<int>>(gzip.encoder);
+  Stream<List<int>> contentsAsCompressedStream(
+    OperatingSystemUtils osUtils,
+  ) {
+    return osUtils.gzipLevel1Stream(contentsAsStream());
   }
 
   /// Return the list of files this content depends on.
@@ -265,15 +268,21 @@ class DevFSException implements Exception {
 }
 
 class _DevFSHttpWriter {
-  _DevFSHttpWriter(this.fsName, VMService serviceProtocol)
+  _DevFSHttpWriter(
+    this.fsName,
+    VMService serviceProtocol, {
+    @required OperatingSystemUtils osUtils,
+  })
     : httpAddress = serviceProtocol.httpAddress,
       _client = (context.get<HttpClientFactory>() == null)
         ? HttpClient()
-        : context.get<HttpClientFactory>()();
+        : context.get<HttpClientFactory>()(),
+      _osUtils = osUtils;
 
   final String fsName;
   final Uri httpAddress;
   final HttpClient _client;
+  final OperatingSystemUtils _osUtils;
 
   static const int kMaxInFlight = 6;
 
@@ -284,7 +293,7 @@ class _DevFSHttpWriter {
   Future<void> write(Map<Uri, DevFSContent> entries) async {
     _client.maxConnectionsPerHost = kMaxInFlight;
     _completer = Completer<void>();
-    _outstanding = Map<Uri, DevFSContent>.from(entries);
+    _outstanding = Map<Uri, DevFSContent>.of(entries);
     _scheduleWrites();
     await _completer.future;
   }
@@ -312,7 +321,9 @@ class _DevFSHttpWriter {
         request.headers.removeAll(HttpHeaders.acceptEncodingHeader);
         request.headers.add('dev_fs_name', fsName);
         request.headers.add('dev_fs_uri_b64', base64.encode(utf8.encode('$deviceUri')));
-        final Stream<List<int>> contents = content.contentsAsCompressedStream();
+        final Stream<List<int>> contents = content.contentsAsCompressedStream(
+          _osUtils,
+        );
         await request.addStream(contents);
         final HttpClientResponse response = await request.close();
         response.listen((_) => null,
@@ -384,27 +395,28 @@ class DevFS {
     VMService serviceProtocol,
     this.fsName,
     this.rootDirectory, {
-    String packagesFilePath,
+    @required OperatingSystemUtils osUtils,
   }) : _operations = ServiceProtocolDevFSOperations(serviceProtocol),
-       _httpWriter = _DevFSHttpWriter(fsName, serviceProtocol),
-       _packagesFilePath = packagesFilePath ?? globals.fs.path.join(rootDirectory.path, kPackagesFileName);
+       _httpWriter = _DevFSHttpWriter(
+        fsName,
+        serviceProtocol,
+        osUtils: osUtils,
+      );
 
   DevFS.operations(
     this._operations,
     this.fsName,
-    this.rootDirectory, {
-    String packagesFilePath,
-  }) : _httpWriter = null,
-       _packagesFilePath = packagesFilePath ?? globals.fs.path.join(rootDirectory.path, kPackagesFileName);
+    this.rootDirectory,
+  ) : _httpWriter = null;
 
   final DevFSOperations _operations;
   final _DevFSHttpWriter _httpWriter;
   final String fsName;
   final Directory rootDirectory;
-  final String _packagesFilePath;
   final Set<String> assetPathsToEvict = <String>{};
   List<Uri> sources = <Uri>[];
   DateTime lastCompiled;
+  PackageConfig lastPackageConfig;
 
   Uri _baseUri;
   Uri get baseUri => _baseUri;
@@ -423,7 +435,7 @@ class DevFS {
     globals.printTrace('DevFS: Creating new filesystem on the device ($_baseUri)');
     try {
       _baseUri = await _operations.create(fsName);
-    } on rpc.RpcException catch (rpcException) {
+    } on vmservice.RPCError catch (rpcException) {
       // 1001 is kFileSystemAlreadyExists in //dart/runtime/vm/json_stream.h
       if (rpcException.code != 1001) {
         rethrow;
@@ -446,23 +458,25 @@ class DevFS {
   ///
   /// Returns the number of bytes synced.
   Future<UpdateFSReport> update({
-    @required String mainPath,
+    @required Uri mainUri,
+    @required ResidentCompiler generator,
+    @required bool trackWidgetCreation,
+    @required String pathToReload,
+    @required List<Uri> invalidatedFiles,
+    @required PackageConfig packageConfig,
     String target,
     AssetBundle bundle,
     DateTime firstBuildTime,
     bool bundleFirstUpload = false,
-    @required ResidentCompiler generator,
     String dillOutputPath,
-    @required bool trackWidgetCreation,
     bool fullRestart = false,
     String projectRootPath,
-    @required String pathToReload,
-    @required List<Uri> invalidatedFiles,
     bool skipAssets = false,
   }) async {
     assert(trackWidgetCreation != null);
     assert(generator != null);
     final DateTime candidateCompileTime = DateTime.now();
+    lastPackageConfig = packageConfig;
 
     // Update modified files
     final String assetBuildDirPrefix = _asUriPath(getAssetBuildDirectory());
@@ -498,10 +512,10 @@ class DevFS {
     // dill files that depend on the invalidated files.
     globals.printTrace('Compiling dart to kernel with ${invalidatedFiles.length} updated files');
     final CompilerOutput compilerOutput = await generator.recompile(
-      mainPath,
+      mainUri,
       invalidatedFiles,
-      outputPath:  dillOutputPath ?? getDefaultApplicationKernelPath(trackWidgetCreation: trackWidgetCreation),
-      packagesFilePath : _packagesFilePath,
+      outputPath: dillOutputPath ?? getDefaultApplicationKernelPath(trackWidgetCreation: trackWidgetCreation),
+      packageConfig: packageConfig,
     );
     if (compilerOutput == null || compilerOutput.errorCount > 0) {
       return UpdateFSReport(success: false);
