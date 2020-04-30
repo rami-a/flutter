@@ -1858,7 +1858,9 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
             : _kTimePickerDialHeightLandscape;
         final Widget dial = Padding(
           padding: const EdgeInsets.all(16.0),
-          child: ClipRect(
+          // Allows for a smoother transition from dial to input mode.
+          child: SingleChildScrollView(
+            scrollDirection: orientation == Orientation.portrait ? Axis.vertical : Axis.horizontal,
             child: SizedBox(
               height: dialSize,
               width: dialSize,
