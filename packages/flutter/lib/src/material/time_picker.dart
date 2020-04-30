@@ -790,6 +790,12 @@ class _DialPainter extends CustomPainter {
     selectorPaint.strokeWidth = 2.0;
     canvas.drawLine(centerPoint, focusedPoint, selectorPaint);
 
+    // Add a dot inside the selector but only when it isn't over the labels.
+    final double labelThetaIncrement = -_kTwoPi / primaryLabels.length;
+    if (theta % labelThetaIncrement > 0.1 && theta % labelThetaIncrement < 0.45) {
+      canvas.drawCircle(focusedPoint, 2.0, selectorPaint..color = backgroundColor);
+    }
+
     final Rect focusedRect = Rect.fromCircle(
       center: focusedPoint, radius: focusedRadius,
     );
