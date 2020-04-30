@@ -1805,6 +1805,7 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
     final bool use24HourDials = hourFormat(of: timeOfDayFormat) != HourFormat.h;
     final ThemeData theme = Theme.of(context);
     final ShapeBorder shape = TimePickerTheme.of(context).shape ?? _kDefaultShape;
+    final Orientation orientation = MediaQuery.of(context).orientation;
 
     Color toggleColor;
     switch (theme.brightness) {
@@ -1844,74 +1845,66 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
     Widget picker;
     switch (_entryMode) {
       case TimePickerEntryMode.dial:
-        picker = OrientationBuilder(
-            builder: (BuildContext context, Orientation orientation) {
-              final Widget dial = Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: AspectRatio(
-                  aspectRatio: 1.0,
-                  child: _Dial(
-                    mode: _mode,
-                    use24HourDials: use24HourDials,
-                    selectedTime: _selectedTime,
-                    onChanged: _handleTimeChanged,
-                    onHourSelected: _handleHourSelected,
-                  ),
-                ),
-              );
+        final Widget dial = Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: AspectRatio(
+            aspectRatio: 1.0,
+            child: _Dial(
+              mode: _mode,
+              use24HourDials: use24HourDials,
+              selectedTime: _selectedTime,
+              onChanged: _handleTimeChanged,
+              onHourSelected: _handleHourSelected,
+            ),
+          ),
+        );
 
-              final Widget header = _TimePickerHeader(
-                selectedTime: _selectedTime,
-                mode: _mode,
-                orientation: orientation,
-                onModeChanged: _handleModeChanged,
-                onChanged: _handleTimeChanged,
-                use24HourDials: use24HourDials,
-                helpText: widget.helpText,
-              );
+        final Widget header = _TimePickerHeader(
+          selectedTime: _selectedTime,
+          mode: _mode,
+          orientation: orientation,
+          onModeChanged: _handleModeChanged,
+          onChanged: _handleTimeChanged,
+          use24HourDials: use24HourDials,
+          helpText: widget.helpText,
+        );
 
-              final Widget pickerAndActions = Container(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    // Dial grows and shrinks with the available space.
-                    Expanded(child: dial),
-                    actions,
-                  ],
-                ),
-              );
-
-              assert(orientation != null);
-              switch (orientation) {
-                case Orientation.portrait:
-                  return Column(
+        switch (orientation) {
+          case Orientation.portrait:
+            picker = Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                header,
+                Expanded(
+                  child: Column(
                     mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
-                      header,
-                      Expanded(
-                        child: pickerAndActions,
-                      ),
-                    ],
-                  );
-                case Orientation.landscape:
-                  return Column(
-                    children: <Widget>[
-                      Expanded(
-                        child: Row(
-                          children: <Widget>[
-                            header,
-                            Expanded(child: dial),
-                          ],
-                        ),
-                      ),
+                      // Dial grows and shrinks with the available space.
+                      Expanded(child: dial),
                       actions,
                     ],
-                  );
-              }
-              return null;
-            }
-        );
+                  ),
+                ),
+              ],
+            );
+            break;
+          case Orientation.landscape:
+            picker = Column(
+              children: <Widget>[
+                Expanded(
+                  child: Row(
+                    children: <Widget>[
+                      header,
+                      Expanded(child: dial),
+                    ],
+                  ),
+                ),
+                actions,
+              ],
+            );
+            break;
+        }
         break;
       case TimePickerEntryMode.input:
         picker = Form(
