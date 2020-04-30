@@ -56,6 +56,9 @@ const double _kTimePickerHeightLandscape = 316.0;
 const double _kTimePickerHeightPortraitCollapsed = 484.0;
 const double _kTimePickerHeightLandscapeCollapsed = 304.0;
 
+const double _kTimePickerDialHeightPortrait = 272.0;
+const double _kTimePickerDialHeightLandscape = 216.0;
+
 const BorderRadius _kDefaultBorderRadius = BorderRadius.all(Radius.circular(4.0));
 const ShapeBorder _kDefaultShape = RoundedRectangleBorder(borderRadius: _kDefaultBorderRadius);
 
@@ -747,6 +750,7 @@ class _DialPainter extends CustomPainter {
     @required this.theta,
     @required this.textDirection,
     @required this.selectedValue,
+    @required this.orientation,
   }) : super(repaint: PaintingBinding.instance.systemFonts);
 
   final List<_TappableLabel> primaryLabels;
@@ -757,10 +761,13 @@ class _DialPainter extends CustomPainter {
   final double theta;
   final TextDirection textDirection;
   final int selectedValue;
+  final Orientation orientation;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final double radius = size.shortestSide / 2.0;
+    final double radius = orientation == Orientation.portrait
+        ? size.width / 2.0
+        : size.height / 2.0;
     final Offset center = Offset(size.width / 2.0, size.height / 2.0);
     final Offset centerPoint = center;
     canvas.drawCircle(centerPoint, radius, Paint()..color = backgroundColor);
@@ -1259,6 +1266,7 @@ class _DialState extends State<_Dial> with SingleTickerProviderStateMixin {
           dotColor: theme.colorScheme.surface,
           theta: _theta.value,
           textDirection: Directionality.of(context),
+          orientation: MediaQuery.of(context).orientation,
         ),
       ),
     );
@@ -1845,16 +1853,22 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
     Widget picker;
     switch (_entryMode) {
       case TimePickerEntryMode.dial:
+        final double dialSize = orientation == Orientation.portrait
+            ? _kTimePickerDialHeightPortrait
+            : _kTimePickerDialHeightLandscape;
         final Widget dial = Padding(
           padding: const EdgeInsets.all(16.0),
-          child: AspectRatio(
-            aspectRatio: 1.0,
-            child: _Dial(
-              mode: _mode,
-              use24HourDials: use24HourDials,
-              selectedTime: _selectedTime,
-              onChanged: _handleTimeChanged,
-              onHourSelected: _handleHourSelected,
+          child: ClipRect(
+            child: SizedBox(
+              height: dialSize,
+              width: dialSize,
+              child: _Dial(
+                mode: _mode,
+                use24HourDials: use24HourDials,
+                selectedTime: _selectedTime,
+                onChanged: _handleTimeChanged,
+                onHourSelected: _handleHourSelected,
+              ),
             ),
           ),
         );
