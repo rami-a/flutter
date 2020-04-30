@@ -36,6 +36,7 @@ import 'time_picker_theme.dart';
 // Examples can assume:
 // BuildContext context;
 
+const Duration _kDialogSizeAnimationDuration = Duration(milliseconds: 200);
 const Duration _kDialAnimateDuration = Duration(milliseconds: 75);
 const double _kTwoPi = 2 * math.pi;
 const Duration _kVibrateCommitDelay = Duration(milliseconds: 100);
@@ -48,6 +49,7 @@ const double _kTimePickerHeaderControlHeight = 80.0;
 const double _kTimePickerWidthPortrait = 328.0;
 const double _kTimePickerWidthLandscape = 512.0;
 
+const double _kTimePickerHeightInput = 226.0;
 const double _kTimePickerHeightPortrait = 496.0;
 const double _kTimePickerHeightLandscape = 316.0;
 
@@ -1764,6 +1766,37 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
     Navigator.pop(context, _selectedTime);
   }
 
+  Size _dialogSize(BuildContext context) {
+    final Orientation orientation = MediaQuery.of(context).orientation;
+    final ThemeData theme = Theme.of(context);
+
+    double timePickerWidth;
+    double timePickerHeight;
+    switch (_entryMode) {
+      case TimePickerEntryMode.dial:
+        switch (orientation) {
+          case Orientation.portrait:
+            timePickerWidth = _kTimePickerWidthPortrait;
+            timePickerHeight = theme.materialTapTargetSize == MaterialTapTargetSize.padded
+                ? _kTimePickerHeightPortrait
+                : _kTimePickerHeightPortraitCollapsed;
+            break;
+          case Orientation.landscape:
+            timePickerWidth = _kTimePickerWidthLandscape;
+            timePickerHeight = theme.materialTapTargetSize == MaterialTapTargetSize.padded
+                ? _kTimePickerHeightLandscape
+                : _kTimePickerHeightLandscapeCollapsed;
+            break;
+        }
+        break;
+      case TimePickerEntryMode.input:
+        timePickerWidth = _kTimePickerWidthPortrait;
+        timePickerHeight = _kTimePickerHeightInput;
+        break;
+    }
+    return Size(timePickerWidth, timePickerHeight);
+  }
+
   @override
   Widget build(BuildContext context) {
     assert(debugCheckHasMediaQuery(context));
@@ -1848,53 +1881,32 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
                 ),
               );
 
-              double timePickerHeightPortrait;
-              double timePickerHeightLandscape;
-              switch (theme.materialTapTargetSize) {
-                case MaterialTapTargetSize.padded:
-                  timePickerHeightPortrait = _kTimePickerHeightPortrait;
-                  timePickerHeightLandscape = _kTimePickerHeightLandscape;
-                  break;
-                case MaterialTapTargetSize.shrinkWrap:
-                  timePickerHeightPortrait = _kTimePickerHeightPortraitCollapsed;
-                  timePickerHeightLandscape = _kTimePickerHeightLandscapeCollapsed;
-                  break;
-              }
-
               assert(orientation != null);
               switch (orientation) {
                 case Orientation.portrait:
-                  return SizedBox(
-                    width: _kTimePickerWidthPortrait,
-                    height: timePickerHeightPortrait,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: <Widget>[
-                        header,
-                        Expanded(
-                          child: pickerAndActions,
-                        ),
-                      ],
-                    ),
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: <Widget>[
+                      header,
+                      Expanded(
+                        child: pickerAndActions,
+                      ),
+                    ],
                   );
                 case Orientation.landscape:
-                  return SizedBox(
-                    width: _kTimePickerWidthLandscape,
-                    height: timePickerHeightLandscape,
-                    child: Column(
-                      children: <Widget>[
-                        Expanded(
-                          child: Row(
-                            children: <Widget>[
-                              header,
-                              Expanded(child: dial),
-                            ],
-                          ),
+                  return Column(
+                    children: <Widget>[
+                      Expanded(
+                        child: Row(
+                          children: <Widget>[
+                            header,
+                            Expanded(child: dial),
+                          ],
                         ),
-                        actions,
-                      ],
-                    ),
+                      ),
+                      actions,
+                    ],
                   );
               }
               return null;
@@ -1905,33 +1917,38 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
         picker = Form(
           key: _formKey,
           autovalidate: _autoValidate,
-          child: Container(
-            constraints: const BoxConstraints(maxWidth: _kTimePickerWidthPortrait),
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  _TimePickerInput(
-                    initialSelectedTime: _selectedTime,
-                    helpText: widget.helpText,
-                    onChanged: _handleTimeChanged,
-                  ),
-                  actions,
-                ],
-              ),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                _TimePickerInput(
+                  initialSelectedTime: _selectedTime,
+                  helpText: widget.helpText,
+                  onChanged: _handleTimeChanged,
+                ),
+                actions,
+              ],
             ),
           ),
         );
         break;
     }
 
+    final Size dialogSize = _dialogSize(context);
     return Dialog(
       shape: shape,
       backgroundColor: TimePickerTheme.of(context).backgroundColor ?? theme.colorScheme.surface,
-      insetPadding: _entryMode == TimePickerEntryMode.input
-          ? EdgeInsets.zero
-          : const EdgeInsets.symmetric(horizontal: 40.0, vertical: 24.0),
-      child: picker,
+      insetPadding: EdgeInsets.symmetric(
+        horizontal: 16.0,
+        vertical: _entryMode == TimePickerEntryMode.input ? 0.0 : 24.0,
+      ),
+      child: AnimatedContainer(
+        width: dialogSize.width,
+        height: dialogSize.height,
+        duration: _kDialogSizeAnimationDuration,
+        curve: Curves.easeIn,
+        child: picker,
+      ),
     );
   }
 
