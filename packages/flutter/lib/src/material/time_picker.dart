@@ -750,7 +750,6 @@ class _DialPainter extends CustomPainter {
     @required this.theta,
     @required this.textDirection,
     @required this.selectedValue,
-    @required this.orientation,
   }) : super(repaint: PaintingBinding.instance.systemFonts);
 
   final List<_TappableLabel> primaryLabels;
@@ -761,13 +760,10 @@ class _DialPainter extends CustomPainter {
   final double theta;
   final TextDirection textDirection;
   final int selectedValue;
-  final Orientation orientation;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final double radius = orientation == Orientation.portrait
-        ? size.width / 2.0
-        : size.height / 2.0;
+    final double radius = size.shortestSide / 2.0;
     final Offset center = Offset(size.width / 2.0, size.height / 2.0);
     final Offset centerPoint = center;
     canvas.drawCircle(centerPoint, radius, Paint()..color = backgroundColor);
@@ -1266,7 +1262,6 @@ class _DialState extends State<_Dial> with SingleTickerProviderStateMixin {
           dotColor: theme.colorScheme.surface,
           theta: _theta.value,
           textDirection: Directionality.of(context),
-          orientation: MediaQuery.of(context).orientation,
         ),
       ),
     );
@@ -1777,6 +1772,9 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
   Size _dialogSize(BuildContext context) {
     final Orientation orientation = MediaQuery.of(context).orientation;
     final ThemeData theme = Theme.of(context);
+    // Constrain the textScaleFactor to the largest supported value to prevent
+    // layout issues.
+    final double textScaleFactor = math.min(MediaQuery.of(context).textScaleFactor, 1.1);
 
     double timePickerWidth;
     double timePickerHeight;
@@ -1802,7 +1800,7 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
         timePickerHeight = _kTimePickerHeightInput;
         break;
     }
-    return Size(timePickerWidth, timePickerHeight);
+    return Size(timePickerWidth, timePickerHeight * textScaleFactor);
   }
 
   @override
