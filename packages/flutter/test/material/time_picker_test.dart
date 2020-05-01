@@ -360,18 +360,18 @@ void _tests() {
     final CustomPainter dialPainter = dialPaint.painter;
     final _CustomPainterSemanticsTester painterTester = _CustomPainterSemanticsTester(tester, dialPainter, semantics);
 
-    painterTester.addLabel('00', 84.0, 0.0, 132.0, 48.0);
-    painterTester.addLabel('02', 126.0, 11.3, 174.0, 59.3);
-    painterTester.addLabel('04', 156.7, 42.0, 204.7, 90.0);
-    painterTester.addLabel('06', 168.0, 84.0, 216.0, 132.0);
-    painterTester.addLabel('08', 156.7, 126.0, 204.7, 174.0);
-    painterTester.addLabel('10', 126.0, 156.7, 174.0, 204.7);
-    painterTester.addLabel('12', 84.0, 168.0, 132.0, 216.0);
-    painterTester.addLabel('14', 42.0, 156.7, 90.0, 204.7);
-    painterTester.addLabel('16', 11.3, 126.0, 59.3, 174.0);
-    painterTester.addLabel('18', 0.0, 84.0, 48.0, 132.0);
-    painterTester.addLabel('20', 11.3, 43.0, 59.3, 91.0);
-    painterTester.addLabel('22', 42.0, 11.3, 90.0, 59.3);
+    painterTester.addLabel('00');
+    painterTester.addLabel('02');
+    painterTester.addLabel('04');
+    painterTester.addLabel('06');
+    painterTester.addLabel('08');
+    painterTester.addLabel('10');
+    painterTester.addLabel('12');
+    painterTester.addLabel('14');
+    painterTester.addLabel('16');
+    painterTester.addLabel('18');
+    painterTester.addLabel('20');
+    painterTester.addLabel('22');
 
     painterTester.assertExpectations();
     semantics.dispose();
@@ -387,18 +387,18 @@ void _tests() {
     final CustomPainter dialPainter = dialPaint.painter;
     final _CustomPainterSemanticsTester painterTester = _CustomPainterSemanticsTester(tester, dialPainter, semantics);
 
-    painterTester.addLabel('00', 84.0, 0.0, 132.0, 48.0);
-    painterTester.addLabel('05', 126.0, 11.3, 174.0, 59.3);
-    painterTester.addLabel('10', 156.7, 42.0, 204.7, 90.0);
-    painterTester.addLabel('15', 168.0, 84.0, 216.0, 132.0);
-    painterTester.addLabel('20', 156.7, 126.0, 204.7, 174.0);
-    painterTester.addLabel('25', 126.0, 156.7, 174.0, 204.7);
-    painterTester.addLabel('30', 84.0, 168.0, 132.0, 216.0);
-    painterTester.addLabel('35', 42.0, 156.7, 90.0, 204.7);
-    painterTester.addLabel('40', 11.3, 126.0, 59.3, 174.0);
-    painterTester.addLabel('45', 0.0, 84.0, 48.0, 132.0);
-    painterTester.addLabel('50', 11.3, 43.0, 59.3, 91.0);
-    painterTester.addLabel('55', 42.0, 11.3, 90.0, 59.3);
+    painterTester.addLabel('00');
+    painterTester.addLabel('05');
+    painterTester.addLabel('10');
+    painterTester.addLabel('15');
+    painterTester.addLabel('20');
+    painterTester.addLabel('25');
+    painterTester.addLabel('30');
+    painterTester.addLabel('35');
+    painterTester.addLabel('40');
+    painterTester.addLabel('45');
+    painterTester.addLabel('50');
+    painterTester.addLabel('55');
 
     painterTester.assertExpectations();
     semantics.dispose();
@@ -818,16 +818,6 @@ final Finder findDialPaint = find.descendant(
   matching: find.byWidgetPredicate((Widget w) => w is CustomPaint),
 );
 
-class _SemanticsNodeExpectation {
-  _SemanticsNodeExpectation(this.label, this.left, this.top, this.right, this.bottom);
-
-  final String label;
-  final double left;
-  final double top;
-  final double right;
-  final double bottom;
-}
-
 class _CustomPainterSemanticsTester {
   _CustomPainterSemanticsTester(this.tester, this.painter, this.semantics);
 
@@ -835,10 +825,10 @@ class _CustomPainterSemanticsTester {
   final CustomPainter painter;
   final SemanticsTester semantics;
   final PaintPattern expectedLabels = paints;
-  final List<_SemanticsNodeExpectation> expectedNodes = <_SemanticsNodeExpectation>[];
+  final List<String> expectedNodes = <String>[];
 
-  void addLabel(String label, double left, double top, double right, double bottom) {
-    expectedNodes.add(_SemanticsNodeExpectation(label, left, top, right, bottom));
+  void addLabel(String label) {
+    expectedNodes.add(label);
   }
 
   void assertExpectations() {
@@ -856,15 +846,12 @@ class _CustomPainterSemanticsTester {
     final PaintPattern expectedLabels = paints;
     int i = 0;
 
-    for (final _SemanticsNodeExpectation expectation in expectedNodes) {
-      expect(semantics, includesNodeWith(value: expectation.label));
+    for (final String expectation in expectedNodes) {
+      expect(semantics, includesNodeWith(value: expectation));
       final Iterable<SemanticsNode> dialLabelNodes = semantics
-          .nodesWith(value: expectation.label)
+          .nodesWith(value: expectation)
           .where((SemanticsNode node) => node.tags?.contains(const SemanticsTag('dial-label')) ?? false);
-      expect(dialLabelNodes, hasLength(1), reason: 'Expected exactly one label ${expectation.label}');
-      final Rect rect = Rect.fromLTRB(expectation.left, expectation.top, expectation.right, expectation.bottom);
-      expect(dialLabelNodes.single.rect, within(distance: 1.0, from: rect),
-        reason: 'This is checking the node rectangle for label ${expectation.label}');
+      expect(dialLabelNodes, hasLength(1), reason: 'Expected exactly one label ${expectation}');
 
       final ui.Paragraph paragraph = paragraphs[i++];
 
