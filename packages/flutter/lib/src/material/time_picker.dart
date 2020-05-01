@@ -47,7 +47,7 @@ const double _kTimePickerHeaderLandscapeWidth = 264.0;
 const double _kTimePickerHeaderControlHeight = 80.0;
 
 const double _kTimePickerWidthPortrait = 328.0;
-const double _kTimePickerWidthLandscape = 512.0;
+const double _kTimePickerWidthLandscape = 518.0;
 
 const double _kTimePickerHeightInput = 226.0;
 const double _kTimePickerHeightPortrait = 496.0;
@@ -55,9 +55,6 @@ const double _kTimePickerHeightLandscape = 316.0;
 
 const double _kTimePickerHeightPortraitCollapsed = 484.0;
 const double _kTimePickerHeightLandscapeCollapsed = 304.0;
-
-const double _kTimePickerDialHeightPortrait = 272.0;
-const double _kTimePickerDialHeightLandscape = 216.0;
 
 const BorderRadius _kDefaultBorderRadius = BorderRadius.all(Radius.circular(4.0));
 const ShapeBorder _kDefaultShape = RoundedRectangleBorder(borderRadius: _kDefaultBorderRadius);
@@ -1851,17 +1848,13 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
     Widget picker;
     switch (_entryMode) {
       case TimePickerEntryMode.dial:
-        final double dialSize = orientation == Orientation.portrait
-            ? _kTimePickerDialHeightPortrait
-            : _kTimePickerDialHeightLandscape;
         final Widget dial = Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: EdgeInsets.symmetric(horizontal: orientation == Orientation.portrait ? 36.0 : 24.0, vertical: 24.0),
           // Allows for a smoother transition from dial to input mode.
           child: SingleChildScrollView(
             scrollDirection: orientation == Orientation.portrait ? Axis.vertical : Axis.horizontal,
-            child: SizedBox(
-              height: dialSize,
-              width: dialSize,
+            child: AspectRatio(
+              aspectRatio: 1.0,
               child: _Dial(
                 mode: _mode,
                 use24HourDials: use24HourDials,
