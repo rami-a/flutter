@@ -1432,7 +1432,7 @@ class _TimePickerInputState extends State<_TimePickerInput> {
                 ],
               )),
               Padding(
-                padding: const EdgeInsets.only(top: 16.0),
+                padding: const EdgeInsets.only(top: 20.0),
                 child: _StringFragment(
                   textStyle: hourMinuteStyle.copyWith(color: theme.colorScheme.onBackground),
                   timeOfDayFormat: timeOfDayFormat,
