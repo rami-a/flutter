@@ -1211,9 +1211,10 @@ class _DialState extends State<_Dial> with SingleTickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    final Color backgroundColor = TimePickerTheme.of(context).dialBackgroundColor ?? themeData.colorScheme.onBackground.withOpacity(0.12);
-    final Color accentColor = TimePickerTheme.of(context).dialHandColor ?? themeData.colorScheme.primary;
     final ThemeData theme = Theme.of(context);
+    final TimePickerThemeData pickerTheme = TimePickerTheme.of(context);
+    final Color backgroundColor = pickerTheme.dialBackgroundColor ?? themeData.colorScheme.onBackground.withOpacity(0.12);
+    final Color accentColor = pickerTheme.dialHandColor ?? themeData.colorScheme.primary;
     List<_TappableLabel> primaryLabels;
     List<_TappableLabel> secondaryLabels;
     int selectedDialValue;
@@ -1250,7 +1251,7 @@ class _DialState extends State<_Dial> with SingleTickerProviderStateMixin {
           secondaryLabels: secondaryLabels,
           backgroundColor: backgroundColor,
           accentColor: accentColor,
-          dotColor: Theme.of(context).colorScheme.surface,
+          dotColor: theme.colorScheme.surface,
           theta: _theta.value,
           textDirection: Directionality.of(context),
         ),
