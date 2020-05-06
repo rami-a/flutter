@@ -47,7 +47,7 @@ const double _kTimePickerHeaderLandscapeWidth = 264.0;
 const double _kTimePickerHeaderControlHeight = 80.0;
 
 const double _kTimePickerWidthPortrait = 328.0;
-const double _kTimePickerWidthLandscape = 518.0;
+const double _kTimePickerWidthLandscape = 528.0;
 
 const double _kTimePickerHeightInput = 226.0;
 const double _kTimePickerHeightPortrait = 496.0;
