@@ -21,7 +21,6 @@ void main() {
     expect(timePickerTheme.headerColor, null);
     expect(timePickerTheme.dialHandColor, null);
     expect(timePickerTheme.dialBackgroundColor, null);
-    expect(timePickerTheme.activeDayPeriodColor, null);
     expect(timePickerTheme.hourMinuteTextStyle, null);
     expect(timePickerTheme.dayPeriodTextStyle, null);
     expect(timePickerTheme.helpTextStyle, null);
@@ -50,7 +49,6 @@ void main() {
       headerColor: Color(0xFFFFFFFF),
       dialHandColor: Color(0xFFFFFFFF),
       dialBackgroundColor: Color(0xFFFFFFFF),
-      activeDayPeriodColor: Color(0xFFFFFFFF),
       hourMinuteTextStyle: TextStyle(),
       dayPeriodTextStyle: TextStyle(),
       helpTextStyle: TextStyle(),
@@ -69,7 +67,6 @@ void main() {
       'headerColor: Color(0xffffffff)',
       'dialHandColor: Color(0xffffffff)',
       'dialBackgroundColor: Color(0xffffffff)',
-      'activeDayPeriodColor: Color(0xffffffff)',
       'hourMinuteTextStyle: TextStyle(<all styles inherited>)',
       'dayPeriodTextStyle: TextStyle(<all styles inherited>)',
       'helpTextStyle: TextStyle(<all styles inherited>)',
@@ -86,22 +83,22 @@ void main() {
     await tester.pumpAndSettle(const Duration(seconds: 1));
 
     final Material dialogMaterial = _dialogMaterial(tester);
-    expect(dialogMaterial.color, defaultTheme.colorScheme.background);
+    expect(dialogMaterial.color, defaultTheme.colorScheme.surface);
     expect(dialogMaterial.shape, const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(4.0))));
 
     final RenderBox dial = tester.firstRenderObject<RenderBox>(find.byType(CustomPaint));
     expect(
       dial,
       paints
-        ..circle(color: Colors.grey[200]) // Dial background color.
+        ..circle(color: defaultTheme.colorScheme.onBackground.withOpacity(0.12)) // Dial background color.
         ..circle(color: Color(defaultTheme.colorScheme.primary.value)), // Dial hand color.
     );
 
     final RenderParagraph hourText = _textRenderParagraph(tester, '7');
     expect(
       hourText.text.style,
-      Typography.material2014().englishLike.headline3
-          .merge(Typography.material2014().black.headline3)
+      Typography.material2014().englishLike.headline2
+          .merge(Typography.material2014().black.headline2)
           .copyWith(color: defaultTheme.colorScheme.primary),
     );
 
@@ -124,9 +121,6 @@ void main() {
     expect(hourMaterial.color, defaultTheme.colorScheme.primary.withOpacity(0.12));
     expect(hourMaterial.shape, const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(4.0))));
 
-    final Material amMaterial = _textMaterial(tester, 'AM');
-    expect(amMaterial.color, defaultTheme.colorScheme.surface);
-
     final Material dayPeriodMaterial = _dayPeriodMaterial(tester);
     expect(
       dayPeriodMaterial.shape,
@@ -146,15 +140,15 @@ void main() {
 
     final InputDecoration hourDecoration = _textField(tester, '7').decoration;
     expect(hourDecoration.filled, true);
-    expect(hourDecoration.fillColor, defaultTheme.colorScheme.onBackground.withOpacity(0.06));
+    expect(hourDecoration.fillColor, defaultTheme.colorScheme.onBackground.withOpacity(0.12));
     expect(hourDecoration.enabledBorder, const OutlineInputBorder(borderSide: BorderSide(color: Colors.transparent)));
     expect(hourDecoration.errorBorder, OutlineInputBorder(borderSide: BorderSide(color: defaultTheme.colorScheme.error, width: 2)));
     expect(hourDecoration.focusedBorder, OutlineInputBorder(borderSide: BorderSide(color: defaultTheme.colorScheme.primary, width: 2)));
     expect(hourDecoration.focusedErrorBorder, OutlineInputBorder(borderSide: BorderSide(color: defaultTheme.colorScheme.error, width: 2)));
     expect(
       hourDecoration.hintStyle,
-      Typography.material2014().englishLike.headline3
-          .merge(defaultTheme.textTheme.headline3.copyWith(color: defaultTheme.colorScheme.onBackground.withOpacity(0.36))),
+      Typography.material2014().englishLike.headline2
+          .merge(defaultTheme.textTheme.headline2.copyWith(color: defaultTheme.colorScheme.onBackground.withOpacity(0.36))),
     );
   });
 
@@ -207,9 +201,6 @@ void main() {
     expect(hourMaterial.color, timePickerTheme.headerColor.withOpacity(0.12));
     expect(hourMaterial.shape, timePickerTheme.hourMinuteShape);
 
-    final Material amMaterial = _textMaterial(tester, 'AM');
-    expect(amMaterial.color, timePickerTheme.activeDayPeriodColor);
-
     final Material dayPeriodMaterial = _dayPeriodMaterial(tester);
     expect(dayPeriodMaterial.shape, timePickerTheme.dayPeriodShape);
   });
@@ -233,19 +224,18 @@ void main() {
 }
 
 TimePickerThemeData _timePickerTheme() {
-  return TimePickerThemeData(
+  return const TimePickerThemeData(
     backgroundColor: Colors.orange,
     headerColor: Colors.green,
     dialHandColor: Colors.brown,
     dialBackgroundColor: Colors.pinkAccent,
-    activeDayPeriodColor: Colors.teal,
-    hourMinuteTextStyle: const TextStyle(fontSize: 8),
-    dayPeriodTextStyle: const TextStyle(fontSize: 8),
-    helpTextStyle: const TextStyle(fontSize: 8),
-    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16.0))),
-    hourMinuteShape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16.0))),
-    dayPeriodShape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16.0))),
-    inputDecorationTheme: const InputDecorationTheme(
+    hourMinuteTextStyle: TextStyle(fontSize: 8.0),
+    dayPeriodTextStyle: TextStyle(fontSize: 8.0),
+    helpTextStyle: TextStyle(fontSize: 8.0),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16.0))),
+    hourMinuteShape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16.0))),
+    dayPeriodShape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16.0))),
+    inputDecorationTheme: InputDecorationTheme(
       filled: true,
       fillColor: Colors.purple,
       enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.blue)),
