@@ -19,6 +19,7 @@ import 'debug.dart';
 import 'dialog.dart';
 import 'feedback.dart';
 import 'flat_button.dart';
+import 'elevation_overlay.dart';
 import 'icon_button.dart';
 import 'icons.dart';
 import 'ink_well.dart';
@@ -142,7 +143,7 @@ class _TimePickerHeader extends StatelessWidget {
     final Color activeColor = TimePickerTheme.of(context).headerColor ?? themeData.colorScheme.primary;
     final Color inactiveColor = themeData.colorScheme.onBackground;
 
-    final TextStyle hourMinuteStyle = TimePickerTheme.of(context).hourMinuteTextStyle ?? themeData.textTheme.headline3;
+    final TextStyle hourMinuteStyle = TimePickerTheme.of(context).hourMinuteTextStyle ?? themeData.textTheme.headline2;
     final _TimePickerFragmentContext fragmentContext = _TimePickerFragmentContext(
       selectedTime: selectedTime,
       mode: mode,
@@ -259,7 +260,7 @@ class _HourControl extends StatelessWidget {
     );
     final Color backgroundColor = fragmentContext.mode == _TimePickerMode.hour
         ? fragmentContext.activeColor.withOpacity(0.12)
-        : fragmentContext.inactiveColor.withOpacity(0.06);
+        : fragmentContext.inactiveColor.withOpacity(0.12);
     final ShapeBorder shape = TimePickerTheme.of(context).hourMinuteShape ?? _kDefaultShape;
 
     TimeOfDay hoursFromSelected(int hoursToAdd) {
@@ -391,7 +392,7 @@ class _MinuteControl extends StatelessWidget {
     final String formattedPreviousMinute = localizations.formatMinute(previousMinute);
     final Color backgroundColor = fragmentContext.mode == _TimePickerMode.minute
         ? fragmentContext.activeColor.withOpacity(0.12)
-        : fragmentContext.inactiveColor.withOpacity(0.06);
+        : fragmentContext.inactiveColor.withOpacity(0.12);
     final ShapeBorder shape = TimePickerTheme.of(context).hourMinuteShape ?? _kDefaultShape;
 
     return Semantics(
@@ -484,8 +485,8 @@ class _DayPeriodControl extends StatelessWidget {
   Widget build(BuildContext context) {
     final MaterialLocalizations materialLocalizations = MaterialLocalizations.of(context);
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
-    final Color activeBackgroundColor = TimePickerTheme.of(context).activeDayPeriodColor ?? colorScheme.surface;
-    final Color backgroundColor = colorScheme.onBackground.withOpacity(0.06);
+    const Color activeBackgroundColor = Colors.transparent; // So that it matches the rest of the dialog.
+    final Color backgroundColor = colorScheme.onBackground.withOpacity(0.12);
     final Color activeColor = colorScheme.onBackground;
     final Color inactiveColor = colorScheme.onBackground.withOpacity(0.38);
     final bool amSelected = selectedTime.period == DayPeriod.am;
@@ -738,6 +739,7 @@ class _DialPainter extends CustomPainter {
     @required this.secondaryLabels,
     @required this.backgroundColor,
     @required this.accentColor,
+    @required this.dotColor,
     @required this.theta,
     @required this.textDirection,
     @required this.selectedValue,
@@ -747,6 +749,7 @@ class _DialPainter extends CustomPainter {
   final List<_TappableLabel> secondaryLabels;
   final Color backgroundColor;
   final Color accentColor;
+  final Color dotColor;
   final double theta;
   final TextDirection textDirection;
   final int selectedValue;
@@ -796,7 +799,7 @@ class _DialPainter extends CustomPainter {
     // labels. The values were derived by manually testing the dial.
     final double labelThetaIncrement = -_kTwoPi / primaryLabels.length;
     if (theta % labelThetaIncrement > 0.1 && theta % labelThetaIncrement < 0.45) {
-      canvas.drawCircle(focusedPoint, 2.0, selectorPaint..color = backgroundColor);
+      canvas.drawCircle(focusedPoint, 2.0, selectorPaint..color = dotColor);
     }
 
     final Rect focusedRect = Rect.fromCircle(
@@ -1209,18 +1212,7 @@ class _DialState extends State<_Dial> with SingleTickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    Color backgroundColor = TimePickerTheme.of(context).dialBackgroundColor;
-    if (backgroundColor == null) {
-      switch (themeData.brightness) {
-        case Brightness.light:
-          backgroundColor = Colors.grey[200];
-          break;
-        case Brightness.dark:
-          backgroundColor = themeData.colorScheme.surface;
-          break;
-      }
-    }
-
+    final Color backgroundColor = TimePickerTheme.of(context).dialBackgroundColor ?? themeData.colorScheme.onBackground.withOpacity(0.12);
     final Color accentColor = TimePickerTheme.of(context).dialHandColor ?? themeData.colorScheme.primary;
     final ThemeData theme = Theme.of(context);
     List<_TappableLabel> primaryLabels;
@@ -1259,6 +1251,7 @@ class _DialState extends State<_Dial> with SingleTickerProviderStateMixin {
           secondaryLabels: secondaryLabels,
           backgroundColor: backgroundColor,
           accentColor: accentColor,
+          dotColor: Theme.of(context).colorScheme.surface,
           theta: _theta.value,
           textDirection: Directionality.of(context),
         ),
@@ -1399,7 +1392,7 @@ class _TimePickerInputState extends State<_TimePickerInput> {
     final TimeOfDayFormat timeOfDayFormat = MaterialLocalizations.of(context).timeOfDayFormat(alwaysUse24HourFormat: media.alwaysUse24HourFormat);
     final bool use24HourDials = hourFormat(of: timeOfDayFormat) != HourFormat.h;
     final ThemeData theme = Theme.of(context);
-    final TextStyle hourMinuteStyle = TimePickerTheme.of(context).hourMinuteTextStyle ?? theme.textTheme.headline3;
+    final TextStyle hourMinuteStyle = TimePickerTheme.of(context).hourMinuteTextStyle ?? theme.textTheme.headline2;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
@@ -1422,6 +1415,7 @@ class _TimePickerInputState extends State<_TimePickerInput> {
                   _HourMinuteTextField(
                     selectedTime: _selectedTime,
                     isHour: true,
+                    style: hourMinuteStyle,
                     validator: _validateHour,
                     onSavedSubmitted: _handleHourSavedSubmitted,
                     onChanged: _handleHourChanged,
@@ -1446,6 +1440,7 @@ class _TimePickerInputState extends State<_TimePickerInput> {
                   _HourMinuteTextField(
                     selectedTime: _selectedTime,
                     isHour: false,
+                    style: hourMinuteStyle,
                     validator: _validateMinute,
                     onSavedSubmitted: _handleMinuteSavedSubmitted,
                   ),
@@ -1484,6 +1479,7 @@ class _HourMinuteTextField extends StatefulWidget {
     Key key,
     @required this.selectedTime,
     @required this.isHour,
+    @required this.style,
     @required this.validator,
     @required this.onSavedSubmitted,
     this.onChanged,
@@ -1491,6 +1487,7 @@ class _HourMinuteTextField extends StatefulWidget {
 
   final TimeOfDay selectedTime;
   final bool isHour;
+  final TextStyle style;
   final FormFieldValidator<String> validator;
   final ValueChanged<String> onSavedSubmitted;
   final ValueChanged<String> onChanged;
@@ -1530,17 +1527,15 @@ class __HourMinuteTextFieldState extends State<_HourMinuteTextField> {
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     final ColorScheme colorScheme = theme.colorScheme;
-    final TextStyle style = TimePickerTheme.of(context).hourMinuteTextStyle
-      ?? theme.textTheme.headline3;
 
     final InputDecorationTheme inputDecorationTheme = TimePickerTheme.of(context).inputDecorationTheme;
     InputDecoration inputDecoration;
     if (inputDecorationTheme == null) {
       inputDecoration = InputDecoration(
-        contentPadding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 10.0),
+        contentPadding: const EdgeInsetsDirectional.only(bottom: 16.0, start: 3.0),
         filled: true,
-        fillColor: focusNode.hasFocus ? colorScheme.background : colorScheme.onBackground.withOpacity(0.06),
-        enabledBorder: OutlineInputBorder(
+        fillColor: focusNode.hasFocus ? colorScheme.background : colorScheme.onBackground.withOpacity(0.12),
+        enabledBorder: const OutlineInputBorder(
           borderSide: BorderSide(color: Colors.transparent),
         ),
         errorBorder: OutlineInputBorder(
@@ -1552,7 +1547,7 @@ class __HourMinuteTextFieldState extends State<_HourMinuteTextField> {
         focusedErrorBorder: OutlineInputBorder(
           borderSide: BorderSide(color: colorScheme.error, width: 2.0),
         ),
-        hintStyle: style.copyWith(color: colorScheme.onBackground.withOpacity(0.36)),
+        hintStyle: widget.style.copyWith(color: colorScheme.onBackground.withOpacity(0.36)),
         // TODO(rami-a): Remove this logic once https://github.com/flutter/flutter/issues/54104 is fixed.
         errorStyle: const TextStyle(fontSize: 0.0, height: 0.0), // Prevent the error text from appearing.
       );
@@ -1575,7 +1570,7 @@ class __HourMinuteTextFieldState extends State<_HourMinuteTextField> {
               focusNode: focusNode,
               textAlign: TextAlign.center,
               keyboardType: TextInputType.number,
-              style: style.copyWith(color: colorScheme.onBackground),
+              style: widget.style.copyWith(color: colorScheme.onBackground),
               controller: controller,
               decoration: inputDecoration,
               validator: widget.validator,
@@ -1929,7 +1924,7 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
 
     return Dialog(
       shape: shape,
-      backgroundColor: TimePickerTheme.of(context).backgroundColor ?? theme.colorScheme.background,
+      backgroundColor: TimePickerTheme.of(context).backgroundColor ?? theme.colorScheme.surface,
       insetPadding: _entryMode == TimePickerEntryMode.input
           ? EdgeInsets.zero
           : const EdgeInsets.symmetric(horizontal: 40.0, vertical: 24.0),
