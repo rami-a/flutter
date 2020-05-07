@@ -851,7 +851,7 @@ class _CustomPainterSemanticsTester {
       final Iterable<SemanticsNode> dialLabelNodes = semantics
           .nodesWith(value: expectation)
           .where((SemanticsNode node) => node.tags?.contains(const SemanticsTag('dial-label')) ?? false);
-      expect(dialLabelNodes, hasLength(1), reason: 'Expected exactly one label ${expectation}');
+      expect(dialLabelNodes, hasLength(1), reason: 'Expected exactly one label $expectation');
 
       final ui.Paragraph paragraph = paragraphs[i++];
 

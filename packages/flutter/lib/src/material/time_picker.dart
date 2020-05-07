@@ -758,6 +758,8 @@ class _DialPainter extends CustomPainter {
   final TextDirection textDirection;
   final int selectedValue;
 
+  static const double _labelPadding = 28.0;
+
   @override
   void paint(Canvas canvas, Size size) {
     final double radius = size.shortestSide / 2.0;
@@ -765,8 +767,7 @@ class _DialPainter extends CustomPainter {
     final Offset centerPoint = center;
     canvas.drawCircle(centerPoint, radius, Paint()..color = backgroundColor);
 
-    const double labelPadding = 24.0;
-    final double labelRadius = radius - labelPadding;
+    final double labelRadius = radius - _labelPadding;
     Offset getOffsetForTheta(double theta) {
       return center + Offset(labelRadius * math.cos(theta),
                                  -labelRadius * math.sin(theta));
@@ -791,7 +792,7 @@ class _DialPainter extends CustomPainter {
     final Paint selectorPaint = Paint()
       ..color = accentColor;
     final Offset focusedPoint = getOffsetForTheta(theta);
-    const double focusedRadius = labelPadding - 4.0;
+    const double focusedRadius = _labelPadding - 4.0;
     canvas.drawCircle(centerPoint, 4.0, selectorPaint);
     canvas.drawCircle(focusedPoint, focusedRadius, selectorPaint);
     selectorPaint.strokeWidth = 2.0;
@@ -829,8 +830,7 @@ class _DialPainter extends CustomPainter {
   List<CustomPainterSemantics> _buildSemantics(Size size) {
     final double radius = size.shortestSide / 2.0;
     final Offset center = Offset(size.width / 2.0, size.height / 2.0);
-    const double labelPadding = 24.0;
-    final double labelRadius = radius - labelPadding;
+    final double labelRadius = radius - _labelPadding;
 
     Offset getOffsetForTheta(double theta) {
       return center + Offset(labelRadius * math.cos(theta),
