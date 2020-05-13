@@ -1769,8 +1769,7 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
   Size _dialogSize(BuildContext context) {
     final Orientation orientation = MediaQuery.of(context).orientation;
     final ThemeData theme = Theme.of(context);
-    // Constrain the textScaleFactor to the largest supported value to prevent
-    // layout issues.
+    // Constrain the textScaleFactor to prevent layout issues.
     final double textScaleFactor = math.min(MediaQuery.of(context).textScaleFactor, 1.1);
 
     double timePickerWidth;
