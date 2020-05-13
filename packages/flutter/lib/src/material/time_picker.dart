@@ -36,6 +36,7 @@ import 'time_picker_theme.dart';
 // Examples can assume:
 // BuildContext context;
 
+const Duration _kDialogSizeAnimationDuration = Duration(milliseconds: 200);
 const Duration _kDialAnimateDuration = Duration(milliseconds: 75);
 const double _kTwoPi = 2 * math.pi;
 const Duration _kVibrateCommitDelay = Duration(milliseconds: 100);
@@ -46,8 +47,9 @@ const double _kTimePickerHeaderLandscapeWidth = 264.0;
 const double _kTimePickerHeaderControlHeight = 80.0;
 
 const double _kTimePickerWidthPortrait = 328.0;
-const double _kTimePickerWidthLandscape = 512.0;
+const double _kTimePickerWidthLandscape = 528.0;
 
+const double _kTimePickerHeightInput = 226.0;
 const double _kTimePickerHeightPortrait = 496.0;
 const double _kTimePickerHeightLandscape = 316.0;
 
@@ -756,6 +758,8 @@ class _DialPainter extends CustomPainter {
   final TextDirection textDirection;
   final int selectedValue;
 
+  static const double _labelPadding = 28.0;
+
   @override
   void paint(Canvas canvas, Size size) {
     final double radius = size.shortestSide / 2.0;
@@ -763,8 +767,7 @@ class _DialPainter extends CustomPainter {
     final Offset centerPoint = center;
     canvas.drawCircle(centerPoint, radius, Paint()..color = backgroundColor);
 
-    const double labelPadding = 24.0;
-    final double labelRadius = radius - labelPadding;
+    final double labelRadius = radius - _labelPadding;
     Offset getOffsetForTheta(double theta) {
       return center + Offset(labelRadius * math.cos(theta),
                                  -labelRadius * math.sin(theta));
@@ -789,7 +792,7 @@ class _DialPainter extends CustomPainter {
     final Paint selectorPaint = Paint()
       ..color = accentColor;
     final Offset focusedPoint = getOffsetForTheta(theta);
-    const double focusedRadius = labelPadding - 4.0;
+    const double focusedRadius = _labelPadding - 4.0;
     canvas.drawCircle(centerPoint, 4.0, selectorPaint);
     canvas.drawCircle(focusedPoint, focusedRadius, selectorPaint);
     selectorPaint.strokeWidth = 2.0;
@@ -827,8 +830,7 @@ class _DialPainter extends CustomPainter {
   List<CustomPainterSemantics> _buildSemantics(Size size) {
     final double radius = size.shortestSide / 2.0;
     final Offset center = Offset(size.width / 2.0, size.height / 2.0);
-    const double labelPadding = 24.0;
-    final double labelRadius = radius - labelPadding;
+    final double labelRadius = radius - _labelPadding;
 
     Offset getOffsetForTheta(double theta) {
       return center + Offset(labelRadius * math.cos(theta),
@@ -1430,7 +1432,7 @@ class _TimePickerInputState extends State<_TimePickerInput> {
                 ],
               )),
               Padding(
-                padding: const EdgeInsets.only(top: 16.0),
+                padding: const EdgeInsets.only(top: 20.0),
                 child: _StringFragment(
                   textStyle: hourMinuteStyle.copyWith(color: theme.colorScheme.onBackground),
                   timeOfDayFormat: timeOfDayFormat,
@@ -1764,6 +1766,39 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
     Navigator.pop(context, _selectedTime);
   }
 
+  Size _dialogSize(BuildContext context) {
+    final Orientation orientation = MediaQuery.of(context).orientation;
+    final ThemeData theme = Theme.of(context);
+    // Constrain the textScaleFactor to prevent layout issues.
+    final double textScaleFactor = math.min(MediaQuery.of(context).textScaleFactor, 1.1);
+
+    double timePickerWidth;
+    double timePickerHeight;
+    switch (_entryMode) {
+      case TimePickerEntryMode.dial:
+        switch (orientation) {
+          case Orientation.portrait:
+            timePickerWidth = _kTimePickerWidthPortrait;
+            timePickerHeight = theme.materialTapTargetSize == MaterialTapTargetSize.padded
+                ? _kTimePickerHeightPortrait
+                : _kTimePickerHeightPortraitCollapsed;
+            break;
+          case Orientation.landscape:
+            timePickerWidth = _kTimePickerWidthLandscape;
+            timePickerHeight = theme.materialTapTargetSize == MaterialTapTargetSize.padded
+                ? _kTimePickerHeightLandscape
+                : _kTimePickerHeightLandscapeCollapsed;
+            break;
+        }
+        break;
+      case TimePickerEntryMode.input:
+        timePickerWidth = _kTimePickerWidthPortrait;
+        timePickerHeight = _kTimePickerHeightInput;
+        break;
+    }
+    return Size(timePickerWidth, timePickerHeight * textScaleFactor);
+  }
+
   @override
   Widget build(BuildContext context) {
     assert(debugCheckHasMediaQuery(context));
@@ -1772,6 +1807,7 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
     final bool use24HourDials = hourFormat(of: timeOfDayFormat) != HourFormat.h;
     final ThemeData theme = Theme.of(context);
     final ShapeBorder shape = TimePickerTheme.of(context).shape ?? _kDefaultShape;
+    final Orientation orientation = MediaQuery.of(context).orientation;
 
     Color toggleColor;
     switch (theme.brightness) {
@@ -1811,127 +1847,107 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
     Widget picker;
     switch (_entryMode) {
       case TimePickerEntryMode.dial:
-        picker = OrientationBuilder(
-            builder: (BuildContext context, Orientation orientation) {
-              final Widget dial = Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: AspectRatio(
-                  aspectRatio: 1.0,
-                  child: _Dial(
-                    mode: _mode,
-                    use24HourDials: use24HourDials,
-                    selectedTime: _selectedTime,
-                    onChanged: _handleTimeChanged,
-                    onHourSelected: _handleHourSelected,
+        final Widget dial = Padding(
+          padding: EdgeInsets.symmetric(horizontal: orientation == Orientation.portrait ? 36.0 : 24.0, vertical: 24.0),
+          // Allows for a smoother transition from dial to input mode.
+          child: SingleChildScrollView(
+            scrollDirection: orientation == Orientation.portrait ? Axis.vertical : Axis.horizontal,
+            child: AspectRatio(
+              aspectRatio: 1.0,
+              child: _Dial(
+                mode: _mode,
+                use24HourDials: use24HourDials,
+                selectedTime: _selectedTime,
+                onChanged: _handleTimeChanged,
+                onHourSelected: _handleHourSelected,
+              ),
+            ),
+          ),
+        );
+
+        final Widget header = _TimePickerHeader(
+          selectedTime: _selectedTime,
+          mode: _mode,
+          orientation: orientation,
+          onModeChanged: _handleModeChanged,
+          onChanged: _handleTimeChanged,
+          use24HourDials: use24HourDials,
+          helpText: widget.helpText,
+        );
+
+        switch (orientation) {
+          case Orientation.portrait:
+            picker = Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                header,
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      // Dial grows and shrinks with the available space.
+                      Expanded(child: dial),
+                      actions,
+                    ],
                   ),
                 ),
-              );
-
-              final Widget header = _TimePickerHeader(
-                selectedTime: _selectedTime,
-                mode: _mode,
-                orientation: orientation,
-                onModeChanged: _handleModeChanged,
-                onChanged: _handleTimeChanged,
-                use24HourDials: use24HourDials,
-                helpText: widget.helpText,
-              );
-
-              final Widget pickerAndActions = Container(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    // Dial grows and shrinks with the available space.
-                    Expanded(child: dial),
-                    actions,
-                  ],
+              ],
+            );
+            break;
+          case Orientation.landscape:
+            picker = Column(
+              children: <Widget>[
+                Expanded(
+                  child: Row(
+                    children: <Widget>[
+                      header,
+                      Expanded(child: dial),
+                    ],
+                  ),
                 ),
-              );
-
-              double timePickerHeightPortrait;
-              double timePickerHeightLandscape;
-              switch (theme.materialTapTargetSize) {
-                case MaterialTapTargetSize.padded:
-                  timePickerHeightPortrait = _kTimePickerHeightPortrait;
-                  timePickerHeightLandscape = _kTimePickerHeightLandscape;
-                  break;
-                case MaterialTapTargetSize.shrinkWrap:
-                  timePickerHeightPortrait = _kTimePickerHeightPortraitCollapsed;
-                  timePickerHeightLandscape = _kTimePickerHeightLandscapeCollapsed;
-                  break;
-              }
-
-              assert(orientation != null);
-              switch (orientation) {
-                case Orientation.portrait:
-                  return SizedBox(
-                    width: _kTimePickerWidthPortrait,
-                    height: timePickerHeightPortrait,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: <Widget>[
-                        header,
-                        Expanded(
-                          child: pickerAndActions,
-                        ),
-                      ],
-                    ),
-                  );
-                case Orientation.landscape:
-                  return SizedBox(
-                    width: _kTimePickerWidthLandscape,
-                    height: timePickerHeightLandscape,
-                    child: Column(
-                      children: <Widget>[
-                        Expanded(
-                          child: Row(
-                            children: <Widget>[
-                              header,
-                              Expanded(child: dial),
-                            ],
-                          ),
-                        ),
-                        actions,
-                      ],
-                    ),
-                  );
-              }
-              return null;
-            }
-        );
+                actions,
+              ],
+            );
+            break;
+        }
         break;
       case TimePickerEntryMode.input:
         picker = Form(
           key: _formKey,
           autovalidate: _autoValidate,
-          child: Container(
-            constraints: const BoxConstraints(maxWidth: _kTimePickerWidthPortrait),
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  _TimePickerInput(
-                    initialSelectedTime: _selectedTime,
-                    helpText: widget.helpText,
-                    onChanged: _handleTimeChanged,
-                  ),
-                  actions,
-                ],
-              ),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                _TimePickerInput(
+                  initialSelectedTime: _selectedTime,
+                  helpText: widget.helpText,
+                  onChanged: _handleTimeChanged,
+                ),
+                actions,
+              ],
             ),
           ),
         );
         break;
     }
 
+    final Size dialogSize = _dialogSize(context);
     return Dialog(
       shape: shape,
       backgroundColor: TimePickerTheme.of(context).backgroundColor ?? theme.colorScheme.surface,
-      insetPadding: _entryMode == TimePickerEntryMode.input
-          ? EdgeInsets.zero
-          : const EdgeInsets.symmetric(horizontal: 40.0, vertical: 24.0),
-      child: picker,
+      insetPadding: EdgeInsets.symmetric(
+        horizontal: 16.0,
+        vertical: _entryMode == TimePickerEntryMode.input ? 0.0 : 24.0,
+      ),
+      child: AnimatedContainer(
+        width: dialogSize.width,
+        height: dialogSize.height,
+        duration: _kDialogSizeAnimationDuration,
+        curve: Curves.easeIn,
+        child: picker,
+      ),
     );
   }
 
