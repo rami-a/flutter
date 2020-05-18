@@ -1793,8 +1793,8 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
       case TimePickerEntryMode.dial:
         final Widget dial = Padding(
           padding: EdgeInsets.symmetric(horizontal: orientation == Orientation.portrait ? 36.0 : 24.0, vertical: 24.0),
-          // Allows for a smoother transition from dial to input mode.
           child: ExcludeSemantics(
+            // Allows for a smoother transition from dial to input mode.
             child: SingleChildScrollView(
               scrollDirection: orientation == Orientation.portrait ? Axis.vertical : Axis.horizontal,
               child: AspectRatio(
