@@ -1766,7 +1766,9 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
           onPressed: _handleEntryModeToggle,
           icon: Icon(_entryMode == TimePickerEntryMode.dial ? Icons.keyboard : Icons.access_time),
           // TODO(rami-a): Localize these strings.
-          tooltip: _entryMode == TimePickerEntryMode.dial ? 'Switch to text input' : 'Switch to clock', // TODO: Are this the correct strings?
+          tooltip: _entryMode == TimePickerEntryMode.dial
+              ? 'Switch to text input mode'
+              : 'Switch to dial picker mode',
         ),
         Expanded(
           child: ButtonBar(
