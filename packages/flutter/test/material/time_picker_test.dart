@@ -338,10 +338,10 @@ void _tests() {
     await mediaQueryBoilerplate(tester, true);
 
     expect(semantics, isNot(includesNodeWith(label: ':')));
-    expect(semantics.nodesWith(value: '00'), hasLength(2),
-        reason: '00 appears once in the header, then again in the dial');
+    expect(semantics.nodesWith(value: '00'), hasLength(1),
+        reason: '00 appears once in the header');
     expect(semantics.nodesWith(value: '07'), hasLength(1),
-        reason: '07 appears once in the header, but not in the dial');
+        reason: '07 appears once in the header');
     expect(semantics, includesNodeWith(label: 'CANCEL'));
     expect(semantics, includesNodeWith(label: 'OK'));
 
@@ -349,58 +349,6 @@ void _tests() {
     expect(semantics, isNot(includesNodeWith(label: 'AM')));
     expect(semantics, isNot(includesNodeWith(label: 'PM')));
 
-    semantics.dispose();
-  });
-  
-  testWidgets('provides semantics information for hours', (WidgetTester tester) async {
-    final SemanticsTester semantics = SemanticsTester(tester);
-    await mediaQueryBoilerplate(tester, true);
-
-    final CustomPaint dialPaint = tester.widget(find.byKey(const ValueKey<String>('time-picker-dial')));
-    final CustomPainter dialPainter = dialPaint.painter;
-    final _CustomPainterSemanticsTester painterTester = _CustomPainterSemanticsTester(tester, dialPainter, semantics);
-
-    painterTester.addLabel('00');
-    painterTester.addLabel('02');
-    painterTester.addLabel('04');
-    painterTester.addLabel('06');
-    painterTester.addLabel('08');
-    painterTester.addLabel('10');
-    painterTester.addLabel('12');
-    painterTester.addLabel('14');
-    painterTester.addLabel('16');
-    painterTester.addLabel('18');
-    painterTester.addLabel('20');
-    painterTester.addLabel('22');
-
-    painterTester.assertExpectations();
-    semantics.dispose();
-  });
-
-  testWidgets('provides semantics information for minutes', (WidgetTester tester) async {
-    final SemanticsTester semantics = SemanticsTester(tester);
-    await mediaQueryBoilerplate(tester, true);
-    await tester.tap(_minuteControl);
-    await tester.pumpAndSettle();
-
-    final CustomPaint dialPaint = tester.widget(find.byKey(const ValueKey<String>('time-picker-dial')));
-    final CustomPainter dialPainter = dialPaint.painter;
-    final _CustomPainterSemanticsTester painterTester = _CustomPainterSemanticsTester(tester, dialPainter, semantics);
-
-    painterTester.addLabel('00');
-    painterTester.addLabel('05');
-    painterTester.addLabel('10');
-    painterTester.addLabel('15');
-    painterTester.addLabel('20');
-    painterTester.addLabel('25');
-    painterTester.addLabel('30');
-    painterTester.addLabel('35');
-    painterTester.addLabel('40');
-    painterTester.addLabel('45');
-    painterTester.addLabel('50');
-    painterTester.addLabel('55');
-
-    painterTester.assertExpectations();
     semantics.dispose();
   });
 
@@ -818,60 +766,6 @@ final Finder findDialPaint = find.descendant(
   of: find.byWidgetPredicate((Widget w) => '${w.runtimeType}' == '_Dial'),
   matching: find.byWidgetPredicate((Widget w) => w is CustomPaint),
 );
-
-class _CustomPainterSemanticsTester {
-  _CustomPainterSemanticsTester(this.tester, this.painter, this.semantics);
-
-  final WidgetTester tester;
-  final CustomPainter painter;
-  final SemanticsTester semantics;
-  final PaintPattern expectedLabels = paints;
-  final List<String> expectedNodes = <String>[];
-
-  void addLabel(String label) {
-    expectedNodes.add(label);
-  }
-
-  void assertExpectations() {
-    final TestRecordingCanvas canvasRecording = TestRecordingCanvas();
-    painter.paint(canvasRecording, const Size(220.0, 220.0));
-    final List<ui.Paragraph> paragraphs = canvasRecording.invocations
-      .where((RecordedInvocation recordedInvocation) {
-        return recordedInvocation.invocation.memberName == #drawParagraph;
-      })
-      .map<ui.Paragraph>((RecordedInvocation recordedInvocation) {
-        return recordedInvocation.invocation.positionalArguments.first as ui.Paragraph;
-      })
-      .toList();
-
-    final PaintPattern expectedLabels = paints;
-    int i = 0;
-
-    for (final String expectation in expectedNodes) {
-      expect(semantics, includesNodeWith(value: expectation));
-      final Iterable<SemanticsNode> dialLabelNodes = semantics
-          .nodesWith(value: expectation)
-          .where((SemanticsNode node) => node.tags?.contains(const SemanticsTag('dial-label')) ?? false);
-      expect(dialLabelNodes, hasLength(1), reason: 'Expected exactly one label $expectation');
-
-      final ui.Paragraph paragraph = paragraphs[i++];
-
-      // The label text paragraph and the semantics node share the same center,
-      // but have different sizes.
-      final Offset center = dialLabelNodes.single.rect.center;
-      final Offset topLeft = center.translate(
-        -paragraph.width / 2.0,
-        -paragraph.height / 2.0,
-      );
-
-      expectedLabels.paragraph(
-        paragraph: paragraph,
-        offset: within<Offset>(distance: 1.0, from: topLeft),
-      );
-    }
-    expect(tester.renderObject(findDialPaint), expectedLabels);
-  }
-}
 
 class PickerObserver extends NavigatorObserver {
   int pickerCount = 0;

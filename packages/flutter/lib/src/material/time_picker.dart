@@ -817,70 +817,6 @@ class _DialPainter extends CustomPainter {
     canvas.restore();
   }
 
-  static const double _semanticNodeSizeScale = 1.5;
-
-  @override
-  SemanticsBuilderCallback get semanticsBuilder => _buildSemantics;
-
-  /// Creates semantics nodes for the hour/minute labels painted on the dial.
-  ///
-  /// The nodes are positioned on top of the text and their size is
-  /// [_semanticNodeSizeScale] bigger than those of the text boxes to provide
-  /// bigger tap area.
-  List<CustomPainterSemantics> _buildSemantics(Size size) {
-    final double radius = size.shortestSide / 2.0;
-    final Offset center = Offset(size.width / 2.0, size.height / 2.0);
-    final double labelRadius = radius - _labelPadding;
-
-    Offset getOffsetForTheta(double theta) {
-      return center + Offset(labelRadius * math.cos(theta),
-          -labelRadius * math.sin(theta));
-    }
-
-    final List<CustomPainterSemantics> nodes = <CustomPainterSemantics>[];
-
-    void paintLabels(List<_TappableLabel> labels) {
-      if (labels == null)
-        return;
-      final double labelThetaIncrement = -_kTwoPi / labels.length;
-      double labelTheta = math.pi / 2.0;
-
-      for (int i = 0; i < labels.length; i++) {
-        final _TappableLabel label = labels[i];
-        final TextPainter labelPainter = label.painter;
-        final double width = labelPainter.width * _semanticNodeSizeScale;
-        final double height = labelPainter.height * _semanticNodeSizeScale;
-        final Offset nodeOffset = getOffsetForTheta(labelTheta) + Offset(-width / 2.0, -height / 2.0);
-        final TextSpan textSpan = labelPainter.text as TextSpan;
-        final CustomPainterSemantics node = CustomPainterSemantics(
-          rect: Rect.fromLTRB(
-            nodeOffset.dx - 24.0 + width / 2,
-            nodeOffset.dy - 24.0 + height / 2,
-            nodeOffset.dx + 24.0 + width / 2,
-            nodeOffset.dy + 24.0 + height / 2,
-          ),
-          properties: SemanticsProperties(
-            sortKey: OrdinalSortKey(i.toDouble()),
-            selected: label.value == selectedValue,
-            value: textSpan?.text,
-            textDirection: textDirection,
-            onTap: label.onTap,
-          ),
-          tags: const <SemanticsTag>{
-            // Used by tests to find this node.
-            SemanticsTag('dial-label'),
-          },
-        );
-        nodes.add(node);
-        labelTheta += labelThetaIncrement;
-      }
-    }
-
-    paintLabels(primaryLabels);
-
-    return nodes;
-  }
-
   @override
   bool shouldRepaint(_DialPainter oldPainter) {
     return oldPainter.primaryLabels != primaryLabels
@@ -1427,8 +1363,10 @@ class _TimePickerInputState extends State<_TimePickerInput> {
                   ),
                   const SizedBox(height: 8.0),
                   if (!hourHasError && !minuteHasError)
-                    // TODO(rami-a): localize 'Hour'
-                    Text('Hour', style: theme.textTheme.caption),
+                    ExcludeSemantics(
+                      // TODO(rami-a): localize 'Hour'
+                      child: Text('Hour', style: theme.textTheme.caption),
+                    ),
                 ],
               )),
               Padding(
@@ -1451,8 +1389,10 @@ class _TimePickerInputState extends State<_TimePickerInput> {
                   ),
                   const SizedBox(height: 8.0),
                   if (!hourHasError && !minuteHasError)
-                    // TODO(rami-a): localize 'Minute'
-                    Text('Minute', style: theme.textTheme.caption),
+                    ExcludeSemantics(
+                      // TODO(rami-a): localize 'Minute'
+                      child: Text('Minute', style: theme.textTheme.caption),
+                    ),
                 ],
               )),
               if (!use24HourDials) ...<Widget>[
@@ -1825,6 +1765,10 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
           color: toggleColor,
           onPressed: _handleEntryModeToggle,
           icon: Icon(_entryMode == TimePickerEntryMode.dial ? Icons.keyboard : Icons.access_time),
+          // TODO(rami-a): Localize these strings.
+          tooltip: _entryMode == TimePickerEntryMode.dial
+              ? 'Switch to text input mode'
+              : 'Switch to dial picker mode',
         ),
         Expanded(
           child: ButtonBar(
@@ -1849,17 +1793,19 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
       case TimePickerEntryMode.dial:
         final Widget dial = Padding(
           padding: EdgeInsets.symmetric(horizontal: orientation == Orientation.portrait ? 36.0 : 24.0, vertical: 24.0),
-          // Allows for a smoother transition from dial to input mode.
-          child: SingleChildScrollView(
-            scrollDirection: orientation == Orientation.portrait ? Axis.vertical : Axis.horizontal,
-            child: AspectRatio(
-              aspectRatio: 1.0,
-              child: _Dial(
-                mode: _mode,
-                use24HourDials: use24HourDials,
-                selectedTime: _selectedTime,
-                onChanged: _handleTimeChanged,
-                onHourSelected: _handleHourSelected,
+          child: ExcludeSemantics(
+            // Allows for a smoother transition from dial to input mode.
+            child: SingleChildScrollView(
+              scrollDirection: orientation == Orientation.portrait ? Axis.vertical : Axis.horizontal,
+              child: AspectRatio(
+                aspectRatio: 1.0,
+                child: _Dial(
+                  mode: _mode,
+                  use24HourDials: use24HourDials,
+                  selectedTime: _selectedTime,
+                  onChanged: _handleTimeChanged,
+                  onHourSelected: _handleHourSelected,
+                ),
               ),
             ),
           ),
