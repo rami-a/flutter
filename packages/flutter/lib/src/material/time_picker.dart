@@ -507,24 +507,19 @@ class _DayPeriodControl extends StatelessWidget {
             side: BorderSide(color: Theme.of(context).dividerColor),
         );
 
-    final bool layoutPortrait = orientation == Orientation.portrait;
-
     final double buttonTextScaleFactor = math.min(MediaQuery.of(context).textScaleFactor, 2.0);
 
     final Widget amButton = Material(
       color: amSelected ? activeBackgroundColor : backgroundColor,
       child: InkWell(
         onTap: Feedback.wrapForTap(() => _setAm(context), context),
-        child: Padding(
-          padding: layoutPortrait ? const EdgeInsets.only(bottom: 2.0) : const EdgeInsets.only(right: 4.0),
-          child: Semantics(
-            selected: amSelected,
-            child: Center(
-              child: Text(
-                materialLocalizations.anteMeridiemAbbreviation,
-                style: amStyle,
-                textScaleFactor: buttonTextScaleFactor,
-              ),
+        child: Semantics(
+          selected: amSelected,
+          child: Center(
+            child: Text(
+              materialLocalizations.anteMeridiemAbbreviation,
+              style: amStyle,
+              textScaleFactor: buttonTextScaleFactor,
             ),
           ),
         ),
@@ -535,16 +530,13 @@ class _DayPeriodControl extends StatelessWidget {
       color: !amSelected ? activeBackgroundColor : backgroundColor,
       child: InkWell(
         onTap: Feedback.wrapForTap(() => _setPm(context), context),
-        child: Padding(
-          padding: layoutPortrait ? const EdgeInsets.only(top: 2.0) : const EdgeInsets.only(left: 4.0),
-          child: Semantics(
-            selected: !amSelected,
-            child: Center(
-              child: Text(
-                materialLocalizations.postMeridiemAbbreviation,
-                style: pmStyle,
-                textScaleFactor: buttonTextScaleFactor,
-              ),
+        child: Semantics(
+          selected: !amSelected,
+          child: Center(
+            child: Text(
+              materialLocalizations.postMeridiemAbbreviation,
+              style: pmStyle,
+              textScaleFactor: buttonTextScaleFactor,
             ),
           ),
         ),
