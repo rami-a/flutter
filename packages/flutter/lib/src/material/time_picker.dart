@@ -1786,18 +1786,14 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
         final Widget dial = Padding(
           padding: EdgeInsets.symmetric(horizontal: orientation == Orientation.portrait ? 36.0 : 24.0, vertical: 24.0),
           child: ExcludeSemantics(
-            // Allows for a smoother transition from dial to input mode.
-            child: SingleChildScrollView(
-              scrollDirection: orientation == Orientation.portrait ? Axis.vertical : Axis.horizontal,
-              child: AspectRatio(
-                aspectRatio: 1.0,
-                child: _Dial(
-                  mode: _mode,
-                  use24HourDials: use24HourDials,
-                  selectedTime: _selectedTime,
-                  onChanged: _handleTimeChanged,
-                  onHourSelected: _handleHourSelected,
-                ),
+            child: AspectRatio(
+              aspectRatio: 1.0,
+              child: _Dial(
+                mode: _mode,
+                use24HourDials: use24HourDials,
+                selectedTime: _selectedTime,
+                onChanged: _handleTimeChanged,
+                onHourSelected: _handleHourSelected,
               ),
             ),
           ),
