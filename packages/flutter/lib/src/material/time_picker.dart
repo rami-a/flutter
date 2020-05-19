@@ -1357,7 +1357,7 @@ class _TimePickerInputState extends State<_TimePickerInput> {
                   if (!hourHasError && !minuteHasError)
                     ExcludeSemantics(
                       // TODO(rami-a): localize 'Hour'
-                      child: Text('Hour', style: theme.textTheme.caption),
+                      child: Text('Hour', style: theme.textTheme.caption, maxLines: 1, overflow: TextOverflow.ellipsis),
                     ),
                 ],
               )),
@@ -1383,7 +1383,7 @@ class _TimePickerInputState extends State<_TimePickerInput> {
                   if (!hourHasError && !minuteHasError)
                     ExcludeSemantics(
                       // TODO(rami-a): localize 'Minute'
-                      child: Text('Minute', style: theme.textTheme.caption),
+                      child: Text('Minute', style: theme.textTheme.caption, maxLines: 1, overflow: TextOverflow.ellipsis),
                     ),
                 ],
               )),
@@ -1716,7 +1716,7 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
                 : _kTimePickerHeightPortraitCollapsed;
             break;
           case Orientation.landscape:
-            timePickerWidth = _kTimePickerWidthLandscape;
+            timePickerWidth = _kTimePickerWidthLandscape * textScaleFactor;
             timePickerHeight = theme.materialTapTargetSize == MaterialTapTargetSize.padded
                 ? _kTimePickerHeightLandscape
                 : _kTimePickerHeightLandscapeCollapsed;
