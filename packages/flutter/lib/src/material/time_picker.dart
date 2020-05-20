@@ -507,24 +507,19 @@ class _DayPeriodControl extends StatelessWidget {
             side: BorderSide(color: Theme.of(context).dividerColor),
         );
 
-    final bool layoutPortrait = orientation == Orientation.portrait;
-
     final double buttonTextScaleFactor = math.min(MediaQuery.of(context).textScaleFactor, 2.0);
 
     final Widget amButton = Material(
       color: amSelected ? activeBackgroundColor : backgroundColor,
       child: InkWell(
         onTap: Feedback.wrapForTap(() => _setAm(context), context),
-        child: Padding(
-          padding: layoutPortrait ? const EdgeInsets.only(bottom: 2.0) : const EdgeInsets.only(right: 4.0),
-          child: Semantics(
-            selected: amSelected,
-            child: Center(
-              child: Text(
-                materialLocalizations.anteMeridiemAbbreviation,
-                style: amStyle,
-                textScaleFactor: buttonTextScaleFactor,
-              ),
+        child: Semantics(
+          selected: amSelected,
+          child: Center(
+            child: Text(
+              materialLocalizations.anteMeridiemAbbreviation,
+              style: amStyle,
+              textScaleFactor: buttonTextScaleFactor,
             ),
           ),
         ),
@@ -535,16 +530,13 @@ class _DayPeriodControl extends StatelessWidget {
       color: !amSelected ? activeBackgroundColor : backgroundColor,
       child: InkWell(
         onTap: Feedback.wrapForTap(() => _setPm(context), context),
-        child: Padding(
-          padding: layoutPortrait ? const EdgeInsets.only(top: 2.0) : const EdgeInsets.only(left: 4.0),
-          child: Semantics(
-            selected: !amSelected,
-            child: Center(
-              child: Text(
-                materialLocalizations.postMeridiemAbbreviation,
-                style: pmStyle,
-                textScaleFactor: buttonTextScaleFactor,
-              ),
+        child: Semantics(
+          selected: !amSelected,
+          child: Center(
+            child: Text(
+              materialLocalizations.postMeridiemAbbreviation,
+              style: pmStyle,
+              textScaleFactor: buttonTextScaleFactor,
             ),
           ),
         ),
@@ -1365,7 +1357,7 @@ class _TimePickerInputState extends State<_TimePickerInput> {
                   if (!hourHasError && !minuteHasError)
                     ExcludeSemantics(
                       // TODO(rami-a): localize 'Hour'
-                      child: Text('Hour', style: theme.textTheme.caption),
+                      child: Text('Hour', style: theme.textTheme.caption, maxLines: 1, overflow: TextOverflow.ellipsis),
                     ),
                 ],
               )),
@@ -1391,7 +1383,7 @@ class _TimePickerInputState extends State<_TimePickerInput> {
                   if (!hourHasError && !minuteHasError)
                     ExcludeSemantics(
                       // TODO(rami-a): localize 'Minute'
-                      child: Text('Minute', style: theme.textTheme.caption),
+                      child: Text('Minute', style: theme.textTheme.caption, maxLines: 1, overflow: TextOverflow.ellipsis),
                     ),
                 ],
               )),
@@ -1724,7 +1716,7 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
                 : _kTimePickerHeightPortraitCollapsed;
             break;
           case Orientation.landscape:
-            timePickerWidth = _kTimePickerWidthLandscape;
+            timePickerWidth = _kTimePickerWidthLandscape * textScaleFactor;
             timePickerHeight = theme.materialTapTargetSize == MaterialTapTargetSize.padded
                 ? _kTimePickerHeightLandscape
                 : _kTimePickerHeightLandscapeCollapsed;
@@ -1794,18 +1786,14 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
         final Widget dial = Padding(
           padding: EdgeInsets.symmetric(horizontal: orientation == Orientation.portrait ? 36.0 : 24.0, vertical: 24.0),
           child: ExcludeSemantics(
-            // Allows for a smoother transition from dial to input mode.
-            child: SingleChildScrollView(
-              scrollDirection: orientation == Orientation.portrait ? Axis.vertical : Axis.horizontal,
-              child: AspectRatio(
-                aspectRatio: 1.0,
-                child: _Dial(
-                  mode: _mode,
-                  use24HourDials: use24HourDials,
-                  selectedTime: _selectedTime,
-                  onChanged: _handleTimeChanged,
-                  onHourSelected: _handleHourSelected,
-                ),
+            child: AspectRatio(
+              aspectRatio: 1.0,
+              child: _Dial(
+                mode: _mode,
+                use24HourDials: use24HourDials,
+                selectedTime: _selectedTime,
+                onChanged: _handleTimeChanged,
+                onHourSelected: _handleHourSelected,
               ),
             ),
           ),
