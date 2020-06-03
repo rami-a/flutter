@@ -126,7 +126,12 @@ void main() {
       dayPeriodMaterial.shape,
       RoundedRectangleBorder(
         borderRadius: const BorderRadius.all(Radius.circular(4.0)),
-        side: BorderSide(color: defaultTheme.dividerColor),
+        side: BorderSide(
+          color: Color.alphaBlend(
+            defaultTheme.colorScheme.onBackground.withOpacity(0.38),
+            defaultTheme.colorScheme.surface,
+          ),
+        ),
       ),
     );
   });

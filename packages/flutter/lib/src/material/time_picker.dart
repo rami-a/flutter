@@ -501,10 +501,11 @@ class _DayPeriodControl extends StatelessWidget {
     final TextStyle pmStyle = textStyle.copyWith(
       color: !amSelected ? activeColor: inactiveColor,
     );
+    final Color defaultBorderColor = Color.alphaBlend(colorScheme.onBackground.withOpacity(0.38), colorScheme.surface);
     final ShapeBorder shape = TimePickerTheme.of(context).dayPeriodShape ??
         RoundedRectangleBorder(
             borderRadius: _kDefaultBorderRadius,
-            side: BorderSide(color: Theme.of(context).dividerColor),
+            side: BorderSide(color: defaultBorderColor),
         );
 
     final double buttonTextScaleFactor = math.min(MediaQuery.of(context).textScaleFactor, 2.0);
