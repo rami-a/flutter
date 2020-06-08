@@ -17,6 +17,7 @@ import 'constants.dart';
 import 'curves.dart';
 import 'debug.dart';
 import 'dialog.dart';
+import 'divider.dart';
 import 'feedback.dart';
 import 'flat_button.dart';
 import 'icon_button.dart';
@@ -501,11 +502,12 @@ class _DayPeriodControl extends StatelessWidget {
     final TextStyle pmStyle = textStyle.copyWith(
       color: !amSelected ? activeColor: inactiveColor,
     );
-    final Color defaultBorderColor = Color.alphaBlend(colorScheme.onBackground.withOpacity(0.38), colorScheme.surface);
+    final Color borderColor = TimePickerTheme.of(context).dayPeriodBorderColor
+        ?? Color.alphaBlend(colorScheme.onBackground.withOpacity(0.38), colorScheme.surface);
     final ShapeBorder shape = TimePickerTheme.of(context).dayPeriodShape ??
         RoundedRectangleBorder(
             borderRadius: _kDefaultBorderRadius,
-            side: BorderSide(color: defaultBorderColor),
+            side: BorderSide(color: borderColor),
         );
 
     final double buttonTextScaleFactor = math.min(MediaQuery.of(context).textScaleFactor, 2.0);
@@ -560,6 +562,7 @@ class _DayPeriodControl extends StatelessWidget {
               child: Column(
                 children: <Widget>[
                   Expanded(child: amButton),
+                  Divider(color: borderColor, height: 1, thickness: 1),
                   Expanded(child: pmButton),
                 ],
               ),
@@ -580,6 +583,7 @@ class _DayPeriodControl extends StatelessWidget {
               child: Row(
                 children: <Widget>[
                   Expanded(child: amButton),
+                  VerticalDivider(color: borderColor, width: 1, thickness: 1),
                   Expanded(child: pmButton),
                 ],
               ),
