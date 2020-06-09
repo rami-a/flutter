@@ -21,6 +21,7 @@ void main() {
     expect(timePickerTheme.headerColor, null);
     expect(timePickerTheme.dialHandColor, null);
     expect(timePickerTheme.dialBackgroundColor, null);
+    expect(timePickerTheme.dayPeriodBorderColor, null);
     expect(timePickerTheme.hourMinuteTextStyle, null);
     expect(timePickerTheme.dayPeriodTextStyle, null);
     expect(timePickerTheme.helpTextStyle, null);
@@ -49,6 +50,7 @@ void main() {
       headerColor: Color(0xFFFFFFFF),
       dialHandColor: Color(0xFFFFFFFF),
       dialBackgroundColor: Color(0xFFFFFFFF),
+      dayPeriodBorderColor: Color(0xFFFFFFFF),
       hourMinuteTextStyle: TextStyle(),
       dayPeriodTextStyle: TextStyle(),
       helpTextStyle: TextStyle(),
@@ -67,6 +69,7 @@ void main() {
       'headerColor: Color(0xffffffff)',
       'dialHandColor: Color(0xffffffff)',
       'dialBackgroundColor: Color(0xffffffff)',
+      'dayPeriodBorderColor: Color(0xffffffff)',
       'hourMinuteTextStyle: TextStyle(<all styles inherited>)',
       'dayPeriodTextStyle: TextStyle(<all styles inherited>)',
       'helpTextStyle: TextStyle(<all styles inherited>)',
@@ -107,7 +110,15 @@ void main() {
       amText.text.style,
       Typography.material2014().englishLike.subtitle1
           .merge(Typography.material2014().black.subtitle1)
-          .copyWith(color: defaultTheme.colorScheme.onBackground),
+          .copyWith(color: defaultTheme.colorScheme.primary),
+    );
+
+    final RenderParagraph pmText = _textRenderParagraph(tester, 'PM');
+    expect(
+      pmText.text.style,
+      Typography.material2014().englishLike.subtitle1
+          .merge(Typography.material2014().black.subtitle1)
+          .copyWith(color: defaultTheme.colorScheme.onSurface.withOpacity(0.6)),
     );
 
     final RenderParagraph helperText = _textRenderParagraph(tester, 'SELECT TIME');
@@ -126,7 +137,21 @@ void main() {
       dayPeriodMaterial.shape,
       RoundedRectangleBorder(
         borderRadius: const BorderRadius.all(Radius.circular(4.0)),
-        side: BorderSide(color: defaultTheme.dividerColor),
+        side: BorderSide(
+          color: Color.alphaBlend(
+            defaultTheme.colorScheme.onBackground.withOpacity(0.38),
+            defaultTheme.colorScheme.surface,
+          ),
+        ),
+      ),
+    );
+
+    final VerticalDivider dayPeriodDivider = _dayPeriodDivider(tester);
+    expect(
+      dayPeriodDivider.color,
+      Color.alphaBlend(
+        defaultTheme.colorScheme.onBackground.withOpacity(0.38),
+        defaultTheme.colorScheme.surface,
       ),
     );
   });
@@ -186,7 +211,16 @@ void main() {
       Typography.material2014().englishLike.subtitle1
           .merge(Typography.material2014().black.subtitle1)
           .merge(timePickerTheme.dayPeriodTextStyle)
-          .copyWith(color: theme.colorScheme.onBackground),
+          .copyWith(color: theme.colorScheme.primary),
+    );
+
+    final RenderParagraph pmText = _textRenderParagraph(tester, 'PM');
+    expect(
+      pmText.text.style,
+      Typography.material2014().englishLike.subtitle1
+          .merge(Typography.material2014().black.subtitle1)
+          .merge(timePickerTheme.dayPeriodTextStyle)
+          .copyWith(color: theme.colorScheme.onSurface.withOpacity(0.6)),
     );
 
     final RenderParagraph helperText = _textRenderParagraph(tester, 'SELECT TIME');
@@ -203,6 +237,9 @@ void main() {
 
     final Material dayPeriodMaterial = _dayPeriodMaterial(tester);
     expect(dayPeriodMaterial.shape, timePickerTheme.dayPeriodShape);
+
+    final VerticalDivider dayPeriodDivider = _dayPeriodDivider(tester);
+    expect(dayPeriodDivider.color, timePickerTheme.dayPeriodBorderColor);
   });
 
   testWidgets('Time picker uses values from TimePickerThemeData - input mode', (WidgetTester tester) async {
@@ -229,6 +266,7 @@ TimePickerThemeData _timePickerTheme() {
     headerColor: Colors.green,
     dialHandColor: Colors.brown,
     dialBackgroundColor: Colors.pinkAccent,
+    dayPeriodBorderColor: Colors.teal,
     hourMinuteTextStyle: TextStyle(fontSize: 8.0),
     dayPeriodTextStyle: TextStyle(fontSize: 8.0),
     helpTextStyle: TextStyle(fontSize: 8.0),
@@ -297,6 +335,10 @@ TextField _textField(WidgetTester tester, String text) {
 
 Material _dayPeriodMaterial(WidgetTester tester) {
   return tester.widget<Material>(find.descendant(of: find.byWidgetPredicate((Widget w) => '${w.runtimeType}' == '_DayPeriodControl'), matching: find.byType(Material)).first);
+}
+
+VerticalDivider _dayPeriodDivider(WidgetTester tester) {
+  return tester.widget<VerticalDivider>(find.descendant(of: find.byWidgetPredicate((Widget w) => '${w.runtimeType}' == '_DayPeriodControl'), matching: find.byType(VerticalDivider)).first);
 }
 
 RenderParagraph _textRenderParagraph(WidgetTester tester, String text) {

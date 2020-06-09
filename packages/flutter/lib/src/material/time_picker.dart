@@ -17,6 +17,7 @@ import 'constants.dart';
 import 'curves.dart';
 import 'debug.dart';
 import 'dialog.dart';
+import 'divider.dart';
 import 'feedback.dart';
 import 'flat_button.dart';
 import 'icon_button.dart';
@@ -259,8 +260,9 @@ class _HourControl extends StatelessWidget {
       fragmentContext.selectedTime,
       alwaysUse24HourFormat: alwaysUse24HourFormat,
     );
+    final bool isDark = Theme.of(context).colorScheme.brightness == Brightness.dark;
     final Color backgroundColor = fragmentContext.mode == _TimePickerMode.hour
-        ? fragmentContext.activeColor.withOpacity(0.12)
+        ? fragmentContext.activeColor.withOpacity(isDark ? 0.24 : 0.12)
         : fragmentContext.inactiveColor.withOpacity(0.12);
     final ShapeBorder shape = TimePickerTheme.of(context).hourMinuteShape ?? _kDefaultShape;
 
@@ -391,8 +393,9 @@ class _MinuteControl extends StatelessWidget {
       minute: (fragmentContext.selectedTime.minute - 1) % TimeOfDay.minutesPerHour,
     );
     final String formattedPreviousMinute = localizations.formatMinute(previousMinute);
+    final bool isDark = Theme.of(context).colorScheme.brightness == Brightness.dark;
     final Color backgroundColor = fragmentContext.mode == _TimePickerMode.minute
-        ? fragmentContext.activeColor.withOpacity(0.12)
+        ? fragmentContext.activeColor.withOpacity(isDark ? 0.24 : 0.12)
         : fragmentContext.inactiveColor.withOpacity(0.12);
     final ShapeBorder shape = TimePickerTheme.of(context).hourMinuteShape ?? _kDefaultShape;
 
@@ -486,13 +489,14 @@ class _DayPeriodControl extends StatelessWidget {
   Widget build(BuildContext context) {
     final MaterialLocalizations materialLocalizations = MaterialLocalizations.of(context);
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final bool isDark = colorScheme.brightness == Brightness.dark;
     // The active day period color should match the overall picker dialog color.
     // Making it transparent enables that without being redundant and allows
     // the optional elevation overlay for dark mode to be visible.
-    const Color activeBackgroundColor = Colors.transparent;
-    final Color backgroundColor = colorScheme.onBackground.withOpacity(0.12);
-    final Color activeColor = colorScheme.onBackground;
-    final Color inactiveColor = colorScheme.onBackground.withOpacity(0.38);
+    final Color activeBackgroundColor = colorScheme.primary.withOpacity(isDark ? 0.24 : 0.12);
+    const Color backgroundColor = Colors.transparent;
+    final Color activeColor = colorScheme.primary;
+    final Color inactiveColor = colorScheme.onSurface.withOpacity(0.60);
     final bool amSelected = selectedTime.period == DayPeriod.am;
     final TextStyle textStyle = TimePickerTheme.of(context).dayPeriodTextStyle ?? Theme.of(context).textTheme.subtitle1;
     final TextStyle amStyle = textStyle.copyWith(
@@ -501,10 +505,12 @@ class _DayPeriodControl extends StatelessWidget {
     final TextStyle pmStyle = textStyle.copyWith(
       color: !amSelected ? activeColor: inactiveColor,
     );
+    final Color borderColor = TimePickerTheme.of(context).dayPeriodBorderColor
+        ?? Color.alphaBlend(colorScheme.onBackground.withOpacity(0.38), colorScheme.surface);
     final ShapeBorder shape = TimePickerTheme.of(context).dayPeriodShape ??
         RoundedRectangleBorder(
             borderRadius: _kDefaultBorderRadius,
-            side: BorderSide(color: Theme.of(context).dividerColor),
+            side: BorderSide(color: borderColor),
         );
 
     final double buttonTextScaleFactor = math.min(MediaQuery.of(context).textScaleFactor, 2.0);
@@ -559,6 +565,7 @@ class _DayPeriodControl extends StatelessWidget {
               child: Column(
                 children: <Widget>[
                   Expanded(child: amButton),
+                  Divider(color: borderColor, height: 1, thickness: 1),
                   Expanded(child: pmButton),
                 ],
               ),
@@ -579,6 +586,7 @@ class _DayPeriodControl extends StatelessWidget {
               child: Row(
                 children: <Widget>[
                   Expanded(child: amButton),
+                  VerticalDivider(color: borderColor, width: 1, thickness: 1),
                   Expanded(child: pmButton),
                 ],
               ),
