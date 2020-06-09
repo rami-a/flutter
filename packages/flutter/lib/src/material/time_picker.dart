@@ -80,29 +80,17 @@ class _TimePickerFragmentContext {
   const _TimePickerFragmentContext({
     @required this.selectedTime,
     @required this.mode,
-    @required this.activeColor,
-    @required this.activeStyle,
-    @required this.inactiveColor,
-    @required this.inactiveStyle,
     @required this.onTimeChange,
     @required this.onModeChange,
     @required this.use24HourDials,
   }) : assert(selectedTime != null),
        assert(mode != null),
-       assert(activeColor != null),
-       assert(activeStyle != null),
-       assert(inactiveColor != null),
-       assert(inactiveStyle != null),
        assert(onTimeChange != null),
        assert(onModeChange != null),
        assert(use24HourDials != null);
 
   final TimeOfDay selectedTime;
   final _TimePickerMode mode;
-  final Color activeColor;
-  final TextStyle activeStyle;
-  final Color inactiveColor;
-  final TextStyle inactiveStyle;
   final ValueChanged<TimeOfDay> onTimeChange;
   final ValueChanged<_TimePickerMode> onModeChange;
   final bool use24HourDials;
@@ -142,17 +130,9 @@ class _TimePickerHeader extends StatelessWidget {
     final TimeOfDayFormat timeOfDayFormat = MaterialLocalizations.of(context)
         .timeOfDayFormat(alwaysUse24HourFormat: MediaQuery.of(context).alwaysUse24HourFormat);
 
-    final Color activeColor = TimePickerTheme.of(context).headerColor ?? themeData.colorScheme.primary;
-    final Color inactiveColor = themeData.colorScheme.onBackground;
-
-    final TextStyle hourMinuteStyle = TimePickerTheme.of(context).hourMinuteTextStyle ?? themeData.textTheme.headline2;
     final _TimePickerFragmentContext fragmentContext = _TimePickerFragmentContext(
       selectedTime: selectedTime,
       mode: mode,
-      activeColor: activeColor,
-      activeStyle: hourMinuteStyle.copyWith(color: activeColor),
-      inactiveColor: inactiveColor,
-      inactiveStyle: hourMinuteStyle.copyWith(color: inactiveColor),
       onTimeChange: onChanged,
       onModeChange: _handleChangeMode,
       use24HourDials: use24HourDials,
@@ -174,7 +154,7 @@ class _TimePickerHeader extends StatelessWidget {
               child: Row(
                 children: <Widget>[
                   Expanded(child: _HourControl(fragmentContext: fragmentContext)),
-                  _StringFragment(textStyle: fragmentContext.inactiveStyle, timeOfDayFormat: timeOfDayFormat),
+                  _StringFragment(timeOfDayFormat: timeOfDayFormat),
                   Expanded(child: _MinuteControl(fragmentContext: fragmentContext)),
                   if (!use24HourDials) ...<Widget>[
                     const SizedBox(width: 12.0),
@@ -202,7 +182,7 @@ class _TimePickerHeader extends StatelessWidget {
                 child: Row(
                   children: <Widget>[
                     Expanded(child: _HourControl(fragmentContext: fragmentContext)),
-                    _StringFragment(textStyle: fragmentContext.inactiveStyle, timeOfDayFormat: timeOfDayFormat),
+                    _StringFragment(timeOfDayFormat: timeOfDayFormat),
                     Expanded(child: _MinuteControl(fragmentContext: fragmentContext)),
                   ],
                 ),
@@ -238,6 +218,49 @@ class _TimePickerHeader extends StatelessWidget {
   }
 }
 
+class _HourMinuteControl extends StatelessWidget {
+  const _HourMinuteControl({
+    @required this.text,
+    @required this.onTap,
+    @required this.isSelected,
+  });
+
+  final String text;
+  final GestureTapCallback onTap;
+  final bool isSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData themeData = Theme.of(context);
+    final TimePickerThemeData timePickerTheme = TimePickerTheme.of(context);
+    final bool isDark = themeData.colorScheme.brightness == Brightness.dark;
+    final Color selectedTextColor = timePickerTheme.hourMinuteSelectedTextColor ?? themeData.colorScheme.primary;
+    final Color unselectedTextColor = timePickerTheme.hourMinuteUnselectedTextColor ?? themeData.colorScheme.onSurface;
+    final Color selectedColor = timePickerTheme.hourMinuteSelectedColor ?? themeData.colorScheme.primary.withOpacity(isDark ? 0.24 : 0.12);
+    final Color unselectedColor = timePickerTheme.hourMinuteUnselectedColor ?? themeData.colorScheme.onSurface.withOpacity(0.12);
+    final TextStyle style = timePickerTheme.hourMinuteTextStyle ?? themeData.textTheme.headline2;
+    final ShapeBorder shape = timePickerTheme.hourMinuteShape ?? _kDefaultShape;
+
+    return Container(
+      height: _kTimePickerHeaderControlHeight,
+      child: Material(
+        color: isSelected ? selectedColor : unselectedColor,
+        clipBehavior: Clip.antiAlias,
+        shape: shape,
+        child: InkWell(
+          onTap: onTap,
+          child: Center(
+            child: Text(
+              text,
+              style: style.copyWith(color: isSelected ? selectedTextColor : unselectedTextColor),
+              textScaleFactor: 1.0,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
 /// Displays the hour fragment.
 ///
 /// When tapped changes time picker dial mode to [_TimePickerMode.hour].
@@ -253,18 +276,10 @@ class _HourControl extends StatelessWidget {
     assert(debugCheckHasMediaQuery(context));
     final bool alwaysUse24HourFormat = MediaQuery.of(context).alwaysUse24HourFormat;
     final MaterialLocalizations localizations = MaterialLocalizations.of(context);
-    final TextStyle hourStyle = fragmentContext.mode == _TimePickerMode.hour
-        ? fragmentContext.activeStyle
-        : fragmentContext.inactiveStyle;
     final String formattedHour = localizations.formatHour(
       fragmentContext.selectedTime,
       alwaysUse24HourFormat: alwaysUse24HourFormat,
     );
-    final bool isDark = Theme.of(context).colorScheme.brightness == Brightness.dark;
-    final Color backgroundColor = fragmentContext.mode == _TimePickerMode.hour
-        ? fragmentContext.activeColor.withOpacity(isDark ? 0.24 : 0.12)
-        : fragmentContext.inactiveColor.withOpacity(0.12);
-    final ShapeBorder shape = TimePickerTheme.of(context).hourMinuteShape ?? _kDefaultShape;
 
     TimeOfDay hoursFromSelected(int hoursToAdd) {
       if (fragmentContext.use24HourDials) {
@@ -305,23 +320,10 @@ class _HourControl extends StatelessWidget {
       onDecrease: () {
         fragmentContext.onTimeChange(previousHour);
       },
-      child: Container(
-        height: _kTimePickerHeaderControlHeight,
-        child: Material(
-          color: backgroundColor,
-          clipBehavior: Clip.antiAlias,
-          shape: shape,
-          child: InkWell(
-            onTap: Feedback.wrapForTap(() => fragmentContext.onModeChange(_TimePickerMode.hour), context),
-            child: Center(
-              child: Text(
-                formattedHour,
-                style: hourStyle,
-                textScaleFactor: 1.0,
-              ),
-            ),
-          ),
-        ),
+      child: _HourMinuteControl(
+        isSelected: fragmentContext.mode == _TimePickerMode.hour,
+        text: formattedHour,
+        onTap: Feedback.wrapForTap(() => fragmentContext.onModeChange(_TimePickerMode.hour), context),
       ),
     );
   }
@@ -330,11 +332,9 @@ class _HourControl extends StatelessWidget {
 /// A passive fragment showing a string value.
 class _StringFragment extends StatelessWidget {
   const _StringFragment({
-    @required this.textStyle,
     @required this.timeOfDayFormat,
   });
 
-  final TextStyle textStyle;
   final TimeOfDayFormat timeOfDayFormat;
 
   String _stringFragmentValue(TimeOfDayFormat timeOfDayFormat) {
@@ -353,13 +353,16 @@ class _StringFragment extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final TextStyle hourMinuteStyle = TimePickerTheme.of(context).hourMinuteTextStyle ?? Theme.of(context).textTheme.headline2;
+    final Color textColor = TimePickerTheme.of(context).hourMinuteUnselectedTextColor ?? Theme.of(context).colorScheme.onSurface;
+
     return ExcludeSemantics(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 6.0),
         child: Center(
           child: Text(
             _stringFragmentValue(timeOfDayFormat),
-            style: textStyle,
+            style: hourMinuteStyle.apply(color: textColor),
             textScaleFactor: 1.0,
           ),
         ),
@@ -381,9 +384,6 @@ class _MinuteControl extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final MaterialLocalizations localizations = MaterialLocalizations.of(context);
-    final TextStyle minuteStyle = fragmentContext.mode == _TimePickerMode.minute
-        ? fragmentContext.activeStyle
-        : fragmentContext.inactiveStyle;
     final String formattedMinute = localizations.formatMinute(fragmentContext.selectedTime);
     final TimeOfDay nextMinute = fragmentContext.selectedTime.replacing(
       minute: (fragmentContext.selectedTime.minute + 1) % TimeOfDay.minutesPerHour,
@@ -393,11 +393,6 @@ class _MinuteControl extends StatelessWidget {
       minute: (fragmentContext.selectedTime.minute - 1) % TimeOfDay.minutesPerHour,
     );
     final String formattedPreviousMinute = localizations.formatMinute(previousMinute);
-    final bool isDark = Theme.of(context).colorScheme.brightness == Brightness.dark;
-    final Color backgroundColor = fragmentContext.mode == _TimePickerMode.minute
-        ? fragmentContext.activeColor.withOpacity(isDark ? 0.24 : 0.12)
-        : fragmentContext.inactiveColor.withOpacity(0.12);
-    final ShapeBorder shape = TimePickerTheme.of(context).hourMinuteShape ?? _kDefaultShape;
 
     return Semantics(
       excludeSemantics: true,
@@ -411,23 +406,10 @@ class _MinuteControl extends StatelessWidget {
       onDecrease: () {
         fragmentContext.onTimeChange(previousMinute);
       },
-      child: Container(
-        height: _kTimePickerHeaderControlHeight,
-        child: Material(
-          color: backgroundColor,
-          clipBehavior: Clip.antiAlias,
-          shape: shape,
-          child: InkWell(
-            onTap: Feedback.wrapForTap(() => fragmentContext.onModeChange(_TimePickerMode.minute), context),
-            child: Center(
-              child: Text(
-                formattedMinute,
-                style: minuteStyle,
-                textScaleFactor: 1.0,
-              ),
-            ),
-          ),
-        ),
+      child: _HourMinuteControl(
+        isSelected: fragmentContext.mode == _TimePickerMode.minute,
+        text: formattedMinute,
+        onTap: Feedback.wrapForTap(() => fragmentContext.onModeChange(_TimePickerMode.minute), context),
       ),
     );
   }
@@ -493,21 +475,23 @@ class _DayPeriodControl extends StatelessWidget {
   Widget build(BuildContext context) {
     final MaterialLocalizations materialLocalizations = MaterialLocalizations.of(context);
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final TimePickerThemeData timePickerTheme = TimePickerTheme.of(context);
     final bool isDark = colorScheme.brightness == Brightness.dark;
-    // The active day period color should match the overall picker dialog color.
+    final Color selectedTextColor = timePickerTheme.hourMinuteSelectedTextColor ?? colorScheme.primary;
+    final Color unselectedTextColor = timePickerTheme.hourMinuteUnselectedTextColor ?? colorScheme.onSurface.withOpacity(0.60);
+    final Color selectedColor = timePickerTheme.hourMinuteSelectedColor ?? colorScheme.primary.withOpacity(isDark ? 0.24 : 0.12);
+    // The unselected day period should match the overall picker dialog color.
     // Making it transparent enables that without being redundant and allows
     // the optional elevation overlay for dark mode to be visible.
-    final Color activeBackgroundColor = colorScheme.primary.withOpacity(isDark ? 0.24 : 0.12);
-    const Color backgroundColor = Colors.transparent;
-    final Color activeColor = colorScheme.primary;
-    final Color inactiveColor = colorScheme.onSurface.withOpacity(0.60);
+    final Color unselectedColor = timePickerTheme.hourMinuteUnselectedColor ?? Colors.transparent;
+
     final bool amSelected = selectedTime.period == DayPeriod.am;
     final TextStyle textStyle = TimePickerTheme.of(context).dayPeriodTextStyle ?? Theme.of(context).textTheme.subtitle1;
     final TextStyle amStyle = textStyle.copyWith(
-      color: amSelected ? activeColor: inactiveColor,
+      color: amSelected ? selectedTextColor: unselectedTextColor,
     );
     final TextStyle pmStyle = textStyle.copyWith(
-      color: !amSelected ? activeColor: inactiveColor,
+      color: !amSelected ? selectedTextColor: unselectedTextColor,
     );
     final Color borderColor = TimePickerTheme.of(context).dayPeriodBorderColor
         ?? Color.alphaBlend(colorScheme.onBackground.withOpacity(0.38), colorScheme.surface);
@@ -520,7 +504,7 @@ class _DayPeriodControl extends StatelessWidget {
     final double buttonTextScaleFactor = math.min(MediaQuery.of(context).textScaleFactor, 2.0);
 
     final Widget amButton = Material(
-      color: amSelected ? activeBackgroundColor : backgroundColor,
+      color: amSelected ? selectedColor : unselectedColor,
       child: InkWell(
         onTap: Feedback.wrapForTap(() => _setAm(context), context),
         child: Semantics(
@@ -537,7 +521,7 @@ class _DayPeriodControl extends StatelessWidget {
     );
 
     final Widget pmButton = Material(
-      color: !amSelected ? activeBackgroundColor : backgroundColor,
+      color: !amSelected ? selectedColor : unselectedColor,
       child: InkWell(
         onTap: Feedback.wrapForTap(() => _setPm(context), context),
         child: Semantics(
@@ -1375,10 +1359,7 @@ class _TimePickerInputState extends State<_TimePickerInput> {
               )),
               Padding(
                 padding: const EdgeInsets.only(top: 20.0),
-                child: _StringFragment(
-                  textStyle: hourMinuteStyle.copyWith(color: theme.colorScheme.onBackground),
-                  timeOfDayFormat: timeOfDayFormat,
-                ),
+                child: _StringFragment(timeOfDayFormat: timeOfDayFormat),
               ),
               Expanded(child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1483,7 +1464,7 @@ class __HourMinuteTextFieldState extends State<_HourMinuteTextField> {
       inputDecoration = InputDecoration(
         contentPadding: const EdgeInsetsDirectional.only(bottom: 16.0, start: 3.0),
         filled: true,
-        fillColor: focusNode.hasFocus ? colorScheme.background : colorScheme.onBackground.withOpacity(0.12),
+        fillColor: focusNode.hasFocus ? colorScheme.surface : colorScheme.onSurface.withOpacity(0.12),
         enabledBorder: const OutlineInputBorder(
           borderSide: BorderSide(color: Colors.transparent),
         ),
@@ -1496,7 +1477,7 @@ class __HourMinuteTextFieldState extends State<_HourMinuteTextField> {
         focusedErrorBorder: OutlineInputBorder(
           borderSide: BorderSide(color: colorScheme.error, width: 2.0),
         ),
-        hintStyle: widget.style.copyWith(color: colorScheme.onBackground.withOpacity(0.36)),
+        hintStyle: widget.style.copyWith(color: colorScheme.onSurface.withOpacity(0.36)),
         // TODO(rami-a): Remove this logic once https://github.com/flutter/flutter/issues/54104 is fixed.
         errorStyle: const TextStyle(fontSize: 0.0, height: 0.0), // Prevent the error text from appearing.
       );
@@ -1519,7 +1500,7 @@ class __HourMinuteTextFieldState extends State<_HourMinuteTextField> {
               focusNode: focusNode,
               textAlign: TextAlign.center,
               keyboardType: TextInputType.number,
-              style: widget.style.copyWith(color: colorScheme.onBackground),
+              style: widget.style.copyWith(color: colorScheme.onSurface),
               controller: controller,
               decoration: inputDecoration,
               validator: widget.validator,

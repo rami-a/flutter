@@ -30,7 +30,14 @@ class TimePickerThemeData with Diagnosticable {
   /// [ThemeData.timePickerTheme].
   const TimePickerThemeData({
     this.backgroundColor,
-    this.headerColor,
+    this.hourMinuteSelectedTextColor,
+    this.hourMinuteSelectedColor,
+    this.hourMinuteUnselectedTextColor,
+    this.hourMinuteUnselectedColor,
+    this.dayPeriodSelectedTextColor,
+    this.dayPeriodSelectedColor,
+    this.dayPeriodUnselectedTextColor,
+    this.dayPeriodUnselectedColor,
     this.dialHandColor,
     this.dialBackgroundColor,
     this.dayPeriodBorderColor,
@@ -48,13 +55,70 @@ class TimePickerThemeData with Diagnosticable {
   /// If this is null, the time picker defaults to [ColorScheme.background].
   final Color backgroundColor;
 
+  // TODO: Update documentation.
+  /// The color used for the selected text in the header of a time picker.
+  ///
+  /// This determines the selected color of the header segments that represent
+  /// hours, minutes, and am/pm.
+  ///
+  /// If this is null, the time picker defaults to [ColorScheme.primary].
+  final Color hourMinuteSelectedTextColor;
+
+  /// The color used for the selected option in the header of a time picker.
+  ///
+  /// This determines the active color of the header segments that represent
+  /// hours, minutes, and am/pm.
+  ///
+  /// If this is null, the time picker defaults to `ColorScheme.primary.withOpacity()`.
+  final Color hourMinuteSelectedColor;
+
   /// The color used in the header of a time picker.
   ///
   /// This determines the active color of the header segments that represent
   /// hours and minutes.
   ///
   /// If this is null, the time picker defaults to [ColorScheme.primary].
-  final Color headerColor;
+  final Color hourMinuteUnselectedTextColor;
+
+  /// The color used in the header of a time picker.
+  ///
+  /// This determines the active color of the header segments that represent
+  /// hours and minutes.
+  ///
+  /// If this is null, the time picker defaults to [ColorScheme.primary].
+  final Color hourMinuteUnselectedColor;
+
+  /// The color used for the selected text in the header of a time picker.
+  ///
+  /// This determines the selected color of the header segments that represent
+  /// hours, minutes, and am/pm.
+  ///
+  /// If this is null, the time picker defaults to [ColorScheme.primary].
+  final Color dayPeriodSelectedTextColor;
+
+  /// The color used for the selected option in the header of a time picker.
+  ///
+  /// This determines the active color of the header segments that represent
+  /// hours, minutes, and am/pm.
+  ///
+  /// If this is null, the time picker defaults to `ColorScheme.primary.withOpacity()`.
+  final Color dayPeriodSelectedColor;
+
+  /// The color used in the header of a time picker.
+  ///
+  /// This determines the active color of the header segments that represent
+  /// hours and minutes.
+  ///
+  /// If this is null, the time picker defaults to [ColorScheme.primary].
+  final Color dayPeriodUnselectedTextColor;
+
+  /// The color used in the header of a time picker.
+  ///
+  /// This determines the active color of the header segments that represent
+  /// hours and minutes.
+  ///
+  /// If this is null, the time picker defaults to [ColorScheme.primary].
+  final Color dayPeriodUnselectedColor;
 
   /// The color of the time picker dial's hand.
   ///
@@ -121,7 +185,14 @@ class TimePickerThemeData with Diagnosticable {
   /// new values.
   TimePickerThemeData copyWith({
     Color backgroundColor,
-    Color headerColor,
+    Color hourMinuteSelectedTextColor,
+    Color hourMinuteSelectedColor,
+    Color hourMinuteUnselectedTextColor,
+    Color hourMinuteUnselectedColor,
+    Color dayPeriodSelectedTextColor,
+    Color dayPeriodSelectedColor,
+    Color dayPeriodUnselectedTextColor,
+    Color dayPeriodUnselectedColor,
     Color dialHandColor,
     Color dialBackgroundColor,
     Color dayPeriodBorderColor,
@@ -135,7 +206,14 @@ class TimePickerThemeData with Diagnosticable {
   }) {
     return TimePickerThemeData(
       backgroundColor: backgroundColor ?? this.backgroundColor,
-      headerColor: headerColor ?? this.headerColor,
+      hourMinuteSelectedTextColor: hourMinuteSelectedTextColor ?? this.hourMinuteSelectedTextColor,
+      hourMinuteSelectedColor: hourMinuteSelectedColor ?? this.hourMinuteSelectedColor,
+      hourMinuteUnselectedTextColor: hourMinuteUnselectedTextColor ?? this.hourMinuteUnselectedTextColor,
+      hourMinuteUnselectedColor: hourMinuteUnselectedColor ?? this.hourMinuteUnselectedColor,
+      dayPeriodSelectedTextColor: dayPeriodSelectedTextColor ?? this.dayPeriodSelectedTextColor,
+      dayPeriodSelectedColor: dayPeriodSelectedColor ?? this.dayPeriodSelectedColor,
+      dayPeriodUnselectedTextColor: dayPeriodUnselectedTextColor ?? this.dayPeriodUnselectedTextColor,
+      dayPeriodUnselectedColor: dayPeriodUnselectedColor ?? this.dayPeriodUnselectedColor,
       dialHandColor: dialHandColor ?? this.dialHandColor,
       dialBackgroundColor: dialBackgroundColor ?? this.dialBackgroundColor,
       dayPeriodBorderColor: dayPeriodBorderColor ?? this.dayPeriodBorderColor,
@@ -158,7 +236,14 @@ class TimePickerThemeData with Diagnosticable {
     assert(t != null);
     return TimePickerThemeData(
       backgroundColor: Color.lerp(a?.backgroundColor, b?.backgroundColor, t),
-      headerColor: Color.lerp(a?.headerColor, b?.headerColor, t),
+      hourMinuteSelectedTextColor: Color.lerp(a?.hourMinuteSelectedTextColor, b?.hourMinuteSelectedTextColor, t),
+      hourMinuteSelectedColor: Color.lerp(a?.hourMinuteSelectedColor, b?.hourMinuteSelectedColor, t),
+      hourMinuteUnselectedTextColor: Color.lerp(a?.hourMinuteUnselectedTextColor, b?.hourMinuteUnselectedTextColor, t),
+      hourMinuteUnselectedColor: Color.lerp(a?.hourMinuteUnselectedColor, b?.hourMinuteUnselectedColor, t),
+      dayPeriodSelectedTextColor: Color.lerp(a?.dayPeriodSelectedTextColor, b?.dayPeriodSelectedTextColor, t),
+      dayPeriodSelectedColor: Color.lerp(a?.dayPeriodSelectedColor, b?.dayPeriodSelectedColor, t),
+      dayPeriodUnselectedTextColor: Color.lerp(a?.dayPeriodUnselectedTextColor, b?.dayPeriodUnselectedTextColor, t),
+      dayPeriodUnselectedColor: Color.lerp(a?.dayPeriodUnselectedColor, b?.dayPeriodUnselectedColor, t),
       dialHandColor: Color.lerp(a?.dialHandColor, b?.dialHandColor, t),
       dialBackgroundColor: Color.lerp(a?.dialBackgroundColor, b?.dialBackgroundColor, t),
       dayPeriodBorderColor: Color.lerp(a?.dayPeriodBorderColor, b?.dayPeriodBorderColor, t),
@@ -176,7 +261,14 @@ class TimePickerThemeData with Diagnosticable {
   int get hashCode {
     return hashValues(
       backgroundColor,
-      headerColor,
+      hourMinuteSelectedTextColor,
+      hourMinuteSelectedColor,
+      hourMinuteUnselectedTextColor,
+      hourMinuteUnselectedColor,
+      dayPeriodSelectedTextColor,
+      dayPeriodSelectedColor,
+      dayPeriodUnselectedTextColor,
+      dayPeriodUnselectedColor,
       dialHandColor,
       dialBackgroundColor,
       dayPeriodBorderColor,
@@ -198,7 +290,14 @@ class TimePickerThemeData with Diagnosticable {
       return false;
     return other is TimePickerThemeData
         && other.backgroundColor == backgroundColor
-        && other.headerColor == headerColor
+        && other.hourMinuteSelectedTextColor == hourMinuteSelectedTextColor
+        && other.hourMinuteSelectedColor == hourMinuteSelectedColor
+        && other.hourMinuteUnselectedTextColor == hourMinuteUnselectedTextColor
+        && other.hourMinuteUnselectedColor == hourMinuteUnselectedColor
+        && other.dayPeriodSelectedTextColor == dayPeriodSelectedTextColor
+        && other.dayPeriodSelectedColor == dayPeriodSelectedColor
+        && other.dayPeriodUnselectedTextColor == dayPeriodUnselectedTextColor
+        && other.dayPeriodUnselectedColor == dayPeriodUnselectedColor
         && other.dialHandColor == dialHandColor
         && other.dialBackgroundColor == dialBackgroundColor
         && other.dayPeriodBorderColor == dayPeriodBorderColor
@@ -215,7 +314,14 @@ class TimePickerThemeData with Diagnosticable {
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
     properties.add(ColorProperty('backgroundColor', backgroundColor, defaultValue: null));
-    properties.add(ColorProperty('headerColor', headerColor, defaultValue: null));
+    properties.add(ColorProperty('hourMinuteSelectedTextColor', hourMinuteSelectedTextColor, defaultValue: null));
+    properties.add(ColorProperty('hourMinuteSelectedColor', hourMinuteSelectedColor, defaultValue: null));
+    properties.add(ColorProperty('hourMinuteUnselectedTextColor', hourMinuteUnselectedTextColor, defaultValue: null));
+    properties.add(ColorProperty('hourMinuteUnselectedColor', hourMinuteUnselectedColor, defaultValue: null));
+    properties.add(ColorProperty('dayPeriodSelectedTextColor', dayPeriodSelectedTextColor, defaultValue: null));
+    properties.add(ColorProperty('dayPeriodSelectedColor', dayPeriodSelectedColor, defaultValue: null));
+    properties.add(ColorProperty('dayPeriodUnselectedTextColor', dayPeriodUnselectedTextColor, defaultValue: null));
+    properties.add(ColorProperty('dayPeriodUnselectedColor', dayPeriodUnselectedColor, defaultValue: null));
     properties.add(ColorProperty('dialHandColor', dialHandColor, defaultValue: null));
     properties.add(ColorProperty('dialBackgroundColor', dialBackgroundColor, defaultValue: null));
     properties.add(ColorProperty('dayPeriodBorderColor', dayPeriodBorderColor, defaultValue: null));
