@@ -110,7 +110,15 @@ void main() {
       amText.text.style,
       Typography.material2014().englishLike.subtitle1
           .merge(Typography.material2014().black.subtitle1)
-          .copyWith(color: defaultTheme.colorScheme.onBackground),
+          .copyWith(color: defaultTheme.colorScheme.primary),
+    );
+
+    final RenderParagraph pmText = _textRenderParagraph(tester, 'PM');
+    expect(
+      pmText.text.style,
+      Typography.material2014().englishLike.subtitle1
+          .merge(Typography.material2014().black.subtitle1)
+          .copyWith(color: defaultTheme.colorScheme.onSurface.withOpacity(0.6)),
     );
 
     final RenderParagraph helperText = _textRenderParagraph(tester, 'SELECT TIME');
@@ -203,7 +211,16 @@ void main() {
       Typography.material2014().englishLike.subtitle1
           .merge(Typography.material2014().black.subtitle1)
           .merge(timePickerTheme.dayPeriodTextStyle)
-          .copyWith(color: theme.colorScheme.onBackground),
+          .copyWith(color: theme.colorScheme.primary),
+    );
+
+    final RenderParagraph pmText = _textRenderParagraph(tester, 'PM');
+    expect(
+      pmText.text.style,
+      Typography.material2014().englishLike.subtitle1
+          .merge(Typography.material2014().black.subtitle1)
+          .merge(timePickerTheme.dayPeriodTextStyle)
+          .copyWith(color: theme.colorScheme.onSurface.withOpacity(0.6)),
     );
 
     final RenderParagraph helperText = _textRenderParagraph(tester, 'SELECT TIME');
