@@ -262,7 +262,7 @@ class _HourControl extends StatelessWidget {
     );
     final bool isDark = Theme.of(context).colorScheme.brightness == Brightness.dark;
     final Color backgroundColor = fragmentContext.mode == _TimePickerMode.hour
-        ? fragmentContext.activeColor.withOpacity(isDark ? 0.24: 0.12)
+        ? fragmentContext.activeColor.withOpacity(isDark ? 0.24 : 0.12)
         : fragmentContext.inactiveColor.withOpacity(0.12);
     final ShapeBorder shape = TimePickerTheme.of(context).hourMinuteShape ?? _kDefaultShape;
 
@@ -395,7 +395,7 @@ class _MinuteControl extends StatelessWidget {
     final String formattedPreviousMinute = localizations.formatMinute(previousMinute);
     final bool isDark = Theme.of(context).colorScheme.brightness == Brightness.dark;
     final Color backgroundColor = fragmentContext.mode == _TimePickerMode.minute
-        ? fragmentContext.activeColor.withOpacity(isDark ? 0.24: 0.12)
+        ? fragmentContext.activeColor.withOpacity(isDark ? 0.24 : 0.12)
         : fragmentContext.inactiveColor.withOpacity(0.12);
     final ShapeBorder shape = TimePickerTheme.of(context).hourMinuteShape ?? _kDefaultShape;
 
