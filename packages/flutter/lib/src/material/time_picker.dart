@@ -487,11 +487,12 @@ class _DayPeriodControl extends StatelessWidget {
   Widget build(BuildContext context) {
     final MaterialLocalizations materialLocalizations = MaterialLocalizations.of(context);
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final bool isDark = colorScheme.brightness == Brightness.dark;
     // The active day period color should match the overall picker dialog color.
     // Making it transparent enables that without being redundant and allows
     // the optional elevation overlay for dark mode to be visible.
-    const Color activeBackgroundColor = Colors.transparent;
-    final Color backgroundColor = colorScheme.onBackground.withOpacity(0.12);
+    final Color activeBackgroundColor = isDark ? colorScheme.onBackground.withOpacity(0.12) : Colors.transparent;
+    final Color backgroundColor = isDark ? Colors.transparent : colorScheme.onBackground.withOpacity(0.12);
     final Color activeColor = colorScheme.onBackground;
     final Color inactiveColor = colorScheme.onBackground.withOpacity(0.38);
     final bool amSelected = selectedTime.period == DayPeriod.am;
