@@ -477,13 +477,13 @@ class _DayPeriodControl extends StatelessWidget {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
     final TimePickerThemeData timePickerTheme = TimePickerTheme.of(context);
     final bool isDark = colorScheme.brightness == Brightness.dark;
-    final Color selectedTextColor = timePickerTheme.hourMinuteSelectedTextColor ?? colorScheme.primary;
-    final Color unselectedTextColor = timePickerTheme.hourMinuteUnselectedTextColor ?? colorScheme.onSurface.withOpacity(0.60);
-    final Color selectedColor = timePickerTheme.hourMinuteSelectedColor ?? colorScheme.primary.withOpacity(isDark ? 0.24 : 0.12);
+    final Color selectedTextColor = timePickerTheme.dayPeriodSelectedTextColor ?? colorScheme.primary;
+    final Color unselectedTextColor = timePickerTheme.dayPeriodUnselectedTextColor ?? colorScheme.onSurface.withOpacity(0.60);
+    final Color selectedColor = timePickerTheme.dayPeriodSelectedColor ?? colorScheme.primary.withOpacity(isDark ? 0.24 : 0.12);
     // The unselected day period should match the overall picker dialog color.
     // Making it transparent enables that without being redundant and allows
     // the optional elevation overlay for dark mode to be visible.
-    final Color unselectedColor = timePickerTheme.hourMinuteUnselectedColor ?? Colors.transparent;
+    final Color unselectedColor = timePickerTheme.dayPeriodUnselectedColor ?? Colors.transparent;
 
     final bool amSelected = selectedTime.period == DayPeriod.am;
     final TextStyle textStyle = TimePickerTheme.of(context).dayPeriodTextStyle ?? Theme.of(context).textTheme.subtitle1;

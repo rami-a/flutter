@@ -18,7 +18,16 @@ void main() {
   test('TimePickerThemeData null fields by default', () {
     const TimePickerThemeData timePickerTheme = TimePickerThemeData();
     expect(timePickerTheme.backgroundColor, null);
-    expect(timePickerTheme.headerColor, null);
+    expect(timePickerTheme.hourMinuteSelectedTextColor, null);
+    expect(timePickerTheme.hourMinuteSelectedColor, null);
+    expect(timePickerTheme.hourMinuteUnselectedTextColor, null);
+    expect(timePickerTheme.hourMinuteUnselectedColor, null);
+    expect(timePickerTheme.dayPeriodSelectedTextColor, null);
+    expect(timePickerTheme.dayPeriodSelectedColor, null);
+    expect(timePickerTheme.dayPeriodUnselectedTextColor, null);
+    expect(timePickerTheme.dayPeriodUnselectedColor, null);
+    expect(timePickerTheme.dialHandColor, null);
+    expect(timePickerTheme.dialBackgroundColor, null);
     expect(timePickerTheme.dialHandColor, null);
     expect(timePickerTheme.dialBackgroundColor, null);
     expect(timePickerTheme.dayPeriodBorderColor, null);
@@ -47,7 +56,14 @@ void main() {
     final DiagnosticPropertiesBuilder builder = DiagnosticPropertiesBuilder();
     const TimePickerThemeData(
       backgroundColor: Color(0xFFFFFFFF),
-      headerColor: Color(0xFFFFFFFF),
+      hourMinuteSelectedTextColor: Color(0xFFFFFFFF),
+      hourMinuteSelectedColor: Color(0xFFFFFFFF),
+      hourMinuteUnselectedTextColor: Color(0xFFFFFFFF),
+      hourMinuteUnselectedColor: Color(0xFFFFFFFF),
+      dayPeriodSelectedTextColor: Color(0xFFFFFFFF),
+      dayPeriodSelectedColor: Color(0xFFFFFFFF),
+      dayPeriodUnselectedTextColor: Color(0xFFFFFFFF),
+      dayPeriodUnselectedColor: Color(0xFFFFFFFF),
       dialHandColor: Color(0xFFFFFFFF),
       dialBackgroundColor: Color(0xFFFFFFFF),
       dayPeriodBorderColor: Color(0xFFFFFFFF),
@@ -66,7 +82,14 @@ void main() {
 
     expect(description, <String>[
       'backgroundColor: Color(0xffffffff)',
-      'headerColor: Color(0xffffffff)',
+      'hourMinuteSelectedTextColor: Color(0xffffffff)',
+      'hourMinuteSelectedColor: Color(0xffffffff)',
+      'hourMinuteUnselectedTextColor: Color(0xffffffff)',
+      'hourMinuteUnselectedColor: Color(0xffffffff)',
+      'dayPeriodSelectedTextColor: Color(0xffffffff)',
+      'dayPeriodSelectedColor: Color(0xffffffff)',
+      'dayPeriodUnselectedTextColor: Color(0xffffffff)',
+      'dayPeriodUnselectedColor: Color(0xffffffff)',
       'dialHandColor: Color(0xffffffff)',
       'dialBackgroundColor: Color(0xffffffff)',
       'dayPeriodBorderColor: Color(0xffffffff)',
@@ -105,6 +128,14 @@ void main() {
           .copyWith(color: defaultTheme.colorScheme.primary),
     );
 
+    final RenderParagraph minuteText = _textRenderParagraph(tester, '15');
+    expect(
+      minuteText.text.style,
+      Typography.material2014().englishLike.headline2
+          .merge(Typography.material2014().black.headline2)
+          .copyWith(color: defaultTheme.colorScheme.onSurface),
+    );
+
     final RenderParagraph amText = _textRenderParagraph(tester, 'AM');
     expect(
       amText.text.style,
@@ -131,6 +162,16 @@ void main() {
     final Material hourMaterial = _textMaterial(tester, '7');
     expect(hourMaterial.color, defaultTheme.colorScheme.primary.withOpacity(0.12));
     expect(hourMaterial.shape, const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(4.0))));
+
+    final Material minuteMaterial = _textMaterial(tester, '15');
+    expect(minuteMaterial.color, defaultTheme.colorScheme.onSurface.withOpacity(0.12));
+    expect(minuteMaterial.shape, const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(4.0))));
+
+    final Material amMaterial = _textMaterial(tester, 'AM');
+    expect(amMaterial.color, defaultTheme.colorScheme.primary.withOpacity(0.12));
+
+    final Material pmMaterial = _textMaterial(tester, 'PM');
+    expect(pmMaterial.color, Colors.transparent);
 
     final Material dayPeriodMaterial = _dayPeriodMaterial(tester);
     expect(
@@ -165,7 +206,7 @@ void main() {
 
     final InputDecoration hourDecoration = _textField(tester, '7').decoration;
     expect(hourDecoration.filled, true);
-    expect(hourDecoration.fillColor, defaultTheme.colorScheme.onBackground.withOpacity(0.12));
+    expect(hourDecoration.fillColor, defaultTheme.colorScheme.onSurface.withOpacity(0.12));
     expect(hourDecoration.enabledBorder, const OutlineInputBorder(borderSide: BorderSide(color: Colors.transparent)));
     expect(hourDecoration.errorBorder, OutlineInputBorder(borderSide: BorderSide(color: defaultTheme.colorScheme.error, width: 2)));
     expect(hourDecoration.focusedBorder, OutlineInputBorder(borderSide: BorderSide(color: defaultTheme.colorScheme.primary, width: 2)));
@@ -173,7 +214,7 @@ void main() {
     expect(
       hourDecoration.hintStyle,
       Typography.material2014().englishLike.headline2
-          .merge(defaultTheme.textTheme.headline2.copyWith(color: defaultTheme.colorScheme.onBackground.withOpacity(0.36))),
+          .merge(defaultTheme.textTheme.headline2.copyWith(color: defaultTheme.colorScheme.onSurface.withOpacity(0.36))),
     );
   });
 
@@ -202,7 +243,16 @@ void main() {
       Typography.material2014().englishLike.bodyText2
           .merge(Typography.material2014().black.bodyText2)
           .merge(timePickerTheme.hourMinuteTextStyle)
-          .copyWith(color: timePickerTheme.headerColor),
+          .copyWith(color: timePickerTheme.hourMinuteSelectedTextColor),
+    );
+
+    final RenderParagraph minuteText = _textRenderParagraph(tester, '15');
+    expect(
+      minuteText.text.style,
+      Typography.material2014().englishLike.bodyText2
+          .merge(Typography.material2014().black.bodyText2)
+          .merge(timePickerTheme.hourMinuteTextStyle)
+          .copyWith(color: timePickerTheme.hourMinuteUnselectedTextColor),
     );
 
     final RenderParagraph amText = _textRenderParagraph(tester, 'AM');
@@ -211,7 +261,7 @@ void main() {
       Typography.material2014().englishLike.subtitle1
           .merge(Typography.material2014().black.subtitle1)
           .merge(timePickerTheme.dayPeriodTextStyle)
-          .copyWith(color: theme.colorScheme.primary),
+          .copyWith(color: timePickerTheme.dayPeriodSelectedTextColor),
     );
 
     final RenderParagraph pmText = _textRenderParagraph(tester, 'PM');
@@ -220,7 +270,7 @@ void main() {
       Typography.material2014().englishLike.subtitle1
           .merge(Typography.material2014().black.subtitle1)
           .merge(timePickerTheme.dayPeriodTextStyle)
-          .copyWith(color: theme.colorScheme.onSurface.withOpacity(0.6)),
+          .copyWith(color: timePickerTheme.dayPeriodUnselectedTextColor),
     );
 
     final RenderParagraph helperText = _textRenderParagraph(tester, 'SELECT TIME');
@@ -232,8 +282,18 @@ void main() {
     );
 
     final Material hourMaterial = _textMaterial(tester, '7');
-    expect(hourMaterial.color, timePickerTheme.headerColor.withOpacity(0.12));
+    expect(hourMaterial.color, timePickerTheme.hourMinuteSelectedColor);
     expect(hourMaterial.shape, timePickerTheme.hourMinuteShape);
+
+    final Material minuteMaterial = _textMaterial(tester, '15');
+    expect(minuteMaterial.color, timePickerTheme.hourMinuteUnselectedColor);
+    expect(minuteMaterial.shape, timePickerTheme.hourMinuteShape);
+
+    final Material amMaterial = _textMaterial(tester, 'AM');
+    expect(amMaterial.color, timePickerTheme.dayPeriodSelectedColor);
+
+    final Material pmMaterial = _textMaterial(tester, 'PM');
+    expect(pmMaterial.color, timePickerTheme.dayPeriodUnselectedColor);
 
     final Material dayPeriodMaterial = _dayPeriodMaterial(tester);
     expect(dayPeriodMaterial.shape, timePickerTheme.dayPeriodShape);
@@ -261,19 +321,26 @@ void main() {
 }
 
 TimePickerThemeData _timePickerTheme() {
-  return const TimePickerThemeData(
+  return TimePickerThemeData(
     backgroundColor: Colors.orange,
-    headerColor: Colors.green,
+    hourMinuteSelectedTextColor: Colors.green[100],
+    hourMinuteSelectedColor: Colors.green[200],
+    hourMinuteUnselectedTextColor: Colors.green[300],
+    hourMinuteUnselectedColor: Colors.green[400],
+    dayPeriodSelectedTextColor: Colors.green[500],
+    dayPeriodSelectedColor: Colors.green[600],
+    dayPeriodUnselectedTextColor: Colors.green[700],
+    dayPeriodUnselectedColor: Colors.green[800],
     dialHandColor: Colors.brown,
     dialBackgroundColor: Colors.pinkAccent,
     dayPeriodBorderColor: Colors.teal,
-    hourMinuteTextStyle: TextStyle(fontSize: 8.0),
-    dayPeriodTextStyle: TextStyle(fontSize: 8.0),
-    helpTextStyle: TextStyle(fontSize: 8.0),
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16.0))),
-    hourMinuteShape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16.0))),
-    dayPeriodShape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16.0))),
-    inputDecorationTheme: InputDecorationTheme(
+    hourMinuteTextStyle: const TextStyle(fontSize: 8.0),
+    dayPeriodTextStyle: const TextStyle(fontSize: 8.0),
+    helpTextStyle: const TextStyle(fontSize: 8.0),
+    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16.0))),
+    hourMinuteShape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16.0))),
+    dayPeriodShape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16.0))),
+    inputDecorationTheme: const InputDecorationTheme(
       filled: true,
       fillColor: Colors.purple,
       enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.blue)),
@@ -309,7 +376,7 @@ class _TimePickerLauncher extends StatelessWidget {
                     await showTimePicker(
                       context: context,
                       initialEntryMode: entryMode,
-                      initialTime: const TimeOfDay(hour: 7, minute: 0),
+                      initialTime: const TimeOfDay(hour: 7, minute: 15),
                     );
                   },
                 );

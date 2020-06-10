@@ -55,69 +55,76 @@ class TimePickerThemeData with Diagnosticable {
   /// If this is null, the time picker defaults to [ColorScheme.background].
   final Color backgroundColor;
 
-  // TODO: Update documentation.
   /// The color used for the selected text in the header of a time picker.
   ///
-  /// This determines the selected color of the header segments that represent
-  /// hours, minutes, and am/pm.
+  /// This determines the selected color of the header text that represent
+  /// hours and minutes.
   ///
   /// If this is null, the time picker defaults to [ColorScheme.primary].
   final Color hourMinuteSelectedTextColor;
 
-  /// The color used for the selected option in the header of a time picker.
-  ///
-  /// This determines the active color of the header segments that represent
-  /// hours, minutes, and am/pm.
-  ///
-  /// If this is null, the time picker defaults to `ColorScheme.primary.withOpacity()`.
-  final Color hourMinuteSelectedColor;
-
-  /// The color used in the header of a time picker.
-  ///
-  /// This determines the active color of the header segments that represent
-  /// hours and minutes.
-  ///
-  /// If this is null, the time picker defaults to [ColorScheme.primary].
-  final Color hourMinuteUnselectedTextColor;
-
-  /// The color used in the header of a time picker.
-  ///
-  /// This determines the active color of the header segments that represent
-  /// hours and minutes.
-  ///
-  /// If this is null, the time picker defaults to [ColorScheme.primary].
-  final Color hourMinuteUnselectedColor;
-
-  /// The color used for the selected text in the header of a time picker.
+  /// The color used for the selected background in the header of a time picker.
   ///
   /// This determines the selected color of the header segments that represent
-  /// hours, minutes, and am/pm.
+  /// hours and minutes.
+  ///
+  /// If this is null, the time picker defaults to
+  /// `ColorScheme.primary.withOpacity(0.12)` if the brightness is light and
+  /// `ColorScheme.primary.withOpacity(0.24)` if the brightness is dark.
+  final Color hourMinuteSelectedColor;
+
+  /// The color used for the unselected text in the header of a time picker.
+  ///
+  /// This determines the unselected color of the header text that represent
+  /// hours and minutes.
+  ///
+  /// If this is null, the time picker defaults to [ColorScheme.onSurface].
+  final Color hourMinuteUnselectedTextColor;
+
+  /// The color used for the unselected background in the header of a time
+  /// picker.
+  ///
+  /// This determines the unselected color of the header segments that represent
+  /// hours and minutes.
+  ///
+  /// If this is null, the time picker defaults to
+  /// `ColorScheme.onSurface.withOpacity(0.12)`.
+  final Color hourMinuteUnselectedColor;
+
+  /// The color used for the selected text in the day period of a time picker.
+  ///
+  /// This determines the selected color of the text that represent AM/PM.
   ///
   /// If this is null, the time picker defaults to [ColorScheme.primary].
   final Color dayPeriodSelectedTextColor;
 
-  /// The color used for the selected option in the header of a time picker.
+  /// The color used for the selected background in the day period of a time
+  /// picker.
   ///
-  /// This determines the active color of the header segments that represent
-  /// hours, minutes, and am/pm.
+  /// This determines the selected color of the day period that represent
+  /// AM/PM.
   ///
-  /// If this is null, the time picker defaults to `ColorScheme.primary.withOpacity()`.
+  /// If this is null, the time picker defaults to
+  /// `ColorScheme.primary.withOpacity(0.12)` if the brightness is light and
+  /// `ColorScheme.primary.withOpacity(0.24)` if the brightness is dark.
   final Color dayPeriodSelectedColor;
 
-  /// The color used in the header of a time picker.
+  /// The color used for the unselected text in the day period of a time picker.
   ///
-  /// This determines the active color of the header segments that represent
-  /// hours and minutes.
+  /// This determines the unselected color of the text that represent AM/PM.
   ///
-  /// If this is null, the time picker defaults to [ColorScheme.primary].
+  /// If this is null, the time picker defaults to
+  /// `ColorScheme.onSurface.withOpacity(0.60)`.
   final Color dayPeriodUnselectedTextColor;
 
-  /// The color used in the header of a time picker.
+  /// The color used for the unselected background in the day period of a time
+  /// picker.
   ///
-  /// This determines the active color of the header segments that represent
-  /// hours and minutes.
+  /// This determines the unselected color of the day period that represent
+  /// AM/PM.
   ///
-  /// If this is null, the time picker defaults to [ColorScheme.primary].
+  /// If this is null, the time picker defaults to [Colors.transparent] to
+  /// allow the [Dialog]'s color to be used.
   final Color dayPeriodUnselectedColor;
 
   /// The color of the time picker dial's hand.
