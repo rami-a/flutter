@@ -353,8 +353,10 @@ class _StringFragment extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final TextStyle hourMinuteStyle = TimePickerTheme.of(context).hourMinuteTextStyle ?? Theme.of(context).textTheme.headline2;
-    final Color textColor = TimePickerTheme.of(context).hourMinuteUnselectedTextColor ?? Theme.of(context).colorScheme.onSurface;
+    final ThemeData theme = Theme.of(context);
+    final TimePickerThemeData timePickerTheme = TimePickerTheme.of(context);
+    final TextStyle hourMinuteStyle = timePickerTheme.hourMinuteTextStyle ?? theme.textTheme.headline2;
+    final Color textColor = timePickerTheme.hourMinuteUnselectedTextColor ?? theme.colorScheme.onSurface;
 
     return ExcludeSemantics(
       child: Padding(
